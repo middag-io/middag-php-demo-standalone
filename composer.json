@@ -1,0 +1,42 @@
+{
+    "name": "middag-io/demo-standalone",
+    "description": "Demo scaffold — middag-io/framework + middag-io/ui consumed standalone (no Moodle/WP). Validates standalone defaults and surfaces gaps.",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.2",
+        "ext-pdo": "*",
+        "ext-pdo_sqlite": "*",
+        "middag-io/framework": "@dev",
+        "middag-io/ui": "@dev",
+        "symfony/dotenv": "^7.0 || ^8.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Middag\\Demo\\Standalone\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Middag\\Demo\\Standalone\\Tests\\": "tests/"
+        }
+    },
+    "repositories": [
+        {"type": "path", "url": "../middag-php-framework", "options": {"symlink": true, "versions": {"middag-io/framework": "0.2.99"}}},
+        {"type": "path", "url": "../middag-php-ui", "options": {"symlink": true, "versions": {"middag-io/ui": "0.2.99"}}}
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {}
+    },
+    "scripts": {
+        "install:db": "@php bin/install.php",
+        "serve": "@php -S localhost:8080 -t public",
+        "test": "phpunit"
+    }
+}
