@@ -29,4 +29,4 @@ $container->get(TaskRepository::class)->install($schema);
 echo "✓ tasks table installed\n";
 
 (new AnsiOutboxStore($connection))->install($schema);
-echo "✓ middag_outbox table installed\n";
+echo "✓ middag_signal_outbox table installed\n";
