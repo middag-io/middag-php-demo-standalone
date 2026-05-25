@@ -41,7 +41,7 @@
       "options": {
         "symlink": true,
         "versions": {
-          "middag-io/ui": "0.2.99"
+          "middag-io/ui": "0.3.99"
         }
       }
     }
