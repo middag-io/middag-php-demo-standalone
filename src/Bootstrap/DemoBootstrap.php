@@ -120,15 +120,15 @@ final class DemoBootstrap implements BootstrapInterface
             ->setPublic(true);
         $c->setAlias(DispatcherInterface::class, SignalDispatcher::class)->setPublic(true);
 
-        // Command bus — pass container + null async (demo doesn't dispatch async commands).
-        $c->register(CommandBusInterface::class, CommandBus::class)
+        // Async dispatcher = sync fallback (lazy container resolution breaks cycle).
+        $c->register(AsyncCommandDispatcherInterface::class, SyncAsyncDispatcher::class)
             ->setArgument(0, new Reference('service_container'))
-            ->setArgument(1, null)
             ->setPublic(true);
 
-        // Async dispatcher = sync fallback (available but not wired into CommandBus to avoid cycle).
-        $c->register(AsyncCommandDispatcherInterface::class, SyncAsyncDispatcher::class)
-            ->setArgument(0, new Reference(CommandBusInterface::class))
+        // Command bus wires AsyncCommandDispatcher (no cycle: SyncAsyncDispatcher resolves bus lazily).
+        $c->register(CommandBusInterface::class, CommandBus::class)
+            ->setArgument(0, new Reference('service_container'))
+            ->setArgument(1, new Reference(AsyncCommandDispatcherInterface::class))
             ->setPublic(true);
 
         // Outbox (Ansi).
@@ -224,8 +224,8 @@ final class DemoBootstrap implements BootstrapInterface
     public static function routes(): RouteCollection
     {
         $routes = new RouteCollection();
-        $routes->add('tasks.index', new Route('/', ['_controller' => [TaskController::class, 'index']], [], [], '', [], ['GET']));
-        $routes->add('tasks.create', new Route('/tasks/new', ['_controller' => [TaskController::class, 'create']], [], [], '', [], ['GET', 'POST']));
+        $routes->add('tasks.index', new Route('/', ['_controller' => TaskController::class . '::index'], [], [], '', [], ['GET']));
+        $routes->add('tasks.create', new Route('/tasks/new', ['_controller' => TaskController::class . '::create'], [], [], '', [], ['GET', 'POST']));
 
         return $routes;
     }

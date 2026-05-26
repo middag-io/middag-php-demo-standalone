@@ -1,6 +1,10 @@
 # middag-php-demo-standalone
 
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
 Reference scaffold proving `middag-io/framework` + `middag-io/ui` boot without Moodle/WordPress adapters. Single domain (Task), one form, one signal listener, SQLite persistence.
+
+> **License**: Apache-2.0.
 
 Used to validate framework standalone defaults (`Middag\Framework\Infrastructure\Standalone\*`).
 
