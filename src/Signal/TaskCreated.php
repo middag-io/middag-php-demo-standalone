@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Middag\Demo\Standalone\Signal;
 
 use Middag\Demo\Standalone\Domain\Task;
-use Middag\Framework\Contract\Bus\AsyncSignalInterface;
+use Middag\Framework\Bus\Contract\AsyncSignalInterface;
 
 /**
  * Typed signal raised after a Task is persisted.

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Http;
 
+use Middag\Demo\Standalone\Command\CreateTaskCommand;
 use Middag\Demo\Standalone\Domain\Task;
 use Middag\Demo\Standalone\Domain\TaskRepository;
 use Middag\Demo\Standalone\Form\TaskForm;
-use Middag\Demo\Standalone\Signal\TaskCreated;
-use Middag\Framework\Service\DispatcherInterface;
-use Middag\Framework\Kernel\Http\AbstractController;
+use Middag\Framework\Bus\Contract\CommandBusInterface;
+use Middag\Framework\Http\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 
 final class TaskController extends AbstractController
@@ -24,8 +24,7 @@ final class TaskController extends AbstractController
 
     public function create(
         TaskForm $form,
-        TaskRepository $repository,
-        DispatcherInterface $dispatcher,
+        CommandBusInterface $bus,
     ): Response {
         if ($this->request->getMethod() !== 'POST') {
             return new Response($this->renderForm($form), Response::HTTP_OK, ['Content-Type' => 'text/html; charset=UTF-8']);
@@ -43,13 +42,10 @@ final class TaskController extends AbstractController
         }
 
         $values = $form->validated();
-        $task = Task::new(
+        $bus->handle(new CreateTaskCommand(
             title: (string) $values['title'],
             notes: isset($values['notes']) && $values['notes'] !== '' ? (string) $values['notes'] : null,
-        );
-
-        $saved = $repository->save($task);
-        $dispatcher->dispatch(new TaskCreated($saved));
+        ));
 
         return $this->redirect('/');
     }

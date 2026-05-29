@@ -1,0 +1,32 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Middag\Demo\Standalone\Bootstrap\DemoBootstrap;
+use Middag\Demo\Standalone\Console\DebugRequestCommand;
+use Middag\Demo\Standalone\Console\InstallCommand;
+use Middag\Demo\Standalone\Console\MigrateDiscoverCommand;
+use Middag\Demo\Standalone\Console\OutboxDrainCommand;
+use Middag\Framework\Kernel\ContainerFactory;
+use Symfony\Component\Console\Application;
+use Symfony\Component\Dotenv\Dotenv;
+
+$projectRoot = dirname(__DIR__);
+
+if (is_file($projectRoot . '/.env')) {
+    (new Dotenv())->load($projectRoot . '/.env');
+}
+
+$container = (new ContainerFactory())->build(new DemoBootstrap($projectRoot));
+
+$app = new Application('demo-standalone', '0.2.0');
+$app->addCommands([
+    new InstallCommand($container),
+    new DebugRequestCommand($container),
+    new OutboxDrainCommand($container, $projectRoot),
+    new MigrateDiscoverCommand($projectRoot),
+]);
+$app->run();

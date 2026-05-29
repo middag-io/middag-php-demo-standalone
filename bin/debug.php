@@ -7,12 +7,10 @@ require_once __DIR__ . '/../vendor/autoload.php';
 define('MIDDAG_DEBUG', true);
 
 use Middag\Demo\Standalone\Bootstrap\DemoBootstrap;
-use Middag\Demo\Standalone\Signal\TaskCreatedListener;
+use Middag\Framework\Http\HttpKernel;
 use Middag\Framework\Kernel\ContainerFactory;
-use Middag\Framework\Kernel\HttpKernel;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Symfony\Component\Dotenv\Dotenv;
-use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 $projectRoot = dirname(__DIR__);
 if (is_file($projectRoot . '/.env')) {
@@ -20,10 +18,7 @@ if (is_file($projectRoot . '/.env')) {
 }
 
 $container = (new ContainerFactory())->build(new DemoBootstrap($projectRoot));
-DemoBootstrap::wireListeners(
-    $container->get(EventDispatcherInterface::class),
-    $container->get(TaskCreatedListener::class),
-);
+DemoBootstrap::wireRuntime($container);
 
 /** @var HttpKernel $kernel */
 $kernel = $container->get(HttpKernel::class);

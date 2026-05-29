@@ -4,44 +4,50 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Bootstrap;
 
+use Middag\Demo\Standalone\Command\CreateTaskCommandHandler;
 use Middag\Demo\Standalone\Domain\TaskRepository;
 use Middag\Demo\Standalone\Form\TaskForm;
 use Middag\Demo\Standalone\Http\TaskController;
+use Middag\Demo\Standalone\Http\UiController;
+use Middag\Demo\Standalone\Outbox\OutboxDrainer;
 use Middag\Demo\Standalone\Signal\TaskCreated;
+use Middag\Demo\Standalone\Signal\TaskCreatedAsyncConsumer;
 use Middag\Demo\Standalone\Signal\TaskCreatedListener;
-use Middag\Framework\Contract\Bus\CommandBusInterface;
-use Middag\Framework\Contract\Core\ConfigResolverInterface;
-use Middag\Framework\Contract\Core\TranslatorInterface;
-use Middag\Framework\Contract\Kernel\BootstrapInterface;
-use Middag\Framework\Contract\Logging\ActorResolverInterface;
-use Middag\Framework\Contract\Logging\OriginResolverInterface;
-use Middag\Framework\Contract\Persistence\ConnectionInterface;
-use Middag\Framework\Infrastructure\Bus\AsyncCommandDispatcherInterface;
-use Middag\Framework\Infrastructure\Bus\CommandBus;
-use Middag\Framework\Infrastructure\Bus\OutboxStoreInterface;
-use Middag\Framework\Infrastructure\Bus\SignalDispatcher;
-use Middag\Framework\Infrastructure\Bus\UserContextResolverInterface;
-use Middag\Framework\Infrastructure\Form\ConditionEvaluator;
-use Middag\Framework\Infrastructure\Form\FormValidator;
-use Middag\Framework\Infrastructure\Persistence\AnsiConnection;
-use Middag\Framework\Infrastructure\Schema\SchemaBuilderAdapterInterface;
-use Middag\Framework\Infrastructure\Standalone\SqliteSchemaBuilderAdapter;
-use Middag\Framework\Infrastructure\Standalone\AnsiOutboxStore;
-use Middag\Framework\Infrastructure\Standalone\EnvConfigResolver;
-use Middag\Framework\Infrastructure\Standalone\IdentityTranslator;
-use Middag\Framework\Infrastructure\Standalone\NullActorResolver;
-use Middag\Framework\Infrastructure\Standalone\NullOriginResolver;
-use Middag\Framework\Infrastructure\Standalone\NullUserContextResolver;
-use Middag\Framework\Infrastructure\Standalone\SyncAsyncDispatcher;
-use Middag\Framework\Kernel\HttpKernel;
+use Middag\Framework\Bus\AnsiOutboxStore;
+use Middag\Framework\Bus\AsyncCommandDispatcherInterface;
+use Middag\Framework\Bus\AsyncConsumerRegistry;
+use Middag\Framework\Bus\CommandBus;
+use Middag\Framework\Bus\Contract\CommandBusInterface;
+use Middag\Framework\Bus\NullUserContextResolver;
+use Middag\Framework\Bus\OutboxStoreInterface;
+use Middag\Framework\Bus\SignalDispatcher;
+use Middag\Framework\Bus\SyncAsyncDispatcher;
+use Middag\Framework\Bus\UserContextResolverInterface;
+use Middag\Framework\Database\Contract\ConnectionInterface;
+use Middag\Framework\Database\PdoConnectionAdapter;
+use Middag\Framework\Database\Schema\SchemaBuilderAdapterInterface;
+use Middag\Framework\Database\Schema\SqliteSchemaBuilderAdapter;
+use Middag\Framework\Form\ConditionEvaluator;
+use Middag\Framework\Form\FormValidator;
+use Middag\Framework\Http\Client\DispatcherInterface;
+use Middag\Framework\Http\HttpKernel;
+use Middag\Framework\Kernel\Bootstrap\EnvConfigResolver;
+use Middag\Framework\Kernel\Bootstrap\IdentityTranslator;
+use Middag\Framework\Kernel\Contract\BootstrapInterface;
+use Middag\Framework\Kernel\Contract\ConfigResolverInterface;
+use Middag\Framework\Kernel\Contract\TranslatorInterface;
 use Middag\Framework\Kernel\Manager\HookManager;
 use Middag\Framework\Kernel\Manager\HookManagerInterface;
-use Middag\Framework\Service\DispatcherInterface;
+use Middag\Framework\Logging\Contract\ActorResolverInterface;
+use Middag\Framework\Logging\Contract\OriginResolverInterface;
+use Middag\Framework\Logging\NullActorResolver;
+use Middag\Framework\Logging\NullOriginResolver;
 use Monolog\Handler\StreamHandler;
 use Monolog\Level;
 use Monolog\Logger;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PDO;
+use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
 use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
@@ -91,7 +97,9 @@ final class DemoBootstrap implements BootstrapInterface
             ->setArgument(0, $dsn)
             ->setPublic(true);
 
-        $c->register(ConnectionInterface::class, AnsiConnection::class)
+        // Connection: PdoConnectionAdapter (replaces the removed AnsiConnection).
+        // Dialect arg is omitted → defaults to StandardSqlDialect (ANSI, fine for SQLite).
+        $c->register(ConnectionInterface::class, PdoConnectionAdapter::class)
             ->setArgument(0, new Reference(PDO::class))
             ->setPublic(true);
 
@@ -109,11 +117,15 @@ final class DemoBootstrap implements BootstrapInterface
         // User context.
         $c->register(UserContextResolverInterface::class, NullUserContextResolver::class)->setPublic(true);
 
+        // Async consumer registry — populated at runtime (wireRuntime); its
+        // presence is what makes SignalDispatcher Layer 3 write to the outbox.
+        $c->register(AsyncConsumerRegistry::class)->setPublic(true);
+
         // Signal dispatcher (3-tier).
         $c->register(SignalDispatcher::class)
             ->setArgument(0, new Reference(EventDispatcherInterface::class))
             ->setArgument(1, new Reference(LoggerInterface::class))
-            ->setArgument(2, null) // no async registry in demo
+            ->setArgument(2, new Reference(AsyncConsumerRegistry::class))
             ->setArgument(3, new Reference(OutboxStoreInterface::class))
             ->setArgument(4, new Reference(HookManagerInterface::class))
             ->setArgument(5, new Reference(UserContextResolverInterface::class))
@@ -156,8 +168,27 @@ final class DemoBootstrap implements BootstrapInterface
             ->setArgument(0, new Reference(LoggerInterface::class))
             ->setPublic(true);
 
+        // Async consumer for TaskCreated — delivered by the outbox drainer.
+        $c->register(TaskCreatedAsyncConsumer::class)
+            ->setArgument(0, new Reference(LoggerInterface::class))
+            ->setPublic(true);
+
+        // CQRS command handler (resolved by CommandBus via the {Command}Handler convention).
+        $c->register(CreateTaskCommandHandler::class)
+            ->setArgument(0, new Reference(TaskRepository::class))
+            ->setArgument(1, new Reference(DispatcherInterface::class))
+            ->setPublic(true);
+
+        // Outbox drainer (consumed by the `outbox:drain` console command).
+        $c->register(OutboxDrainer::class)
+            ->setArgument(0, new Reference(ConnectionInterface::class))
+            ->setArgument(1, new Reference('service_container'))
+            ->setArgument(2, new Reference(LoggerInterface::class))
+            ->setPublic(true);
+
         // Demo controllers (resolved by FQCN in routes).
         $c->register(TaskController::class)->setPublic(true);
+        $c->register(UiController::class)->setPublic(true);
 
         // HTTP kernel + routing.
         $c->register(RouteCollection::class)
@@ -202,14 +233,24 @@ final class DemoBootstrap implements BootstrapInterface
     }
 
     /**
-     * Post-compile hook — wire the TaskCreated listener.
-     *
-     * Called by index.php after container compile because addListener requires
-     * the actual EventDispatcher instance (not the builder).
+     * Post-compile runtime wiring. Registers the SYNC listener (Layer 1, via
+     * Symfony EventDispatcher) and the ASYNC consumer (Layer 3 → outbox, via
+     * AsyncConsumerRegistry). Called by every entrypoint after the container is
+     * built, because both registries need the live service instances.
      */
-    public static function wireListeners(EventDispatcherInterface $dispatcher, TaskCreatedListener $listener): void
+    public static function wireRuntime(ContainerInterface $container): void
     {
-        $dispatcher->addListener(TaskCreated::class, $listener);
+        $container->get(EventDispatcherInterface::class)->addListener(
+            TaskCreated::class,
+            $container->get(TaskCreatedListener::class),
+        );
+
+        $container->get(AsyncConsumerRegistry::class)->register(
+            TaskCreated::class,
+            TaskCreatedAsyncConsumer::class,
+            '__invoke',
+            0,
+        );
     }
 
     public static function pdoFactory(string $dsn): PDO
@@ -226,6 +267,10 @@ final class DemoBootstrap implements BootstrapInterface
         $routes = new RouteCollection();
         $routes->add('tasks.index', new Route('/', ['_controller' => TaskController::class . '::index'], [], [], '', [], ['GET']));
         $routes->add('tasks.create', new Route('/tasks/new', ['_controller' => TaskController::class . '::create'], [], [], '', [], ['GET', 'POST']));
+
+        // ui 0.5.0 contract validation endpoints (JSON).
+        $routes->add('ui.page', new Route('/ui/page', ['_controller' => UiController::class . '::page'], [], [], '', [], ['GET']));
+        $routes->add('ui.fragment', new Route('/ui/fragment', ['_controller' => UiController::class . '::fragment'], [], [], '', [], ['GET']));
 
         return $routes;
     }

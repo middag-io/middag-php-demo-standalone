@@ -1,6 +1,6 @@
 {
   "name": "middag-io/demo-standalone",
-  "description": "Demo scaffold — middag-io/framework + middag-io/ui consumed standalone (no Moodle/WP). Validates standalone defaults and surfaces gaps.",
+  "description": "Demo harness — middag-io/framework + middag-io/ui consumed standalone (no Moodle/WP). Validates the ui 0.5.0 contract (full PageContract + partial Fragment) end-to-end and showcases Symfony console/lock/finder/filesystem integration.",
   "type": "project",
   "license": "Apache-2.0",
   "require": {
@@ -12,7 +12,12 @@
     "symfony/dotenv": "^7.0 || ^8.0"
   },
   "require-dev": {
-    "phpunit/phpunit": "^11.0"
+    "phpunit/phpunit": "^11.0",
+    "symfony/console": "^7.0 || ^8.0",
+    "symfony/event-dispatcher": "^7.0 || ^8.0",
+    "symfony/filesystem": "^7.0 || ^8.0",
+    "symfony/finder": "^7.0 || ^8.0",
+    "symfony/lock": "^7.0 || ^8.0"
   },
   "autoload": {
     "psr-4": {
@@ -31,7 +36,7 @@
       "options": {
         "symlink": true,
         "versions": {
-          "middag-io/framework": "0.2.99"
+          "middag-io/framework": "0.3.99"
         }
       }
     },
@@ -41,7 +46,7 @@
       "options": {
         "symlink": true,
         "versions": {
-          "middag-io/ui": "0.3.99"
+          "middag-io/ui": "0.5.0"
         }
       }
     }
@@ -53,8 +58,11 @@
     "allow-plugins": {}
   },
   "scripts": {
-    "install:db": "@php bin/install.php",
+    "install:db": "@php bin/console install:db",
     "serve": "@php -S localhost:8080 -t public",
+    "console": "@php bin/console",
+    "outbox:drain": "@php bin/console outbox:drain",
+    "migrate:discover": "@php bin/console migrate:discover",
     "test": "phpunit"
   }
 }

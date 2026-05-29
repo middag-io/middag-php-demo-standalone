@@ -6,9 +6,9 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 use Middag\Demo\Standalone\Bootstrap\DemoBootstrap;
 use Middag\Demo\Standalone\Domain\TaskRepository;
-use Middag\Framework\Contract\Persistence\ConnectionInterface;
-use Middag\Framework\Infrastructure\Schema\SchemaBuilderAdapterInterface;
-use Middag\Framework\Infrastructure\Standalone\AnsiOutboxStore;
+use Middag\Framework\Bus\AnsiOutboxStore;
+use Middag\Framework\Database\Contract\ConnectionInterface;
+use Middag\Framework\Database\Schema\SchemaBuilderAdapterInterface;
 use Middag\Framework\Kernel\ContainerFactory;
 use Symfony\Component\Dotenv\Dotenv;
 

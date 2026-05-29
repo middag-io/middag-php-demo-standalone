@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Domain;
 
-use Middag\Framework\Contract\Persistence\ConnectionInterface;
-use Middag\Framework\Infrastructure\Schema\SchemaBuilderAdapterInterface;
+use Middag\Framework\Database\Contract\ConnectionInterface;
+use Middag\Framework\Database\Schema\SchemaBuilderAdapterInterface;
 
 final readonly class TaskRepository
 {

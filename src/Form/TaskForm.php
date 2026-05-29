@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Form;
 
-use Middag\Framework\Infrastructure\Form\AbstractForm;
-use Middag\Framework\Infrastructure\Form\Field;
+use Middag\Framework\Form\AbstractForm;
+use Middag\Framework\Form\Field;
 
 /**
  * Task creation form — exercises framework Form engine standalone.
