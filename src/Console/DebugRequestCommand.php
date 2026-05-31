@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Console;
 
-use Middag\Demo\Standalone\Bootstrap\DemoBootstrap;
 use Middag\Framework\Http\HttpKernel;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Container\ContainerInterface;
@@ -12,10 +11,11 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Routing\RequestContext;
 
 /**
- * `debug:request <path> <method>` — run a single request through the kernel
- * and print status + body. Console wrapper around the legacy bin/debug.php.
+ * `debug:request <path> [method]` — run one request through the PSR-15 kernel
+ * and print status + body (the container is already runtime-wired by DemoKernel).
  */
 final class DebugRequestCommand extends Command
 {
@@ -34,15 +34,17 @@ final class DebugRequestCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        DemoBootstrap::wireRuntime($this->container);
-
         /** @var HttpKernel $kernel */
         $kernel = $this->container->get(HttpKernel::class);
 
+        $method = (string) $input->getArgument('method');
+        $path = (string) $input->getArgument('path');
+
+        // The kernel matches routes using the RequestContext method (see public/index.php).
+        $this->container->get(RequestContext::class)->setMethod($method);
+
         $psr17 = new Psr17Factory();
-        $request = $psr17
-            ->createServerRequest((string) $input->getArgument('method'), (string) $input->getArgument('path'))
-            ->withHeader('Accept', 'application/json');
+        $request = $psr17->createServerRequest($method, $path)->withHeader('Accept', 'application/json');
 
         $response = $kernel->handle($request);
 

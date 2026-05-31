@@ -4,37 +4,39 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-define('MIDDAG_DEBUG', true);
+use Middag\Framework\Logging\LoggerFactory;
+use Middag\Framework\Logging\NullActorResolver;
+use Middag\Framework\Logging\NullOriginResolver;
+use Middag\Framework\Shared\Enum\DebugMode;
+use Middag\Framework\Shared\Util\Debug;
+use Middag\Framework\Shared\Util\Environment;
+use Middag\Framework\Shared\Util\Typing;
 
-use Middag\Demo\Standalone\Bootstrap\DemoBootstrap;
-use Middag\Framework\Http\HttpKernel;
-use Middag\Framework\Kernel\ContainerFactory;
-use Nyholm\Psr7\Factory\Psr17Factory;
-use Symfony\Component\Dotenv\Dotenv;
-
+/**
+ * Showcase for the framework's Shared\Util helpers (Environment / Typing / Debug).
+ * For request debugging through the HTTP kernel, use `bin/console debug:request`.
+ */
 $projectRoot = dirname(__DIR__);
-if (is_file($projectRoot . '/.env')) {
-    (new Dotenv())->load($projectRoot . '/.env');
-}
 
-$container = (new ContainerFactory())->build(new DemoBootstrap($projectRoot));
-DemoBootstrap::wireRuntime($container);
+echo "== Shared\\Util\\Environment ==\n";
+echo 'environment  : ' . Environment::getEnvironment() . "\n";
+echo 'isDevelopment: ' . (Environment::isDevelopment() ? 'true' : 'false') . "\n";
+echo 'isProduction : ' . (Environment::isProduction() ? 'true' : 'false') . "\n";
 
-/** @var HttpKernel $kernel */
-$kernel = $container->get(HttpKernel::class);
+echo "\n== Shared\\Util\\Typing ==\n";
+echo "toInt('42')     = " . var_export(Typing::toInt('42'), true) . "\n";
+echo "toBool('yes')   = " . var_export(Typing::toBool('yes'), true) . "\n";
+echo "toBool('off')   = " . var_export(Typing::toBool('off'), true) . "\n";
+echo "toFloat('3.14') = " . var_export(Typing::toFloat('3.14'), true) . "\n";
 
-$psr17 = new Psr17Factory();
-$path = $argv[1] ?? '/';
-$method = $argv[2] ?? 'GET';
-$req = $psr17->createServerRequest($method, $path)->withHeader('Accept', 'application/json');
+echo "\n== Shared\\Util\\Debug (FULL) ==\n";
+$logger = (new LoggerFactory(
+    $projectRoot . '/var/log',
+    new NullActorResolver(),
+    new NullOriginResolver(),
+))->forChannel('demo', 'debug');
 
-try {
-    $resp = $kernel->handle($req);
-    echo "STATUS: " . $resp->getStatusCode() . "\n";
-    echo "BODY:\n" . (string) $resp->getBody() . "\n";
-} catch (\Throwable $e) {
-    echo "EXCEPTION: " . $e::class . "\n";
-    echo "MSG: " . $e->getMessage() . "\n";
-    echo "FILE: " . $e->getFile() . ":" . $e->getLine() . "\n";
-    echo "TRACE:\n" . $e->getTraceAsString() . "\n";
-}
+Debug::setRuntime($logger, static fn (): int => DebugMode::FULL->value);
+Debug::trace('bin/debug.php ran', DebugMode::NORMAL);
+
+echo "Debug::trace emitted to var/log/demo/debug/*.log\n";

@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Console;
 
-use Middag\Demo\Standalone\Domain\TaskRepository;
-use Middag\Framework\Bus\AnsiOutboxStore;
+use Middag\Demo\Standalone\Schema\DemoMigrationRunner;
 use Middag\Framework\Database\Contract\ConnectionInterface;
+use Middag\Framework\Database\Schema\MysqlVersionTracker;
+use Middag\Framework\Database\Schema\SchemaBuilder;
 use Middag\Framework\Database\Schema\SchemaBuilderAdapterInterface;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Command\Command;
@@ -14,8 +15,12 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * `install:db` — create the demo tables (tasks + signal outbox).
- * Console wrapper around the framework schema-builder DDL.
+ * `install:db` — create the demo schema + record its version.
+ *
+ * Drives the framework schema layer end-to-end: SchemaBuilder (descriptors from
+ * db/schema/*.php) -> SqliteSchemaBuilderAdapter -> DemoMigrationRunner, with the
+ * version tracked in `_middag_schema_versions` (MysqlVersionTracker's ANSI DDL
+ * runs on SQLite too). Idempotent.
  */
 final class InstallCommand extends Command
 {
@@ -26,20 +31,28 @@ final class InstallCommand extends Command
 
     protected function configure(): void
     {
-        $this->setName('install:db')->setDescription('Create demo tables (tasks + signal outbox)');
+        $this->setName('install:db')
+            ->setDescription('Create the demo schema + record version (SchemaBuilder + MigrationRunner)');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        /** @var SchemaBuilderAdapterInterface $schema */
-        $schema = $this->container->get(SchemaBuilderAdapterInterface::class);
+        /** @var SchemaBuilder $builder */
+        $builder = $this->container->get(SchemaBuilder::class);
+        /** @var SchemaBuilderAdapterInterface $adapter */
+        $adapter = $this->container->get(SchemaBuilderAdapterInterface::class);
         /** @var ConnectionInterface $connection */
         $connection = $this->container->get(ConnectionInterface::class);
 
-        $this->container->get(TaskRepository::class)->install($schema);
-        (new AnsiOutboxStore($connection))->install($schema);
+        $runner = new DemoMigrationRunner($builder, $adapter, new MysqlVersionTracker($connection, 'demo'));
 
-        $output->writeln('<info>tasks + middag_signal_outbox installed</info>');
+        $old = $runner->getInstalledVersion();
+        $runner->install();
+        $runner->upgrade($old);
+        $runner->setInstalledVersion(DemoMigrationRunner::VERSION);
+
+        $output->writeln(sprintf('<info>tables:</info> %s', implode(', ', $builder->tables())));
+        $output->writeln(sprintf('<info>version:</info> %d -> %d', $old, DemoMigrationRunner::VERSION));
 
         return Command::SUCCESS;
     }

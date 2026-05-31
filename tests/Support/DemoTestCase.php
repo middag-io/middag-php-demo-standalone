@@ -4,24 +4,25 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Tests\Support;
 
-use Middag\Demo\Standalone\Bootstrap\DemoBootstrap;
-use Middag\Demo\Standalone\Domain\TaskRepository;
-use Middag\Framework\Bus\AnsiOutboxStore;
-use Middag\Framework\Database\Contract\ConnectionInterface;
+use Middag\Demo\Standalone\Bootstrap\DemoKernel;
+use Middag\Framework\Database\Schema\SchemaBuilder;
 use Middag\Framework\Database\Schema\SchemaBuilderAdapterInterface;
 use Middag\Framework\Http\HttpKernel;
 use Middag\Framework\Http\StandaloneKernel;
-use Middag\Framework\Kernel\ContainerFactory;
+use Middag\Framework\Kernel\Facade\AbstractFacade;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\RequestContext;
 
 /**
- * Base for demo harness tests. Boots the real composition root against an
- * in-memory SQLite database (one shared PDO service per test), installs the
- * schema, and wires runtime listeners/consumers — so each test exercises the
- * actual framework + ui stack, not mocks.
+ * Base for harness tests. Boots the REAL composition root (DemoKernel) against an
+ * in-memory SQLite database — no mocks — installs the schema, and lets each test
+ * exercise the actual framework + ui stack, failing loudly if either drifts.
+ *
+ * AbstractFacade::reset() runs first so the static HookFacade cache from a prior
+ * test never leaks into the next (each test gets a fresh container + HookManager).
  */
 abstract class DemoTestCase extends TestCase
 {
@@ -29,27 +30,45 @@ abstract class DemoTestCase extends TestCase
 
     protected function setUp(): void
     {
+        AbstractFacade::reset();
         $_ENV['DB_DSN'] = 'sqlite::memory:';
 
-        $this->container = (new ContainerFactory())->build(new DemoBootstrap(dirname(__DIR__, 2)));
+        $this->container = DemoKernel::boot($this->projectRoot());
 
-        /** @var SchemaBuilderAdapterInterface $schema */
-        $schema = $this->container->get(SchemaBuilderAdapterInterface::class);
-        /** @var ConnectionInterface $connection */
-        $connection = $this->container->get(ConnectionInterface::class);
-
-        $this->container->get(TaskRepository::class)->install($schema);
-        (new AnsiOutboxStore($connection))->install($schema);
-
-        DemoBootstrap::wireRuntime($this->container);
+        // Install the schema on the shared in-memory connection.
+        /** @var SchemaBuilder $builder */
+        $builder = $this->container->get(SchemaBuilder::class);
+        /** @var SchemaBuilderAdapterInterface $adapter */
+        $adapter = $this->container->get(SchemaBuilderAdapterInterface::class);
+        foreach ($builder->all() as $name => $descriptor) {
+            if (!$adapter->tableExists($name)) {
+                $adapter->createTable($descriptor);
+            }
+        }
     }
 
-    /** @param array<string, mixed> $params */
-    protected function handle(string $method, string $path, array $params = []): Response
+    protected function projectRoot(): string
     {
+        return \dirname(__DIR__, 2);
+    }
+
+    /**
+     * Run a request through the real PSR-15 kernel (via the http-foundation bridge).
+     *
+     * @param array<string, mixed> $params
+     * @param array<string, mixed> $server
+     */
+    protected function handle(string $method, string $path, array $params = [], array $server = []): Response
+    {
+        $request = Request::create($path, $method, $params, [], [], $server);
+
+        // Seed the RequestContext from the request so the kernel's UrlMatcher sees
+        // the real HTTP method (see public/index.php for why this is needed).
+        $this->container->get(RequestContext::class)->fromRequest($request);
+
         $kernel = new StandaloneKernel($this->container->get(HttpKernel::class));
 
-        return $kernel->handle(Request::create($path, $method, $params), catch: false);
+        return $kernel->handle($request, catch: false);
     }
 
     /** @return array<string, mixed> */

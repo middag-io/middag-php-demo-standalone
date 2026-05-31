@@ -5,102 +5,82 @@ declare(strict_types=1);
 namespace Middag\Demo\Standalone\Http;
 
 use Middag\Demo\Standalone\Command\CreateTaskCommand;
-use Middag\Demo\Standalone\Domain\Task;
-use Middag\Demo\Standalone\Domain\TaskRepository;
+use Middag\Demo\Standalone\Domain\Doctrine\Task as TaskEntity;
+use Middag\Demo\Standalone\Domain\Doctrine\TaskRepository;
+use Middag\Demo\Standalone\Domain\Eloquent\Task;
 use Middag\Demo\Standalone\Form\TaskForm;
-use Middag\Framework\Bus\Contract\CommandBusInterface;
+use Middag\Demo\Standalone\Http\Request\CreateTaskRequest;
+use Middag\Framework\Bus\MessageBusInterface;
+use Middag\Framework\Form\Renderer\RendererRegistry;
+use Middag\Framework\Http\Attribute\Auth;
 use Middag\Framework\Http\Controller\AbstractController;
+use Middag\Framework\Http\Inertia\InertiaFactory;
+use Middag\Ui\Shared\Enum\RenderTarget;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Task UI — Inertia responses (first visit => HTML shell; X-Inertia => JSON).
+ *
+ * Constructor injection comes from auto-discovery + autowiring; the kernel also
+ * injects the container + request via the ControllerInterface setters. The
+ * read path mixes paradigms: index() reads via the Data-Mapper repository,
+ * show() via Active Record (findOrFail -> MiddagNotFoundException -> 404).
+ */
 final class TaskController extends AbstractController
 {
-    public function index(TaskRepository $repository): Response
-    {
-        $tasks = $repository->all();
-        $html = $this->renderIndex($tasks);
+    public function __construct(
+        private readonly MessageBusInterface $bus,
+        private readonly RendererRegistry $renderers,
+        private readonly TaskForm $form,
+        private readonly TaskRepository $tasks,
+    ) {}
 
-        return new Response($html, Response::HTTP_OK, ['Content-Type' => 'text/html; charset=UTF-8']);
+    public function index(): Response
+    {
+        $tasks = array_map(
+            static fn (TaskEntity $task): array => $task->toArray(),
+            $this->tasks->latest(),
+        );
+
+        return InertiaFactory::render('Tasks/Index', [
+            'tasks' => $tasks,
+            'form' => $this->formProps(),
+        ], $this->request)->toResponse();
     }
 
-    public function create(
-        TaskForm $form,
-        CommandBusInterface $bus,
-    ): Response {
-        if ($this->request->getMethod() !== 'POST') {
-            return new Response($this->renderForm($form), Response::HTTP_OK, ['Content-Type' => 'text/html; charset=UTF-8']);
-        }
+    public function newTask(): Response
+    {
+        return InertiaFactory::render('Tasks/Create', ['form' => $this->formProps()], $this->request)->toResponse();
+    }
 
-        /** @var array<string, mixed> $input */
-        $input = $this->request->request->all();
-        $form->hydrate($input);
-        $form->validate();
+    public function store(CreateTaskRequest $request): Response
+    {
+        $data = $request->validated();
 
-        if (!$form->isSubmittedAndValid()) {
-            return new Response($this->renderForm($form), Response::HTTP_UNPROCESSABLE_ENTITY, [
-                'Content-Type' => 'text/html; charset=UTF-8',
-            ]);
-        }
-
-        $values = $form->validated();
-        $bus->handle(new CreateTaskCommand(
-            title: (string) $values['title'],
-            notes: isset($values['notes']) && $values['notes'] !== '' ? (string) $values['notes'] : null,
+        $this->bus->dispatch(new CreateTaskCommand(
+            title: (string) $data['title'],
+            notes: isset($data['notes']) && $data['notes'] !== '' ? (string) $data['notes'] : null,
+            priority: (string) ($data['priority'] ?? 'normal'),
+            status: (string) ($data['status'] ?? 'open'),
+            dueOn: isset($data['due_on']) && $data['due_on'] !== '' ? (string) $data['due_on'] : null,
         ));
 
         return $this->redirect('/');
     }
 
-    /** @param array<int, Task> $tasks */
-    private function renderIndex(array $tasks): string
+    #[Auth(login: true)]
+    public function show(int $id): Response
     {
-        $rows = '';
-        foreach ($tasks as $task) {
-            $rows .= sprintf(
-                '<li><strong>%s</strong><br>%s<br><small>created %s</small></li>',
-                htmlspecialchars($task->title, ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars($task->notes ?? '', ENT_QUOTES, 'UTF-8'),
-                date('Y-m-d H:i:s', $task->createdAt),
-            );
-        }
-        if ($rows === '') {
-            $rows = '<li><em>no tasks yet</em></li>';
-        }
+        // #[Auth] is inert standalone (no host filter) — the request still lands.
+        // findOrFail throws MiddagNotFoundException (404) on a missing id.
+        $task = Task::findOrFail($id);
 
-        return <<<HTML
-<!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><title>Tasks — middag-php-demo-standalone</title></head>
-<body>
-<h1>Tasks</h1>
-<p><a href="/tasks/new">+ New task</a></p>
-<ul>{$rows}</ul>
-</body></html>
-HTML;
+        return InertiaFactory::render('Tasks/Show', ['task' => $task->toArray()], $this->request)->toResponse();
     }
 
-    private function renderForm(TaskForm $form): string
+    /** @return array<string, mixed> */
+    private function formProps(): array
     {
-        $errors = $form->errors();
-        $values = $form->state()->values();
-        $titleVal = htmlspecialchars((string) ($values['title'] ?? ''), ENT_QUOTES, 'UTF-8');
-        $notesVal = htmlspecialchars((string) ($values['notes'] ?? ''), ENT_QUOTES, 'UTF-8');
-        $titleErr = isset($errors['title']) ? '<div style="color:red">' . htmlspecialchars(is_array($errors['title']) ? implode(', ', $errors['title']) : $errors['title'], ENT_QUOTES, 'UTF-8') . '</div>' : '';
-
-        return <<<HTML
-<!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><title>New task</title></head>
-<body>
-<h1>New task</h1>
-<form method="post" action="/tasks/new">
-  <p>
-    <label>Title<br><input name="title" value="{$titleVal}"></label>
-    {$titleErr}
-  </p>
-  <p>
-    <label>Notes<br><textarea name="notes" rows="4" cols="40">{$notesVal}</textarea></label>
-  </p>
-  <p><button type="submit">Create</button> · <a href="/">cancel</a></p>
-</form>
-</body></html>
-HTML;
+        return $this->renderers->get(RenderTarget::PROPS)->render($this->form)->props;
     }
 }

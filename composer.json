@@ -1,6 +1,6 @@
 {
   "name": "middag-io/demo-standalone",
-  "description": "Demo harness — middag-io/framework + middag-io/ui consumed standalone (no Moodle/WP). Validates the ui 0.5.0 contract (full PageContract + partial Fragment) end-to-end and showcases Symfony console/lock/finder/filesystem integration.",
+  "description": "Standalone harness proving the middag-io/framework 0.4.0 OSS surface + middag-io/ui 0.6.0 contracts — no Moodle/WordPress host, no proprietary core. Boots a real PSR-15 HTTP app + Symfony Console command worker over SQLite (Active Record + Data Mapper, converged Symfony Messenger bus, hooks, Inertia, forms, schema migrations, logging).",
   "type": "project",
   "license": "Apache-2.0",
   "repositories": [
@@ -18,6 +18,7 @@
     "symfony/dotenv": "^7.0 || ^8.0"
   },
   "require-dev": {
+    "doctrine/dbal": "^4.0",
     "phpunit/phpunit": "^11.0",
     "symfony/console": "^7.0 || ^8.0",
     "symfony/event-dispatcher": "^7.0 || ^8.0",
@@ -43,9 +44,10 @@
   },
   "scripts": {
     "install:db": "@php bin/console install:db",
-    "serve": "@php -S localhost:8080 -t public",
+    "serve": "@php -S localhost:8080 -t public public/index.php",
     "console": "@php bin/console",
-    "outbox:drain": "@php bin/console outbox:drain",
+    "worker:consume": "@php bin/console worker:consume",
+    "logs:clean": "@php bin/console logs:clean",
     "migrate:discover": "@php bin/console migrate:discover",
     "test": "phpunit"
   }

@@ -79,6 +79,7 @@ pnpm-debug.log*
 /vendor/
 /node_modules/
 /**/node_modules/
+composer.lock
 
 .venv/
 venv/
