@@ -1,10 +1,264 @@
-/vendor/
-/var/*
-!/var/.gitkeep
+# =============================================================================
+# MIDDAG .gitignore de referência
+# =============================================================================
+#
+# Este arquivo serve como exemplo base para repos MIDDAG. Ele combina os casos
+# mais comuns encontrados nos repos locais: Moodle, WordPress, PHP/Composer,
+# Node/VitePress, Docker, Cloudflare, agentes de IA e operações locais.
+#
+# Princípios:
+# - Nunca versionar secrets, dumps, uploads, caches ou artefatos de build.
+# - Manter templates e locks rastreados quando eles tornam o build reprodutível.
+# - Preferir regras por diretório quando o projeto tiver estrutura conhecida.
+#
+# Normalmente devem continuar rastreados:
+# - composer.lock
+# - package-lock.json / pnpm-lock.yaml / yarn.lock
+# - .env.example
+# - .env.*.tpl
+# - docker-compose.yml
+# - Makefile
+# - configurações de ferramentas (.php-cs-fixer.php, phpstan.neon, rector.php)
+
+# -----------------------------------------------------------------------------
+# Sistema operacional e editores
+# -----------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+.idea/
+.vscode/
+*.sublime-*
+*.swp
+*.swo
+*~
+
+# -----------------------------------------------------------------------------
+# Secrets, ambientes locais e credenciais
+# -----------------------------------------------------------------------------
 .env
-.env.local
-.phpunit.cache/
+.env.*
+!.env.example
+!.env.*.example
+!.env.tpl
+!.env.*.tpl
+
+auth.json
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+
+# -----------------------------------------------------------------------------
+# Logs, dumps, backups e dados sensíveis
+# -----------------------------------------------------------------------------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+/backups/
+/backup/
+/dump/
+/dumps/
+*.sql
+*.sql.gz
+*.mysql
+*.tar.gz
+*.tgz
+*.zip
+
+# -----------------------------------------------------------------------------
+# Dependências PHP, Node e Python
+# -----------------------------------------------------------------------------
+/vendor/
+/node_modules/
+/**/node_modules/
+
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# -----------------------------------------------------------------------------
+# Workspace de desenvolvimento de libs (Composer path-repo)
+# -----------------------------------------------------------------------------
+# Convenção MIDDAG: /libs/ na raiz hospeda clones locais de libs (middag-php-*),
+# plugins (moodle-local_*, moodle-mod_*, wp-plugin-*) e estudos em desenvolvimento
+# ativo, referenciados via Composer path-repo com symlink:
+#
+#   "repositories": [{"type": "path", "url": "libs/*", "options": {"symlink": true}}]
+#
+# Cada subdiretório é um repo Git próprio — não deve ser versionado no projeto
+# que o consome. Para promover uma lib de path-repo pra Composer-managed, basta
+# remover o symlink: o Composer cai pra próxima source (Satis/VCS).
+/libs/
+
+# -----------------------------------------------------------------------------
+# Caches e saídas de ferramentas de qualidade
+# -----------------------------------------------------------------------------
+.cache/
 .php-cs-fixer.cache
-composer.lock
-/.env.bak
-/.claude/
+.phpunit.cache/
+.phpunit.result.cache
+.phpstan-cache/
+phpstan-baseline.neon
+.deptrac.cache
+.rector/
+
+coverage/
+.nyc_output/
+*.tsbuildinfo
+
+# -----------------------------------------------------------------------------
+# Builds e artefatos de distribuição
+# -----------------------------------------------------------------------------
+/build/
+/dist/
+/public/build/
+/coverage/
+/artifacts/
+/release/
+/releases/
+
+# -----------------------------------------------------------------------------
+# Documentação: VitePress e MkDocs
+# -----------------------------------------------------------------------------
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+docs/.vitepress/.temp/
+docs-site/.vitepress/dist/
+docs-site/.vitepress/cache/
+docs-site/.vitepress/.temp/
+
+/site/
+/mkdocs-material/
+
+# -----------------------------------------------------------------------------
+# Moodle
+# -----------------------------------------------------------------------------
+/moodledata/
+/phpunit/
+/behat/
+
+# Plugins Moodle podem gerar ZIPs locais de distribuição. Se um ZIP precisa ser
+# publicado, use GitHub Release ou artifact de CI em vez de versionar o arquivo.
+/local_*.zip
+/mod_*.zip
+/block_*.zip
+/theme_*.zip
+/tool_*.zip
+/auth_*.zip
+/enrol_*.zip
+/filter_*.zip
+/report_*.zip
+
+# -----------------------------------------------------------------------------
+# WordPress
+# -----------------------------------------------------------------------------
+# Core e conteúdo são instalados/gerenciados por Composer, Docker ou ambiente.
+/wp/
+/wordpress/
+/wp-content/plugins/
+/wp-content/themes/
+/wp-content/uploads/
+/wp-content/upgrade/
+/wp-content/cache/
+/wp-content/debug.log
+
+# Exceções comuns quando o repo controla mu-plugins ou drop-ins.
+!/wp-content/mu-plugins/
+!/wp-content/object-cache.php
+
+# ZIPs premium/legados; novos pacotes devem vir de Private Satis ou releases.
+/plugins-zip/
+
+# -----------------------------------------------------------------------------
+# Frontend, UI e Cloudflare
+# -----------------------------------------------------------------------------
+/ui/dist/
+/ui/build/
+/ui/.npmrc
+ui*/dist/
+ui*/build/
+ui*/.npmrc
+
+/.next/
+/.nuxt/
+/out/
+/.wrangler/
+/.open-next/
+/.vercel/
+
+# -----------------------------------------------------------------------------
+# Docker e volumes locais
+# -----------------------------------------------------------------------------
+docker-compose.override.yml
+compose.override.yml
+
+/data/
+/volumes/
+/storage/
+/tmp/
+/temp/
+
+# -----------------------------------------------------------------------------
+# Estado operacional local MIDDAG
+# -----------------------------------------------------------------------------
+# VIGIM: versionar estrutura, mas não inventários/snapshots/caches locais.
+.vigim/content/data/*
+!.vigim/content/data/.gitkeep
+!.vigim/content/data/*.csv
+
+# -----------------------------------------------------------------------------
+# Agentes, skills e configurações locais de IA
+# -----------------------------------------------------------------------------
+# AIOX: instalador/runtime local de agentes. Guia:
+# docs-site/guides/G09-ai-agents-local-setup.md
+.aiox-core/
+.aiox-core/local/
+.aiox/install-log.txt
+
+# Ralph: estado de execução local do agente/plugin.
+.ralph/.call_count
+.ralph/.circuit_breaker_history
+.ralph/.circuit_breaker_state
+.ralph/.claude_session_id
+.ralph/.exit_signals
+.ralph/.last_reset
+.ralph/.loop_start_sha
+.ralph/.ralph_session
+.ralph/.ralph_session_history
+.ralph/live.log
+.ralph/logs/
+.ralph/progress.json
+.ralph/status.json
+.ralph/docs/generated/
+
+# GStack: estado local de orquestração/stack de agentes.
+.gstack/
+
+# Caveman/Claude/Codex e outros plugins podem instalar skills localmente.
+# O repositório deve versionar apenas configurações compartilhadas e revisadas.
+.agents/
+.claude/settings.local.json
+.claude/skills/
+skills-lock.json
+
+# -----------------------------------------------------------------------------
+# Runtime/var (DB local, migrations, locks)
+# -----------------------------------------------------------------------------
+/var/
+
+# -----------------------------------------------------------------------------
+# Arquivos temporários de trabalho
+# -----------------------------------------------------------------------------
+*.tmp
+*.temp
+*.bak
+*.orig
