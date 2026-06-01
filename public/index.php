@@ -6,7 +6,6 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 use Middag\Demo\Standalone\Bootstrap\DemoKernel;
 use Middag\Demo\Standalone\Framework\DebugCollector;
-use Middag\Demo\Standalone\Framework\PipelineKernel;
 use Middag\Framework\Http\Middleware\MiddlewareDispatcher;
 use Middag\Framework\Http\StandaloneKernel;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,12 +19,11 @@ $container = DemoKernel::boot($projectRoot, $debug);
 $request = Request::createFromGlobals();
 
 // PSR-15 pipeline (StartSession → ShareFlash → VerifyCsrf) in front of the kernel
-// (H4); StandaloneKernel bridges http-foundation <-> PSR-7. Debug-aware (L9):
+// (H4); StandaloneKernel bridges http-foundation <-> PSR-7 and is debug-aware (L9):
 // with APP_DEBUG=1 an uncaught throwable renders a dev stack trace instead of a
-// bare 500 (PipelineKernel only exists to satisfy StandaloneKernel's narrow inner
-// type — see FRAMEWORK-GAP G2).
+// bare 500. StandaloneKernel now accepts the PSR-15 dispatcher directly (G2 fixed).
 $kernel = new StandaloneKernel(
-    new PipelineKernel($container->get(MiddlewareDispatcher::class)),
+    $container->get(MiddlewareDispatcher::class),
     debug: $debug,
 );
 

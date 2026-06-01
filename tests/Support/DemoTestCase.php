@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Middag\Demo\Standalone\Tests\Support;
 
 use Middag\Demo\Standalone\Bootstrap\DemoKernel;
-use Middag\Demo\Standalone\Framework\PipelineKernel;
 use Middag\Framework\Database\Schema\SchemaBuilder;
 use Middag\Framework\Database\Schema\SchemaBuilderAdapterInterface;
 use Middag\Framework\Http\Auth\AuthenticatorInterface;
@@ -82,10 +81,10 @@ abstract class DemoTestCase extends TestCase
         $request = Request::create($path, $method, $params, [], [], $server);
 
         // Drive the full PSR-15 pipeline (StartSession → ShareFlash → VerifyCsrf →
-        // kernel), bridged by StandaloneKernel. PipelineKernel adapts the dispatcher
-        // to StandaloneKernel's narrow inner type (FRAMEWORK-GAP G2).
+        // kernel), bridged by StandaloneKernel — which now accepts the dispatcher
+        // directly (G2 fixed upstream).
         $kernel = new StandaloneKernel(
-            new PipelineKernel($this->container->get(MiddlewareDispatcher::class)),
+            $this->container->get(MiddlewareDispatcher::class),
         );
 
         return $kernel->handle($request, catch: false);

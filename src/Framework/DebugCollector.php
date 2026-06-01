@@ -4,34 +4,43 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Framework;
 
+use Middag\Framework\Observability\ProfileCollectorInterface;
 use Middag\Ui\Envelope\ContractEnvelopeInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Dev profiler collector + debug bar (Fase 0). Records the emitted ui contract
- * and renders a fixed debug bar into HTML responses when APP_DEBUG is on.
+ * Dev profiler collector + debug bar. Renders a fixed debug bar into HTML
+ * responses when APP_DEBUG is on, showing what happened in the request.
  *
- * M10 (observability) is partially shipped upstream: the framework now has a
- * ProfileCollector + a HookManager profiling seam + a Bus ProfilingMiddleware.
- * This bar still shows only the contract + request context because wiring the bus
- * profiler is blocked by a residual gap — MessageBusFactory::create() has no
- * middleware extension point (FRAMEWORK-GAP G3), so ProfilingMiddleware can't be
- * injected without hand-building the bus. Left documented rather than worked
- * around; the hook/query profiler wiring is deferred follow-up.
+ * Observability (M10) is now framework-native: the bar reads the shared
+ * {@see ProfileCollectorInterface} — fed by the Bus `ProfilingMiddleware` (every
+ * dispatch, via the MessageBusFactory middleware seam, G3) and by
+ * `HookManager::setProfileCollector()` (every fired hook) — plus the emitted ui
+ * contract (`recordContract`) and request context. SQL query-log stays an
+ * adapter-side concern (no OSS target).
  */
 final class DebugCollector
 {
     private static ?ContractEnvelopeInterface $contract = null;
+
+    private static ?ProfileCollectorInterface $profile = null;
 
     public static function recordContract(ContractEnvelopeInterface $contract): void
     {
         self::$contract = $contract;
     }
 
+    /** Wire the shared profile sink (bus + hooks) so the bar can read its events. */
+    public static function useProfileCollector(ProfileCollectorInterface $profile): void
+    {
+        self::$profile = $profile;
+    }
+
     public static function reset(): void
     {
         self::$contract = null;
+        self::$profile = null;
     }
 
     /** Inject the dev debug bar before </body> of an HTML response. */
@@ -46,6 +55,8 @@ final class DebugCollector
             'status' => (string) $response->getStatusCode(),
             'auth' => (string) ($_SESSION['_middag_auth']['attributes']['email'] ?? 'anonymous'),
             'contract' => self::contractSummary(),
+            'bus' => self::categorySummary('bus'),
+            'hooks' => self::categorySummary('hook'),
             'time' => sprintf('%.1f ms', $elapsedSeconds * 1000),
         ];
 
@@ -59,10 +70,37 @@ final class DebugCollector
             . 'background:#0f172a;color:#5eead4;font:12px/1.7 ui-monospace,SFMono-Regular,monospace;'
             . 'padding:6px 14px;border-top:2px solid #2dd4bf">'
             . '<b style="color:#2dd4bf">middag debug</b> &nbsp; ' . $items
-            . '<span style="float:right;opacity:.6">bus/hooks/queries: framework observability gap (M10)</span>'
+            . '<span style="float:right;opacity:.6">queries: adapter-side (OSS demo n/a)</span>'
             . '</div>';
 
         return str_replace('</body>', $bar . '</body>', $html);
+    }
+
+    /**
+     * Count + total time of profiled events in a category (M10), e.g.
+     * `2 (1.4ms)`. `(off)` when no collector is wired.
+     */
+    private static function categorySummary(string $category): string
+    {
+        if (self::$profile === null) {
+            return '(off)';
+        }
+
+        $events = array_filter(
+            self::$profile->events(),
+            static fn (array $e): bool => ($e['category'] ?? null) === $category,
+        );
+
+        if ($events === []) {
+            return '0';
+        }
+
+        $ms = 0.0;
+        foreach ($events as $e) {
+            $ms += (float) ($e['duration_ms'] ?? 0.0);
+        }
+
+        return sprintf('%d (%.1fms)', count($events), $ms);
     }
 
     private static function contractSummary(): string

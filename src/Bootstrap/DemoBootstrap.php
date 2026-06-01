@@ -9,6 +9,7 @@ use Middag\Demo\Standalone\Command\NotifyTaskCreatedCommand;
 use Middag\Demo\Standalone\Domain\Eloquent\Task;
 use Middag\Demo\Standalone\Form\TaskEntitySource;
 use Middag\Demo\Standalone\Form\TaskForm;
+use Middag\Demo\Standalone\Framework\DebugCollector;
 use Middag\Demo\Standalone\Hook\TaskHooks;
 use Middag\Demo\Standalone\Http\AuthController;
 use Middag\Demo\Standalone\Http\TaskApiController;
@@ -20,6 +21,7 @@ use Middag\Framework\Bus\InMemoryTransport;
 use Middag\Framework\Bus\MessageBus;
 use Middag\Framework\Bus\MessageBusFactory;
 use Middag\Framework\Bus\MessageBusInterface;
+use Middag\Framework\Bus\ProfilingMiddleware;
 use Middag\Framework\Bus\UserContextResolverInterface;
 use Middag\Framework\Database\Contract\ConnectionAdapter;
 use Middag\Framework\Database\Contract\ConnectionInterface;
@@ -56,6 +58,8 @@ use Middag\Framework\Kernel\Contract\ConfigResolverInterface;
 use Middag\Framework\Kernel\Contract\TranslatorInterface;
 use Middag\Framework\Kernel\Manager\HookManager;
 use Middag\Framework\Kernel\Manager\HookManagerInterface;
+use Middag\Framework\Observability\ProfileCollector;
+use Middag\Framework\Observability\ProfileCollectorInterface;
 use Middag\Framework\Logging\Contract\ActorResolverInterface;
 use Middag\Framework\Logging\Contract\OriginResolverInterface;
 use Middag\Framework\Logging\LoggerFactory;
@@ -244,6 +248,11 @@ final class DemoBootstrap implements BootstrapInterface
             ->setArguments([new Reference(SessionInterface::class), '/login'])
             ->setPublic(true);
 
+        // M10: shared profile sink — bus dispatches (via ProfilingMiddleware, G3) +
+        // fired hooks (via HookManager::setProfileCollector in wireRuntime) record here;
+        // the dev DebugCollector reads its events().
+        $c->register(ProfileCollectorInterface::class, ProfileCollector::class)->setPublic(true);
+
         $c->register(StartSessionMiddleware::class, StartSessionMiddleware::class)
             ->setArguments([new Reference(SessionInterface::class)])
             ->setPublic(true);
@@ -288,8 +297,15 @@ final class DemoBootstrap implements BootstrapInterface
         // Active-Record connection — static + shared by every Model subclass.
         Task::setConnection($c->get(ConnectionAdapter::class));
 
+        // M10: route bus dispatches + fired hooks into the shared profile sink, and
+        // hand it to the dev debug bar.
+        $profile = $c->get(ProfileCollectorInterface::class);
+        $hooks = $c->get(HookManagerInterface::class);
+        $hooks->setProfileCollector($profile);
+        DebugCollector::useProfileCollector($profile);
+
         // Demo hooks on the live HookManager instance.
-        TaskHooks::register($c->get(HookManagerInterface::class), $c->get(LoggerInterface::class));
+        TaskHooks::register($hooks, $c->get(LoggerInterface::class));
 
         // Entity source feeding the form's entity-picker.
         $c->get(EntitySourceRegistry::class)->register('demo_tasks', $c->get(TaskEntitySource::class));
@@ -369,7 +385,11 @@ final class DemoBootstrap implements BootstrapInterface
             $senderLocator,
         );
 
-        return (new MessageBusFactory())->create($c, $senders);
+        // M10: prepend the profiling middleware (G3 seam) so every bus dispatch is
+        // timed into the shared ProfileCollector for the dev bar.
+        return (new MessageBusFactory())->create($c, $senders, null, [
+            new ProfilingMiddleware($c->get(ProfileCollectorInterface::class)),
+        ]);
     }
 
     public static function rendererRegistryFactory(InertiaRenderer $renderer): RendererRegistry
