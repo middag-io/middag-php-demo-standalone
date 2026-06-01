@@ -1,0 +1,75 @@
+name: demo-standalone
+
+# Default (`docker compose up`) brings up only web + worker — simple.
+# Extras stay behind profiles (they do not start on their own):
+#   docker compose --profile redis up   # + Redis (validate cache/session/transport)
+#   docker compose --profile ui up      # + Vite dev server (once middag-react unblocks)
+
+services:
+  app:
+    build:
+      context: .
+      secrets:
+        - composer_auth
+    image: middag-demo-standalone:dev
+    command: serve
+    ports:
+      - "8080:8080"
+    environment:
+      APP_ENV: dev
+      APP_DEBUG: "1"
+      DB_DSN: "sqlite:/app/var/demo.sqlite"
+    volumes:
+      - .:/app                 # edits reflect immediately (no rebuild)
+      - /app/vendor            # keep the image vendor (do not shadow with host)
+      - /app/ui/node_modules
+    # SQLite + logs persist on the host under ./var (bind mount above).
+
+  worker:
+    build:
+      context: .
+      secrets:
+        - composer_auth
+    image: middag-demo-standalone:dev
+    command: worker
+    environment:
+      APP_ENV: dev
+      APP_DEBUG: "1"
+      DB_DSN: "sqlite:/app/var/demo.sqlite"
+    volumes:
+      - .:/app
+      - /app/vendor
+    depends_on:
+      - app                    # app creates the SQLite DB; worker waits for the file
+
+  # Optional extra: Redis to validate Messenger cache / session / transport.
+  # There is no Redis wiring in the demo today — the service is here to experiment.
+  redis:
+    image: redis:7-alpine
+    profiles: ["redis"]
+    ports:
+      - "6379:6379"
+
+  # The ui/ React (Vite) dev server. Profile-gated: it never starts on a default
+  # `up` (only `docker compose --profile ui up`). Runs `npm run dev` (Vite, port
+  # 5176 per ui/vite.config.ts). node_modules is reinstalled inside the container
+  # because the host install is macOS-native (esbuild/rollup binaries differ).
+  # @middag-io/* come from GitHub Packages, so the host ~/.npmrc (auth) is mounted
+  # read-only just for `npm install` — never baked into any image.
+  ui:
+    image: node:22-bookworm-slim
+    profiles: ["ui"]
+    working_dir: /app/ui
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "5176:5176"
+    volumes:
+      - .:/app
+      - /app/ui/node_modules
+      - ${NPMRC_FILE:-${HOME}/.npmrc}:/root/.npmrc:ro
+
+# Private Satis credentials (http-basic). Used only at build time (BuildKit secret),
+# never written to the image. Override the path via the COMPOSER_AUTH_FILE env var.
+secrets:
+  composer_auth:
+    file: ${COMPOSER_AUTH_FILE:-${HOME}/.composer/auth.json}

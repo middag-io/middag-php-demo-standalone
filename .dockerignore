@@ -1,0 +1,15 @@
+# Lean build context — deps and runtime are generated in the image / mounted in dev.
+.git
+.github
+vendor
+var
+*.sqlite
+node_modules
+ui/node_modules
+ui/build
+public/build
+.phpunit.cache
+.env
+.idea
+.vscode
+.DS_Store
