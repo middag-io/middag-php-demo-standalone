@@ -11,6 +11,7 @@ use Middag\Demo\Standalone\Command\UpdateTaskCommand;
 use Middag\Demo\Standalone\Http\Request\CreateTaskRequest;
 use Middag\Framework\Bus\MessageBusInterface;
 use Middag\Framework\Form\EntitySourceRegistry;
+use Middag\Framework\Http\Attribute\Auth;
 use Middag\Framework\Http\Controller\AbstractApiController;
 use Middag\Framework\Shared\Dto\SyncResult;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,10 +20,15 @@ use Symfony\Component\Messenger\Stamp\HandledStamp;
 /**
  * JSON API — the framework's AbstractApiController ({success, data} envelope).
  *
+ * Login-gated by the class-level #[Auth(login: true)]: the kernel gate (armed by
+ * the bound AuthenticatorInterface) answers an unauthenticated JSON request with
+ * 401 (H3). Token/bearer auth for headless clients is future work.
+ *
  * store(): validated create -> sync dispatch; reads the new id off the
  * HandledStamp. import(): batch dispatch returning a SyncResult (also via the
  * HandledStamp). entities(): serves the entity-picker source as JSON.
  */
+#[Auth(login: true)]
 final class TaskApiController extends AbstractApiController
 {
     public function __construct(

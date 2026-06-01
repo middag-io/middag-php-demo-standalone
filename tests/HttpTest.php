@@ -7,6 +7,7 @@ namespace Middag\Demo\Standalone\Tests;
 use Middag\Demo\Standalone\Command\CreateTaskCommand;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Bus\MessageBusInterface;
+use Middag\Framework\Http\Auth\AuthenticatorInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
 
@@ -78,6 +79,18 @@ final class HttpTest extends DemoTestCase
         self::assertTrue($payload['success']);
         self::assertArrayHasKey('id', $payload);
         self::assertIsInt($payload['id']);
+    }
+
+    #[Test]
+    public function apiRejectsUnauthenticatedWith401(): void
+    {
+        // Class-level #[Auth(login: true)] on TaskApiController: the kernel gate
+        // answers an unauthenticated JSON request with 401 (H3).
+        $this->container->get(AuthenticatorInterface::class)->logout();
+
+        $response = $this->handle('POST', '/api/tasks', ['title' => 'x', 'priority' => 'normal'], ['HTTP_ACCEPT' => 'application/json']);
+
+        self::assertSame(401, $response->getStatusCode());
     }
 
     #[Test]
