@@ -6,7 +6,7 @@ namespace Middag\Demo\Standalone\Tests;
 
 use Middag\Demo\Standalone\Domain\Eloquent\User;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
-use Middag\Framework\Http\Auth\AuthenticatorInterface;
+use Middag\Framework\Http\Contract\AuthenticatorInterface;
 use PHPUnit\Framework\Attributes\Test;
 
 /**

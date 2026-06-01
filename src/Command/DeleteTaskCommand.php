@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Command;
 
-use Middag\Framework\Bus\AbstractCommand;
+use Middag\Framework\Bus\Command\AbstractCommand;
 
 /**
  * Command: delete a task by id. Synchronous; handler resolved by the

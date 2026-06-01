@@ -6,7 +6,7 @@ namespace Middag\Demo\Standalone\Tests;
 
 use Middag\Demo\Standalone\Command\CreateTaskCommand;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
-use Middag\Framework\Bus\MessageBusInterface;
+use Middag\Framework\Bus\Contract\MessageBusInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
 

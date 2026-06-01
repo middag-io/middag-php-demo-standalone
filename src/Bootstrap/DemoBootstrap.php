@@ -16,18 +16,18 @@ use Middag\Demo\Standalone\Http\TaskApiController;
 use Middag\Demo\Standalone\Http\TaskController;
 use Middag\Demo\Standalone\Http\UiController;
 use Middag\Demo\Standalone\Logging\CleanLogsHandler;
-use Middag\Framework\Bus\CommandWorker;
-use Middag\Framework\Bus\InMemoryTransport;
+use Middag\Framework\Bus\Command\CommandWorker;
+use Middag\Framework\Bus\Contract\MessageBusInterface;
+use Middag\Framework\Bus\Contract\UserContextResolverInterface;
 use Middag\Framework\Bus\MessageBus;
 use Middag\Framework\Bus\MessageBusFactory;
-use Middag\Framework\Bus\MessageBusInterface;
-use Middag\Framework\Bus\ProfilingMiddleware;
-use Middag\Framework\Bus\UserContextResolverInterface;
-use Middag\Framework\Database\Contract\ConnectionAdapter;
+use Middag\Framework\Bus\Middleware\ProfilingMiddleware;
+use Middag\Framework\Bus\Transport\InMemoryTransport;
+use Middag\Framework\Database\Contract\ConnectionAdapterInterface;
 use Middag\Framework\Database\Contract\ConnectionInterface;
+use Middag\Framework\Database\Contract\SchemaBuilderAdapterInterface;
 use Middag\Framework\Database\PdoConnectionAdapter;
 use Middag\Framework\Database\Schema\SchemaBuilder;
-use Middag\Framework\Database\Schema\SchemaBuilderAdapterInterface;
 use Middag\Framework\Database\Schema\SqliteSchemaBuilderAdapter;
 use Middag\Framework\Form\ConditionEvaluator;
 use Middag\Framework\Form\EntitySourceRegistry;
@@ -35,9 +35,10 @@ use Middag\Framework\Form\FormValidator;
 use Middag\Framework\Form\Renderer\InertiaFieldMapper;
 use Middag\Framework\Form\Renderer\InertiaRenderer;
 use Middag\Framework\Form\Renderer\RendererRegistry;
-use Middag\Framework\Http\Auth\AuthenticatorInterface;
 use Middag\Framework\Http\Auth\SessionAuthenticator;
 use Middag\Framework\Http\Auth\SessionUserContextResolver;
+use Middag\Framework\Http\Contract\AuthenticatorInterface;
+use Middag\Framework\Http\Contract\SessionInterface;
 use Middag\Framework\Http\HttpKernel;
 use Middag\Framework\Http\Inertia\InertiaAdapter;
 use Middag\Framework\Http\Inertia\InertiaFactory;
@@ -50,21 +51,20 @@ use Middag\Framework\Http\Middleware\VerifyCsrfMiddleware;
 use Middag\Framework\Http\Security\CsrfTokenManager;
 use Middag\Framework\Http\Session\FlashBag;
 use Middag\Framework\Http\Session\NativeSession;
-use Middag\Framework\Http\Session\SessionInterface;
 use Middag\Framework\Kernel\Bootstrap\EnvConfigResolver;
 use Middag\Framework\Kernel\Bootstrap\IdentityTranslator;
 use Middag\Framework\Kernel\Contract\BootstrapInterface;
 use Middag\Framework\Kernel\Contract\ConfigResolverInterface;
+use Middag\Framework\Kernel\Contract\HookManagerInterface;
 use Middag\Framework\Kernel\Contract\TranslatorInterface;
 use Middag\Framework\Kernel\Manager\HookManager;
-use Middag\Framework\Kernel\Manager\HookManagerInterface;
-use Middag\Framework\Observability\ProfileCollector;
-use Middag\Framework\Observability\ProfileCollectorInterface;
 use Middag\Framework\Logging\Contract\ActorResolverInterface;
 use Middag\Framework\Logging\Contract\OriginResolverInterface;
 use Middag\Framework\Logging\LoggerFactory;
 use Middag\Framework\Logging\NullActorResolver;
 use Middag\Framework\Logging\NullOriginResolver;
+use Middag\Framework\Observability\Contract\ProfileCollectorInterface;
+use Middag\Framework\Observability\ProfileCollector;
 use Middag\Framework\Persistence\Contract\ConnectionResolverInterface;
 use Middag\Framework\Persistence\SingleConnectionResolver;
 use Monolog\Logger;
@@ -149,12 +149,12 @@ final class DemoBootstrap implements BootstrapInterface
             ->setArguments([new Reference(PDO::class)])
             ->setPublic(true);
         $c->setAlias(ConnectionInterface::class, PdoConnectionAdapter::class)->setPublic(true);
-        $c->setAlias(ConnectionAdapter::class, PdoConnectionAdapter::class)->setPublic(true);
+        $c->setAlias(ConnectionAdapterInterface::class, PdoConnectionAdapter::class)->setPublic(true);
         $c->register(SchemaBuilderAdapterInterface::class, SqliteSchemaBuilderAdapter::class)
             ->setArguments([new Reference(ConnectionInterface::class)])
             ->setPublic(true);
         $c->register(ConnectionResolverInterface::class, SingleConnectionResolver::class)
-            ->setArguments([new Reference(ConnectionAdapter::class)])
+            ->setArguments([new Reference(ConnectionAdapterInterface::class)])
             ->setPublic(true);
         $c->register(SchemaBuilder::class, SchemaBuilder::class)
             ->setFactory([self::class, 'schemaBuilderFactory'])
@@ -295,7 +295,7 @@ final class DemoBootstrap implements BootstrapInterface
     public static function wireRuntime(ContainerInterface $c): void
     {
         // Active-Record connection — static + shared by every Model subclass.
-        Task::setConnection($c->get(ConnectionAdapter::class));
+        Task::setConnection($c->get(ConnectionAdapterInterface::class));
 
         // M10: route bus dispatches + fired hooks into the shared profile sink, and
         // hand it to the dev debug bar.

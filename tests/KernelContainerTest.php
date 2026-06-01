@@ -9,14 +9,14 @@ use Middag\Demo\Standalone\Command\CreateTaskCommandHandler;
 use Middag\Demo\Standalone\Domain\Doctrine\TaskRepository;
 use Middag\Demo\Standalone\Http\TaskController;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
-use Middag\Framework\Bus\MessageBusInterface;
-use Middag\Framework\Database\Contract\ConnectionAdapter;
+use Middag\Framework\Bus\Contract\MessageBusInterface;
+use Middag\Framework\Database\Contract\ConnectionAdapterInterface;
 use Middag\Framework\Database\Contract\ConnectionInterface;
 use Middag\Framework\Http\HttpKernel;
+use Middag\Framework\Kernel\ContainerFactory;
 use Middag\Framework\Kernel\Contract\ConfigResolverInterface;
 use Middag\Framework\Kernel\Contract\TranslatorInterface;
-use Middag\Framework\Kernel\ContainerFactory;
-use Middag\Framework\Kernel\Manager\HookManagerInterface;
+use Middag\Framework\Kernel\Contract\HookManagerInterface;
 use Middag\Framework\Kernel\Module\AbstractModule;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
@@ -37,7 +37,7 @@ final class KernelContainerTest extends DemoTestCase
         self::assertInstanceOf(HttpKernel::class, $this->container->get(HttpKernel::class));
         self::assertInstanceOf(HookManagerInterface::class, $this->container->get(HookManagerInterface::class));
         // ConnectionInterface is aliased to the PDO adapter, which is a ConnectionAdapter.
-        self::assertInstanceOf(ConnectionAdapter::class, $this->container->get(ConnectionInterface::class));
+        self::assertInstanceOf(ConnectionAdapterInterface::class, $this->container->get(ConnectionInterface::class));
     }
 
     #[Test]

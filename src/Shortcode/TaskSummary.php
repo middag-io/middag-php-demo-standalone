@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Shortcode;
 
-use Middag\Framework\Shortcode\Attribute\TrustedOutput;
+use Middag\Framework\Shared\Attribute\TrustedOutput;
 
 /**
  * Tiny shortcode-style renderer demonstrating the framework's #[TrustedOutput]

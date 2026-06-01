@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Hook;
 
-use Middag\Framework\Kernel\Manager\HookManagerInterface;
+use Middag\Framework\Kernel\Contract\HookManagerInterface;
 use Psr\Log\LoggerInterface;
 
 /**

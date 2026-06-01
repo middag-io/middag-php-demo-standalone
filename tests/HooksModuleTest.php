@@ -7,7 +7,7 @@ namespace Middag\Demo\Standalone\Tests;
 use Middag\Demo\Standalone\Module\DemoModule;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Kernel\Manager\HookManager;
-use Middag\Framework\Kernel\Manager\HookManagerInterface;
+use Middag\Framework\Kernel\Contract\HookManagerInterface;
 use PHPUnit\Framework\Attributes\Test;
 
 /**

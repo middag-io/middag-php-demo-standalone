@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Command;
 
-use Middag\Framework\Bus\AbstractCommand;
+use Middag\Framework\Bus\Command\AbstractCommand;
 
 /**
  * Async command: notify that a task was created.
  *
  * Routed to the in-memory transport by the SendersLocator wired in
  * DemoBootstrap::createMessageBus(), so dispatch QUEUES it instead of handling
- * inline; {@see \Middag\Framework\Bus\CommandWorker}::drain() processes it later
+ * inline; {@see \Middag\Framework\Bus\Command\CommandWorker}::drain() processes it later
  * through the same bus.
  */
 final class NotifyTaskCreatedCommand extends AbstractCommand

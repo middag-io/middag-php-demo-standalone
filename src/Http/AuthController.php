@@ -6,7 +6,7 @@ namespace Middag\Demo\Standalone\Http;
 
 use Middag\Demo\Standalone\Domain\Eloquent\User;
 use Middag\Demo\Standalone\Http\Concern\RendersPages;
-use Middag\Framework\Http\Auth\AuthenticatorInterface;
+use Middag\Framework\Http\Contract\AuthenticatorInterface;
 use Middag\Framework\Http\Controller\AbstractController;
 use Middag\Ui\Page\PageBuilder;
 use Middag\Ui\Region\RegionBuilder;

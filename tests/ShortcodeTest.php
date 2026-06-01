@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Middag\Demo\Standalone\Tests;
 
 use Middag\Demo\Standalone\Shortcode\TaskSummary;
-use Middag\Framework\Shortcode\Attribute\TrustedOutput;
+use Middag\Framework\Shared\Attribute\TrustedOutput;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;

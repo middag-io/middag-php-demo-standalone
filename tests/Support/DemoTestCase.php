@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Middag\Demo\Standalone\Tests\Support;
 
 use Middag\Demo\Standalone\Bootstrap\DemoKernel;
+use Middag\Framework\Database\Contract\SchemaBuilderAdapterInterface;
 use Middag\Framework\Database\Schema\SchemaBuilder;
-use Middag\Framework\Database\Schema\SchemaBuilderAdapterInterface;
-use Middag\Framework\Http\Auth\AuthenticatorInterface;
+use Middag\Framework\Http\Contract\AuthenticatorInterface;
 use Middag\Framework\Http\Middleware\MiddlewareDispatcher;
 use Middag\Framework\Http\Security\CsrfTokenManager;
 use Middag\Framework\Http\StandaloneKernel;

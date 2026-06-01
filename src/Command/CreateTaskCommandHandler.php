@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Middag\Demo\Standalone\Command;
 
 use Middag\Demo\Standalone\Domain\Eloquent\Task;
-use Middag\Framework\Bus\MessageBusInterface;
+use Middag\Framework\Bus\Contract\MessageBusInterface;
 use Middag\Framework\Kernel\Facade\HookFacade;
 use Psr\Log\LoggerInterface;
 

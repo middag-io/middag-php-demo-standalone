@@ -6,7 +6,7 @@ namespace Middag\Demo\Standalone\Tests;
 
 use Middag\Demo\Standalone\Logging\CleanLogsHandler;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
-use Middag\Framework\Bus\MessageBusInterface;
+use Middag\Framework\Bus\Contract\MessageBusInterface;
 use Middag\Framework\Logging\CleanLogsCommand;
 use Middag\Framework\Logging\LoggerFactory;
 use Middag\Framework\Logging\NullActorResolver;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Framework;
 
-use Middag\Framework\Observability\ProfileCollectorInterface;
+use Middag\Framework\Observability\Contract\ProfileCollectorInterface;
 use Middag\Ui\Envelope\ContractEnvelopeInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

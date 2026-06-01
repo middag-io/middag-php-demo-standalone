@@ -13,7 +13,7 @@ use Middag\Demo\Standalone\Domain\Eloquent\Task;
 use Middag\Demo\Standalone\Form\TaskForm;
 use Middag\Demo\Standalone\Http\Concern\RendersPages;
 use Middag\Demo\Standalone\Http\Request\CreateTaskRequest;
-use Middag\Framework\Bus\MessageBusInterface;
+use Middag\Framework\Bus\Contract\MessageBusInterface;
 use Middag\Framework\Form\Renderer\RendererRegistry;
 use Middag\Framework\Http\Attribute\Auth;
 use Middag\Framework\Http\Controller\AbstractController;

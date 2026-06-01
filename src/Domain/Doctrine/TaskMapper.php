@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Domain\Doctrine;
 
-use Middag\Framework\Persistence\Entity\EntityInterface;
+use Middag\Framework\Persistence\Contract\EntityInterface;
 use Middag\Framework\Persistence\Mapper\AbstractMapper;
 use stdClass;
 

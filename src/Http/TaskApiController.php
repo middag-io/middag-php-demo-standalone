@@ -9,7 +9,7 @@ use Middag\Demo\Standalone\Command\DeleteTaskCommand;
 use Middag\Demo\Standalone\Command\ImportTasksCommand;
 use Middag\Demo\Standalone\Command\UpdateTaskCommand;
 use Middag\Demo\Standalone\Http\Request\CreateTaskRequest;
-use Middag\Framework\Bus\MessageBusInterface;
+use Middag\Framework\Bus\Contract\MessageBusInterface;
 use Middag\Framework\Form\EntitySourceRegistry;
 use Middag\Framework\Http\Attribute\Auth;
 use Middag\Framework\Http\Controller\AbstractApiController;

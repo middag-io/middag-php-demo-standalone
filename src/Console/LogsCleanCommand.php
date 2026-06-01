@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Console;
 
-use Middag\Framework\Bus\MessageBusInterface;
+use Middag\Framework\Bus\Contract\MessageBusInterface;
 use Middag\Framework\Logging\CleanLogsCommand;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Command\Command;

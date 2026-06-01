@@ -8,10 +8,10 @@ use Doctrine\DBAL\DriverManager;
 use Middag\Demo\Standalone\Schema\DemoMigrationRunner;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Database\Contract\ConnectionInterface;
+use Middag\Framework\Database\Contract\SchemaBuilderAdapterInterface;
 use Middag\Framework\Database\Schema\DbalSchemaBuilderAdapter;
 use Middag\Framework\Database\Schema\MysqlVersionTracker;
 use Middag\Framework\Database\Schema\SchemaBuilder;
-use Middag\Framework\Database\Schema\SchemaBuilderAdapterInterface;
 use PHPUnit\Framework\Attributes\Test;
 
 /**

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Middag\Demo\Standalone\Console;
 
 use Middag\Demo\Standalone\Command\NotifyTaskCreatedCommand;
-use Middag\Framework\Bus\CommandWorker;
-use Middag\Framework\Bus\MessageBusInterface;
+use Middag\Framework\Bus\Command\CommandWorker;
+use Middag\Framework\Bus\Contract\MessageBusInterface;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
