@@ -54,6 +54,14 @@ final class InstallCommand extends Command
         $output->writeln(sprintf('<info>tables:</info> %s', implode(', ', $builder->tables())));
         $output->writeln(sprintf('<info>version:</info> %d -> %d', $old, DemoMigrationRunner::VERSION));
 
+        // Seed the demo login user (app-owned user store; auth session is framework-side).
+        \Middag\Demo\Standalone\Domain\Eloquent\User::seedDemo();
+        $output->writeln(sprintf(
+            '<info>demo user:</info> %s / %s',
+            \Middag\Demo\Standalone\Domain\Eloquent\User::DEMO_EMAIL,
+            \Middag\Demo\Standalone\Domain\Eloquent\User::DEMO_PASSWORD,
+        ));
+
         return Command::SUCCESS;
     }
 }

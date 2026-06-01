@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Middag\Demo\Standalone\Http;
 
 use Middag\Demo\Standalone\Command\CreateTaskCommand;
+use Middag\Demo\Standalone\Command\DeleteTaskCommand;
 use Middag\Demo\Standalone\Command\ImportTasksCommand;
+use Middag\Demo\Standalone\Command\UpdateTaskCommand;
 use Middag\Demo\Standalone\Http\Request\CreateTaskRequest;
 use Middag\Framework\Bus\MessageBusInterface;
 use Middag\Framework\Form\EntitySourceRegistry;
@@ -43,6 +45,29 @@ final class TaskApiController extends AbstractApiController
         $id = $envelope->last(HandledStamp::class)?->getResult();
 
         return $this->created(['id' => $id]);
+    }
+
+    public function update(int $id, CreateTaskRequest $request): Response
+    {
+        $data = $request->validated();
+
+        $this->bus->dispatch(new UpdateTaskCommand(
+            id: $id,
+            title: (string) $data['title'],
+            notes: isset($data['notes']) && $data['notes'] !== '' ? (string) $data['notes'] : null,
+            priority: (string) ($data['priority'] ?? 'normal'),
+            status: (string) ($data['status'] ?? 'open'),
+            dueOn: isset($data['due_on']) && $data['due_on'] !== '' ? (string) $data['due_on'] : null,
+        ));
+
+        return $this->jsonResponse(['id' => $id, 'updated' => true]);
+    }
+
+    public function destroy(int $id): Response
+    {
+        $this->bus->dispatch(new DeleteTaskCommand($id));
+
+        return $this->jsonResponse(['id' => $id, 'deleted' => true]);
     }
 
     public function import(): Response
