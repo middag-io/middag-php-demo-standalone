@@ -17,8 +17,13 @@ use Middag\Framework\Bus\Contract\MessageBusInterface;
 use Middag\Framework\Form\Renderer\RendererRegistry;
 use Middag\Framework\Http\Attribute\Auth;
 use Middag\Framework\Http\Controller\AbstractController;
+use Middag\Ui\Action\Action;
+use Middag\Ui\Action\ActionTarget;
+use Middag\Ui\Action\Confirmation;
 use Middag\Ui\Page\PageBuilder;
 use Middag\Ui\Region\RegionBuilder;
+use Middag\Ui\Shared\Enum\ActionIntent;
+use Middag\Ui\Shared\Enum\HttpMethod;
 use Middag\Ui\Shared\Enum\RenderTarget;
 use Middag\Ui\Shared\Enum\ValueFormat;
 use Symfony\Component\HttpFoundation\Response;
@@ -59,6 +64,7 @@ final class TaskController extends AbstractController
                 $data = $task->toArray();
 
                 return [
+                    'id' => (int) $data['id'],
                     'title' => (string) $data['title'],
                     'status' => (string) $data['status'],
                     'priority' => (string) $data['priority'],
@@ -68,18 +74,48 @@ final class TaskController extends AbstractController
             $this->tasks->latest(),
         );
 
+        // Row identity + actions so the client can navigate/delete from the
+        // contract alone. `{id}` is interpolated per row from the row's `id`
+        // (DenseTableBlockData.rowHref / rowActions targets).
+        $rowActions = [
+            new Action(
+                id: 'edit',
+                label: 'Edit',
+                target: ActionTarget::link('/tasks/{id}/edit'),
+                intent: ActionIntent::SECONDARY,
+                icon: 'pencil',
+            ),
+            new Action(
+                id: 'delete',
+                label: 'Delete',
+                target: ActionTarget::request('/tasks/{id}', HttpMethod::DELETE),
+                intent: ActionIntent::DANGER,
+                icon: 'trash',
+                confirmation: new Confirmation(
+                    title: 'Delete task',
+                    message: 'Remove this task? This cannot be undone.',
+                    confirmLabel: 'Delete',
+                    cancelLabel: 'Cancel',
+                    variant: 'danger',
+                ),
+            ),
+        ];
+
         $contract = PageBuilder::page('demo.tasks')
             ->shell('product')
             ->title('Tasks')
             ->subtitle('Standalone demo — contract-driven via middag-io/ui')
-            ->region('content', function (RegionBuilder $region) use ($rows): void {
+            ->region('content', function (RegionBuilder $region) use ($rows, $rowActions): void {
                 $region->metricCard('task_count', count($rows), 'Tasks', icon: 'list-check');
                 $region->denseTable('tasks', [
                     ['key' => 'title', 'label' => 'Title'],
                     ['key' => 'status', 'label' => 'Status'],
                     ['key' => 'priority', 'label' => 'Priority'],
                     ['key' => 'created', 'label' => 'Created', 'format' => ValueFormat::DATE->value],
-                ], $rows);
+                ], $rows, [
+                    'rowHref' => '/tasks/{id}',
+                    'rowActions' => $rowActions,
+                ]);
             })
             ->build();
 

@@ -321,12 +321,49 @@ final class DemoBootstrap implements BootstrapInterface
         // shell a @middag-io/react client reads on each visit). `auth` is the
         // authenticated session record (H3); `flash`/`errors` are shared by the
         // framework's ShareFlashMiddleware (M7), so they are NOT wired here.
-        InertiaManager::share('auth', static fn (): ?array => $c->get(AuthenticatorInterface::class)->user());
-        InertiaManager::share('navigation', [
-            ['key' => 'tasks', 'label' => 'Tasks', 'href' => '/'],
-            ['key' => 'tasks.new', 'label' => 'New task', 'href' => '/tasks/new'],
-        ]);
+        // `auth` is flattened to the @middag-io/react SharedPropsAuth contract
+        // ({id,name,email,capabilities}); the Authenticator stores {id, attributes:{…}}.
+        InertiaManager::share('auth', static function () use ($c): ?array {
+            $record = $c->get(AuthenticatorInterface::class)->user();
+
+            if (!is_array($record)) {
+                return null;
+            }
+
+            /** @var array<string, mixed> $attrs */
+            $attrs = is_array($record['attributes'] ?? null) ? $record['attributes'] : [];
+
+            return [
+                'id' => (int) ($record['id'] ?? 0),
+                'name' => (string) ($attrs['name'] ?? ''),
+                'email' => (string) ($attrs['email'] ?? ''),
+                'capabilities' => array_values((array) ($attrs['capabilities'] ?? [])),
+            ];
+        });
+        // `navigation` follows the lib's NavigationTreePayload ({tree, activeKey}),
+        // not a flat list; activeKey is derived from the current request path (the
+        // kernel seeds RequestContext method/host/scheme but not pathInfo).
+        InertiaManager::share('navigation', static fn (): array => self::navigationProps());
         InertiaManager::share('version', InertiaVersionManager::getVersion());
+    }
+
+    /**
+     * SharedProp `navigation` in the @middag-io/react NavigationTreePayload shape.
+     *
+     * @return array{tree: list<array<string, mixed>>, activeKey: string}
+     */
+    private static function navigationProps(): array
+    {
+        $path = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/';
+        $activeKey = $path === '/tasks/new' ? 'tasks.new' : 'tasks';
+
+        return [
+            'tree' => [
+                ['key' => 'tasks', 'label' => 'Tasks', 'icon' => 'list-check', 'href' => '/', 'children' => []],
+                ['key' => 'tasks.new', 'label' => 'New task', 'icon' => 'plus', 'href' => '/tasks/new', 'children' => []],
+            ],
+            'activeKey' => $activeKey,
+        ];
     }
 
     public static function pdoFactory(string $dsn): PDO
