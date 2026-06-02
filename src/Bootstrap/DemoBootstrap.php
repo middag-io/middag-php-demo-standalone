@@ -16,6 +16,7 @@ use Middag\Demo\Standalone\Framework\DebugCollector;
 use Middag\Demo\Standalone\Hook\TaskHooks;
 use Middag\Demo\Standalone\Hook\TicketHooks;
 use Middag\Demo\Standalone\Http\AuthController;
+use Middag\Demo\Standalone\Http\DashboardController;
 use Middag\Demo\Standalone\Http\TaskApiController;
 use Middag\Demo\Standalone\Http\TaskController;
 use Middag\Demo\Standalone\Http\TicketApiController;
@@ -373,12 +374,27 @@ final class DemoBootstrap implements BootstrapInterface
     private static function navigationProps(): array
     {
         $path = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/';
-        $activeKey = $path === '/tasks/new' ? 'tasks.new' : 'tasks';
+        $segment = explode('/', trim($path, '/'))[0] ?? '';
+        $activeKey = match ($segment) {
+            '', 'dashboard' => 'dashboard',
+            'tickets' => 'tickets',
+            'agents' => 'agents',
+            'customers' => 'customers',
+            'parity' => 'parity',
+            'coverage' => 'coverage',
+            'help' => 'help',
+            default => 'dashboard',
+        };
 
         return [
             'tree' => [
-                ['key' => 'tasks', 'label' => 'Tasks', 'icon' => 'list-check', 'href' => '/', 'children' => []],
-                ['key' => 'tasks.new', 'label' => 'New task', 'icon' => 'plus', 'href' => '/tasks/new', 'children' => []],
+                ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'layout-dashboard', 'href' => '/dashboard', 'children' => []],
+                ['key' => 'tickets', 'label' => 'Tickets', 'icon' => 'inbox', 'href' => '/tickets', 'children' => []],
+                ['key' => 'agents', 'label' => 'Agents', 'icon' => 'users', 'href' => '/agents', 'children' => []],
+                ['key' => 'customers', 'label' => 'Customers', 'icon' => 'building', 'href' => '/customers', 'children' => []],
+                ['key' => 'parity', 'label' => 'Dual-ORM parity', 'icon' => 'columns', 'href' => '/parity', 'children' => []],
+                ['key' => 'coverage', 'label' => 'Coverage', 'icon' => 'shield-check', 'href' => '/coverage', 'children' => []],
+                ['key' => 'help', 'label' => 'Help', 'icon' => 'help-circle', 'href' => '/help', 'children' => []],
             ],
             'activeKey' => $activeKey,
             // NavigationTreePayload.footer is a required (if empty) node list.
@@ -464,6 +480,10 @@ final class DemoBootstrap implements BootstrapInterface
         $routes->add('tasks.edit', new Route('/tasks/{id}/edit', ['_controller' => TaskController::class . '::edit'], [], ['id' => '\d+'], '', [], ['GET']));
         $routes->add('tasks.update', new Route('/tasks/{id}', ['_controller' => TaskController::class . '::update'], [], ['id' => '\d+'], '', [], ['PUT', 'PATCH']));
         $routes->add('tasks.destroy', new Route('/tasks/{id}', ['_controller' => TaskController::class . '::destroy'], [], ['id' => '\d+'], '', [], ['DELETE']));
+
+        // Help-desk dashboard (the `dashboard` layout; promoted to `/` when
+        // demo_tasks is retired — additive at /dashboard for now).
+        $routes->add('dashboard.index', new Route('/dashboard', ['_controller' => DashboardController::class . '::index'], [], [], '', [], ['GET']));
 
         // Help-desk ticket UI (contract-driven, dual-ORM reads + form pipeline).
         $routes->add('tickets.index', new Route('/tickets', ['_controller' => TicketController::class . '::index'], [], [], '', [], ['GET']));
