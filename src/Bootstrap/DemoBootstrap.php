@@ -17,6 +17,7 @@ use Middag\Demo\Standalone\Hook\TaskHooks;
 use Middag\Demo\Standalone\Hook\TicketHooks;
 use Middag\Demo\Standalone\Http\AgentController;
 use Middag\Demo\Standalone\Http\AuthController;
+use Middag\Demo\Standalone\Http\CoverageController;
 use Middag\Demo\Standalone\Http\CustomerController;
 use Middag\Demo\Standalone\Http\DashboardController;
 use Middag\Demo\Standalone\Http\HelpController;
@@ -506,6 +507,9 @@ final class DemoBootstrap implements BootstrapInterface
         // Dual-ORM parity proof + help/about (immersive shell).
         $routes->add('parity.index', new Route('/parity', ['_controller' => ParityController::class . '::index'], [], [], '', [], ['GET']));
         $routes->add('help.index', new Route('/help', ['_controller' => HelpController::class . '::index'], [], [], '', [], ['GET']));
+
+        // Self-verifying coverage manifest, rendered live.
+        $routes->add('coverage.index', new Route('/coverage', ['_controller' => CoverageController::class . '::index'], [], [], '', [], ['GET']));
 
         // JSON API.
         $routes->add('api.tasks.store', new Route('/api/tasks', ['_controller' => TaskApiController::class . '::store'], [], [], '', [], ['POST']));
