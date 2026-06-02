@@ -62,6 +62,13 @@ final class InstallCommand extends Command
             \Middag\Demo\Standalone\Domain\Eloquent\User::DEMO_PASSWORD,
         ));
 
+        // Seed the help-desk dataset: agents/customers/SLA (data-mapper) +
+        // tickets/comments (active-record). Idempotent.
+        /** @var \Middag\Framework\Database\Contract\ConnectionAdapterInterface $connAdapter */
+        $connAdapter = $this->container->get(\Middag\Framework\Database\Contract\ConnectionAdapterInterface::class);
+        \Middag\Demo\Standalone\Schema\HelpdeskSeeder::seed($connAdapter);
+        $output->writeln('<info>help-desk:</info> agents + customers + SLA + tickets + comments seeded');
+
         return Command::SUCCESS;
     }
 }

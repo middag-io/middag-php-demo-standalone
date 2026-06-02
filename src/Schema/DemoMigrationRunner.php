@@ -18,5 +18,5 @@ use Middag\Framework\Database\Schema\MigrationRunner;
 final class DemoMigrationRunner extends MigrationRunner
 {
     /** Bump when db/schema/*.php changes in a way upgrade() should apply. */
-    public const VERSION = 2026053000;
+    public const VERSION = 2026060200;
 }
