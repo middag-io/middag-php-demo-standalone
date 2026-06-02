@@ -15,7 +15,9 @@ use Middag\Demo\Standalone\Form\TicketForm;
 use Middag\Demo\Standalone\Framework\DebugCollector;
 use Middag\Demo\Standalone\Hook\TaskHooks;
 use Middag\Demo\Standalone\Hook\TicketHooks;
+use Middag\Demo\Standalone\Http\AgentController;
 use Middag\Demo\Standalone\Http\AuthController;
+use Middag\Demo\Standalone\Http\CustomerController;
 use Middag\Demo\Standalone\Http\DashboardController;
 use Middag\Demo\Standalone\Http\TaskApiController;
 use Middag\Demo\Standalone\Http\TaskController;
@@ -492,6 +494,12 @@ final class DemoBootstrap implements BootstrapInterface
         $routes->add('tickets.show', new Route('/tickets/{id}', ['_controller' => TicketController::class . '::show'], [], ['id' => '\d+'], '', [], ['GET']));
         $routes->add('tickets.edit', new Route('/tickets/{id}/edit', ['_controller' => TicketController::class . '::edit'], [], ['id' => '\d+'], '', [], ['GET']));
         $routes->add('tickets.update', new Route('/tickets/{id}', ['_controller' => TicketController::class . '::update'], [], ['id' => '\d+'], '', [], ['PUT', 'PATCH']));
+
+        // Help-desk reference pages: agents (sidebar + detail, capability gate) and
+        // customers (card_grid) — data-mapper-backed.
+        $routes->add('agents.index', new Route('/agents', ['_controller' => AgentController::class . '::index'], [], [], '', [], ['GET']));
+        $routes->add('agents.show', new Route('/agents/{id}', ['_controller' => AgentController::class . '::show'], [], ['id' => '\d+'], '', [], ['GET']));
+        $routes->add('customers.index', new Route('/customers', ['_controller' => CustomerController::class . '::index'], [], [], '', [], ['GET']));
 
         // JSON API.
         $routes->add('api.tasks.store', new Route('/api/tasks', ['_controller' => TaskApiController::class . '::store'], [], [], '', [], ['POST']));
