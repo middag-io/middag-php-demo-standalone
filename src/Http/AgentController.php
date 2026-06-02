@@ -80,7 +80,8 @@ final class AgentController extends AbstractController
             ->subtitle($canSupervise
                 ? 'Supervisor view — data-mapper roster with contact + workload columns'
                 : 'Agent roster — data-mapper list (supervisor columns gated by capability)')
-            ->region('content', function (RegionBuilder $region) use ($columns, $rows): void {
+            // sidebar layout renders the `main` + `aside` regions (not `content`).
+            ->region('main', function (RegionBuilder $region) use ($columns, $rows): void {
                 $region->denseTable('agents', $columns, $rows, ['rowHref' => '/agents/{id}']);
             })
             ->region('aside', function (RegionBuilder $region) use ($agents, $supervisors): void {

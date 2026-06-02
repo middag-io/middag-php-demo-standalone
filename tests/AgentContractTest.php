@@ -67,7 +67,7 @@ final class AgentContractTest extends DemoTestCase
         $contract = $this->contract('/agents');
         self::assertSame('sidebar', $contract['layout']['template'] ?? null);
 
-        $table = $this->blockByKey($contract['layout']['regions']['content'] ?? [], 'agents');
+        $table = $this->blockByKey($contract['layout']['regions']['main'] ?? [], 'agents');
         self::assertNotNull($table);
         self::assertSame('dense_table', $table['type']);
         $cols = array_column($table['data']['columns'], 'key');
@@ -88,7 +88,7 @@ final class AgentContractTest extends DemoTestCase
         $this->loginWithCapabilities('helpdesk:supervise');
 
         $contract = $this->contract('/agents');
-        $columns = $this->blockByKey($contract['layout']['regions']['content'] ?? [], 'agents')['data']['columns'];
+        $columns = $this->blockByKey($contract['layout']['regions']['main'] ?? [], 'agents')['data']['columns'];
 
         $keys = array_column($columns, 'key');
         self::assertContains('email', $keys, 'supervisor sees the email column');

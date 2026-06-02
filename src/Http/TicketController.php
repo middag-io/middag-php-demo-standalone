@@ -87,8 +87,13 @@ final class TicketController extends AbstractController
                         'text' => $t->agent_id !== null ? ($agentNames[(int) $t->agent_id] ?? '—') : 'Unassigned',
                         'sublabel' => $t->agent_id !== null ? 'assigned' : 'unassigned',
                     ],
+                    // link_group filters items with a null href, so each tag chip
+                    // links to the list filtered by that tag (renders + is clickable).
                     'tags' => array_map(
-                        static fn (string $tag): array => ['label' => trim($tag), 'href' => null],
+                        static fn (string $tag): array => [
+                            'label' => trim($tag),
+                            'href' => '/tickets?search=' . rawurlencode(trim($tag)),
+                        ],
                         $tags,
                     ),
                     'created' => (int) $t->created_at,
@@ -197,7 +202,8 @@ final class TicketController extends AbstractController
                 PageBuilder::action('edit', 'Edit', ActionTarget::link('/tickets/' . $id . '/edit'), ActionIntent::PRIMARY, 'pencil'),
                 PageBuilder::action('back', 'All tickets', ActionTarget::link('/tickets'), ActionIntent::SECONDARY, 'arrow-left'),
             ])
-            ->region('content', function (RegionBuilder $region) use ($ticket, $section, $entries, $sla): void {
+            // sidebar layout renders the `main` + `aside` regions (not `content`).
+            ->region('main', function (RegionBuilder $region) use ($ticket, $section, $entries, $sla): void {
                 // workflow_progress has NO typed RegionBuilder method → escape hatch.
                 $region->block('workflow_progress', 'state', [
                     'states' => array_map(
