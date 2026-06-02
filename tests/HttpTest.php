@@ -121,10 +121,12 @@ final class HttpTest extends DemoTestCase
     {
         $this->createTask('Pickable');
 
+        // The option list rides under `data` so the @middag-io/react entity_picker
+        // (unwrap chain `json.items ?? json.data ?? json`) maps over an array.
         $payload = $this->json($this->handle('GET', '/api/entities/tasks'));
-        self::assertNotEmpty($payload['options']);
-        self::assertArrayHasKey('value', $payload['options'][0]);
-        self::assertArrayHasKey('label', $payload['options'][0]);
+        self::assertNotEmpty($payload['data']);
+        self::assertArrayHasKey('value', $payload['data'][0]);
+        self::assertArrayHasKey('label', $payload['data'][0]);
     }
 
     #[Test]

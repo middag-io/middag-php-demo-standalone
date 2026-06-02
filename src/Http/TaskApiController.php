@@ -98,6 +98,11 @@ final class TaskApiController extends AbstractApiController
     {
         $search = (string) $this->request->query->get('q', '');
 
-        return $this->jsonResponse(['options' => $this->sources->resolve('demo_tasks', $search)]);
+        // The @middag-io/react entity_picker unwraps the response as
+        // `json.items ?? json.data ?? json` and maps each item. AbstractApiController
+        // uses an array argument as the payload directly, so the option list must
+        // ride under `data` (a bare `{options:[...]}` would leave neither `items`
+        // nor `data` an array, and the picker would map over an object and break).
+        return $this->jsonResponse(['data' => $this->sources->resolve('demo_tasks', $search)]);
     }
 }

@@ -75,15 +75,56 @@ final class FormTest extends TestCase
         self::assertArrayHasKey('values', $props);
         self::assertArrayHasKey('errors', $props);
 
-        $names = [];
+        // Index field nodes by their node-level key — the contract the lib's
+        // FormField consumes (it reads field.key, never props.name).
+        $fields = [];
         foreach ($props['schema'] as $node) {
             if (($node['kind'] ?? '') === 'field') {
-                $names[] = $node['props']['name'];
+                $fields[$node['key']] = $node;
             }
         }
-        self::assertContains('title', $names);
-        self::assertContains('priority', $names);
-        self::assertContains('done_reason', $names);
-        self::assertContains('parent_task', $names);
+
+        // Every declared field reaches the client under its key.
+        self::assertArrayHasKey('title', $fields);
+        self::assertArrayHasKey('priority', $fields);
+        self::assertArrayHasKey('done_reason', $fields);
+        self::assertArrayHasKey('parent_task', $fields);
+
+        // Canonical FormFieldNode: lowercase component, pre-resolved string label,
+        // no leaked props.name.
+        self::assertSame('text', $fields['title']['component']);
+        self::assertSame('Title', $fields['title']['props']['label']);
+        self::assertIsString($fields['title']['props']['label']);
+        self::assertArrayNotHasKey('name', $fields['title']['props']);
+
+        // select options are a [{value,label}] list, not an assoc map.
+        self::assertSame(
+            [
+                ['value' => 'low', 'label' => 'Low'],
+                ['value' => 'normal', 'label' => 'Normal'],
+                ['value' => 'high', 'label' => 'High'],
+            ],
+            $fields['priority']['props']['options'],
+        );
+
+        // The conditional field carries discrete FormCondition props (eq -> equals).
+        self::assertSame(
+            ['field' => 'status', 'operator' => 'equals', 'value' => 'done'],
+            $fields['done_reason']['props']['visible_when'],
+        );
+        self::assertSame(
+            ['field' => 'status', 'operator' => 'equals', 'value' => 'done'],
+            $fields['done_reason']['props']['required_when'],
+        );
+
+        // entity_picker surfaces its display field + async search URL for the lib.
+        self::assertSame('entity_picker', $fields['parent_task']['component']);
+        self::assertSame('title', $fields['parent_task']['props']['entityDisplayField']);
+        self::assertSame('/api/entities/tasks', $fields['parent_task']['props']['autocompleteHref']);
+
+        // Field defaults seed the initial values the client form binds to.
+        self::assertSame('normal', $props['values']['priority']);
+        self::assertSame('open', $props['values']['status']);
+        self::assertTrue($props['values']['notify']);
     }
 }

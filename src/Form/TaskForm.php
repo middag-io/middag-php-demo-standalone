@@ -40,9 +40,12 @@ final class TaskForm extends AbstractForm
                 ->visibleWhen('status', ConditionOperator::EQ, 'done')
                 ->requiredWhen('status', ConditionOperator::EQ, 'done'),
 
-            // Entity-picker backed by the registered 'demo_tasks' source.
+            // Entity-picker backed by the registered 'demo_tasks' source; the
+            // autocomplete URL is the session-gated JSON endpoint the lib's picker
+            // fetches (with ?q=) for live search.
             FieldDefinition::entityPicker('parent_task')->label('Parent task')
-                ->source('demo_tasks')->displayField('title')->valueField('id'),
+                ->source('demo_tasks')->displayField('title')->valueField('id')
+                ->autocompleteHref('/api/entities/tasks'),
         ];
     }
 }

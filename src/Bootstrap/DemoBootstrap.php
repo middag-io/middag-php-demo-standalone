@@ -8,6 +8,7 @@ use Closure;
 use Middag\Demo\Standalone\Command\NotifyTaskCreatedCommand;
 use Middag\Demo\Standalone\Domain\Eloquent\Task;
 use Middag\Demo\Standalone\Form\TaskEntitySource;
+use Middag\Demo\Standalone\Form\LoginForm;
 use Middag\Demo\Standalone\Form\TaskForm;
 use Middag\Demo\Standalone\Framework\DebugCollector;
 use Middag\Demo\Standalone\Hook\TaskHooks;
@@ -190,6 +191,10 @@ final class DemoBootstrap implements BootstrapInterface
             ->setAutowired(true)
             ->setShared(false)
             ->setPublic(true);
+        $c->register(LoginForm::class, LoginForm::class)
+            ->setAutowired(true)
+            ->setShared(false)
+            ->setPublic(true);
 
         // (9) HTTP plumbing — routing + PSR-7<->HttpFoundation bridges + the kernel.
         $c->register(RouteCollection::class, RouteCollection::class)
@@ -336,12 +341,17 @@ final class DemoBootstrap implements BootstrapInterface
         // kernel seeds RequestContext method/host/scheme but not pathInfo).
         InertiaManager::share('navigation', static fn (): array => self::navigationProps());
         InertiaManager::share('version', InertiaVersionManager::getVersion());
+        // `theme`/`locale` complete the @middag-io/react SharedProps contract (both
+        // type-required, though the lib's providers default them); emitting them
+        // keeps the wire canonical. The demo is single-locale English, light theme.
+        InertiaManager::share('locale', 'en');
+        InertiaManager::share('theme', ['appearance' => 'light']);
     }
 
     /**
      * SharedProp `navigation` in the @middag-io/react NavigationTreePayload shape.
      *
-     * @return array{tree: list<array<string, mixed>>, activeKey: string}
+     * @return array{tree: list<array<string, mixed>>, activeKey: string, footer: list<array<string, mixed>>}
      */
     private static function navigationProps(): array
     {
@@ -354,6 +364,8 @@ final class DemoBootstrap implements BootstrapInterface
                 ['key' => 'tasks.new', 'label' => 'New task', 'icon' => 'plus', 'href' => '/tasks/new', 'children' => []],
             ],
             'activeKey' => $activeKey,
+            // NavigationTreePayload.footer is a required (if empty) node list.
+            'footer' => [],
         ];
     }
 
