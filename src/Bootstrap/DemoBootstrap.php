@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Middag\Demo\Standalone\Bootstrap;
 
 use Closure;
+use Middag\Demo\Standalone\Command\EscalateSlaCommand;
 use Middag\Demo\Standalone\Command\NotifyTaskCreatedCommand;
 use Middag\Demo\Standalone\Domain\Eloquent\Task;
 use Middag\Demo\Standalone\Form\TaskEntitySource;
@@ -12,6 +13,7 @@ use Middag\Demo\Standalone\Form\LoginForm;
 use Middag\Demo\Standalone\Form\TaskForm;
 use Middag\Demo\Standalone\Framework\DebugCollector;
 use Middag\Demo\Standalone\Hook\TaskHooks;
+use Middag\Demo\Standalone\Hook\TicketHooks;
 use Middag\Demo\Standalone\Http\AuthController;
 use Middag\Demo\Standalone\Http\TaskApiController;
 use Middag\Demo\Standalone\Http\TaskController;
@@ -306,6 +308,8 @@ final class DemoBootstrap implements BootstrapInterface
 
         // Demo hooks on the live HookManager instance.
         TaskHooks::register($hooks, $c->get(LoggerInterface::class));
+        // Help-desk: demo.ticket.created → enqueue async SLA escalation (high/urgent).
+        TicketHooks::register($hooks, $c->get(MessageBusInterface::class), $c->get(LoggerInterface::class));
 
         // Entity source feeding the form's entity-picker.
         $c->get(EntitySourceRegistry::class)->register('demo_tasks', $c->get(TaskEntitySource::class));
@@ -427,7 +431,10 @@ final class DemoBootstrap implements BootstrapInterface
         };
 
         $senders = new SendersLocator(
-            [NotifyTaskCreatedCommand::class => [DemoBootstrap::ASYNC_TRANSPORT]],
+            [
+                NotifyTaskCreatedCommand::class => [DemoBootstrap::ASYNC_TRANSPORT],
+                EscalateSlaCommand::class => [DemoBootstrap::ASYNC_TRANSPORT],
+            ],
             $senderLocator,
         );
 
