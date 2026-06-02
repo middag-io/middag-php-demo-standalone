@@ -8,6 +8,8 @@ use Middag\Demo\Standalone\Command\CreateTicketCommand;
 use Middag\Demo\Standalone\Command\UpdateTicketCommand;
 use Middag\Demo\Standalone\Domain\Doctrine\AgentRepository;
 use Middag\Demo\Standalone\Domain\Doctrine\CustomerRepository;
+use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicy;
+use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicyRepository;
 use Middag\Demo\Standalone\Domain\Eloquent\Comment;
 use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
 use Middag\Demo\Standalone\Form\TicketForm;
@@ -18,7 +20,9 @@ use Middag\Framework\Form\Renderer\RendererRegistry;
 use Middag\Framework\Http\Attribute\Auth;
 use Middag\Framework\Http\Controller\AbstractController;
 use Middag\Ui\Action\ActionTarget;
+use Middag\Ui\Block\BlockBuilder;
 use Middag\Ui\Page\PageBuilder;
+use Middag\Ui\Page\Tab;
 use Middag\Ui\Region\RegionBuilder;
 use Middag\Ui\Shared\Enum\ActionIntent;
 use Middag\Ui\Shared\Enum\RenderTarget;
@@ -48,6 +52,7 @@ final class TicketController extends AbstractController
         private readonly TicketForm $form,
         private readonly CustomerRepository $customers,
         private readonly AgentRepository $agents,
+        private readonly SlaPolicyRepository $slas,
     ) {}
 
     public function index(): Response
@@ -105,6 +110,17 @@ final class TicketController extends AbstractController
         return $this->page($contract);
     }
 
+    /**
+     * Ticket detail — the rich-block showcase + an aside region (sidebar layout).
+     *
+     * Proves four blocks the list/form pages don't: workflow_progress (the status
+     * state machine, emitted via the generic block() escape hatch — it has no typed
+     * RegionBuilder method), and a tabbed_panel grouping a detail_panel (fields),
+     * an activity_timeline (the comment feed; the comment body rides in `action`
+     * because the React block does not render `detail`), and a markdown_panel (the
+     * SLA policy joined the data-mapper way). The PHP emits block type `tabs`; the
+     * host bridges `tabs`→`tabbed_panel` + `id`→`key` in ui/src/app/register.ts.
+     */
     public function show(int $id): Response
     {
         $ticket = Ticket::findOrFail($id);
@@ -115,48 +131,107 @@ final class TicketController extends AbstractController
         /** @var list<Comment> $comments */
         $comments = Comment::query()->where('ticket_id', $id)->orderBy('created_at', 'asc')->get();
 
-        $commentRows = array_map(
+        $customer = $customerNames[(int) $ticket->customer_id] ?? '—';
+        $assignee = $ticket->agent_id !== null ? ($agentNames[(int) $ticket->agent_id] ?? '—') : 'Unassigned';
+
+        // detail_panel: one section of scalar fields (value is string|number|null).
+        $section = [
+            'id' => 'summary',
+            'title' => 'Ticket details',
+            'fields' => [
+                ['key' => 'subject', 'label' => 'Subject', 'value' => (string) $ticket->subject],
+                ['key' => 'status', 'label' => 'Status', 'value' => (string) $ticket->status],
+                ['key' => 'priority', 'label' => 'Priority', 'value' => (string) $ticket->priority],
+                ['key' => 'channel', 'label' => 'Channel', 'value' => (string) $ticket->channel],
+                ['key' => 'customer', 'label' => 'Reporter', 'value' => $customer],
+                ['key' => 'agent', 'label' => 'Assignee', 'value' => $assignee],
+                ['key' => 'tags', 'label' => 'Tags', 'value' => $ticket->tags !== null ? (string) $ticket->tags : null],
+                ['key' => 'created', 'label' => 'Created', 'value' => $ticket->created_at ? date('Y-m-d H:i', (int) $ticket->created_at) : null],
+                ['key' => 'resolved', 'label' => 'Resolved', 'value' => $ticket->resolved_at ? date('Y-m-d H:i', (int) $ticket->resolved_at) : null],
+                ['key' => 'satisfaction', 'label' => 'CSAT', 'value' => $ticket->satisfaction !== null ? (int) $ticket->satisfaction : null],
+            ],
+        ];
+
+        // activity_timeline: the comment body rides in `action` (the React block
+        // renders actor + action + timestamp, not `detail`). timestamp = unix seconds.
+        $entries = array_map(
             static fn (Comment $c): array => [
-                'author' => (string) $c->author,
-                'visibility' => $c->is_internal ? 'internal' : 'customer',
-                'body' => (string) $c->body,
-                'at' => $c->created_at ? date('Y-m-d H:i', (int) $c->created_at) : '',
+                'id' => (string) $c->id,
+                'actor' => (string) $c->author,
+                'action' => ($c->is_internal ? '🔒 ' : '') . (string) $c->body,
+                'icon' => $c->is_internal ? 'lock' : 'message-circle',
+                'color' => $c->is_internal ? 'warning' : 'info',
+                'timestamp' => (int) $c->created_at,
             ],
             $comments,
         );
 
+        $sla = $ticket->sla_policy_id !== null ? $this->slas->find((int) $ticket->sla_policy_id) : null;
+
         $contract = PageBuilder::page('demo.tickets.show')
             ->shell('basic')
+            ->layout('sidebar')
             ->title('#' . $id . ' · ' . (string) $ticket->subject)
-            ->subtitle('Ticket detail + activity feed')
+            ->subtitle('Ticket detail — workflow state + tabbed detail/activity/SLA')
             ->actions([
+                PageBuilder::action('edit', 'Edit', ActionTarget::link('/tickets/' . $id . '/edit'), ActionIntent::PRIMARY, 'pencil'),
                 PageBuilder::action('back', 'All tickets', ActionTarget::link('/tickets'), ActionIntent::SECONDARY, 'arrow-left'),
             ])
-            ->region('content', function (RegionBuilder $region) use ($ticket, $customerNames, $agentNames, $commentRows): void {
-                $region->denseTable('detail', [
-                    ['key' => 'field', 'label' => 'Field'],
-                    ['key' => 'value', 'label' => 'Value'],
-                ], [
-                    ['field' => 'Subject', 'value' => (string) $ticket->subject],
-                    ['field' => 'Status', 'value' => (string) $ticket->status],
-                    ['field' => 'Priority', 'value' => (string) $ticket->priority],
-                    ['field' => 'Channel', 'value' => (string) $ticket->channel],
-                    ['field' => 'Customer', 'value' => $customerNames[(int) $ticket->customer_id] ?? '—'],
-                    ['field' => 'Assignee', 'value' => $ticket->agent_id !== null ? ($agentNames[(int) $ticket->agent_id] ?? '—') : 'Unassigned'],
-                    ['field' => 'Created', 'value' => $ticket->created_at ? date('Y-m-d H:i', (int) $ticket->created_at) : ''],
-                    ['field' => 'Resolved', 'value' => $ticket->resolved_at ? date('Y-m-d H:i', (int) $ticket->resolved_at) : '—'],
+            ->region('content', function (RegionBuilder $region) use ($ticket, $section, $entries, $sla): void {
+                // workflow_progress has NO typed RegionBuilder method → escape hatch.
+                $region->block('workflow_progress', 'state', [
+                    'states' => array_map(
+                        static fn (string $s): array => ['key' => $s, 'label' => ucfirst($s)],
+                        Ticket::STATUSES,
+                    ),
+                    'currentState' => (string) $ticket->status,
                 ]);
 
-                $region->denseTable('activity', [
-                    ['key' => 'at', 'label' => 'When', 'variant' => 'timestamp'],
-                    ['key' => 'author', 'label' => 'Author'],
-                    ['key' => 'visibility', 'label' => 'Visibility', 'variant' => 'badge'],
-                    ['key' => 'body', 'label' => 'Comment'],
-                ], $commentRows);
+                // tabbed_panel (wire type `tabs`): each Tab nests BlockBuilder statics.
+                $region->tabs('tabs', [
+                    new Tab('details', 'Details', [
+                        BlockBuilder::detailPanel('detail', [$section]),
+                    ]),
+                    new Tab('activity', 'Activity', [
+                        BlockBuilder::activityTimeline('activity', [
+                            ['label' => 'Comments', 'entries' => $entries],
+                        ]),
+                    ]),
+                    new Tab('sla', 'SLA', [
+                        BlockBuilder::markdownPanel('sla', self::slaMarkdown($ticket, $sla)),
+                    ]),
+                ]);
+            })
+            ->region('aside', function (RegionBuilder $region) use ($ticket, $entries): void {
+                $region->metricCard('comments', count($entries), 'Comments', icon: 'messages-square');
+                $region->metricCard('priority', ucfirst((string) $ticket->priority), 'Priority', icon: 'flame');
             })
             ->build();
 
         return $this->page($contract);
+    }
+
+    /**
+     * SLA tab markdown — the policy reached the data-mapper way (SlaPolicyRepository),
+     * rendered alongside the ticket's own due/resolved timestamps.
+     */
+    private static function slaMarkdown(Ticket $ticket, ?SlaPolicy $sla): string
+    {
+        $due = $ticket->due_at ? date('Y-m-d H:i', (int) $ticket->due_at) : '—';
+        $resolved = $ticket->resolved_at ? date('Y-m-d H:i', (int) $ticket->resolved_at) : 'not yet';
+
+        if ($sla === null) {
+            return "### SLA\n\nNo SLA policy assigned.\n\n- **Due:** {$due}\n- **Resolved:** {$resolved}";
+        }
+
+        $p = $sla->toArray();
+
+        return "### {$p['name']}\n\n"
+            . "- **Priority tier:** {$p['priority']}\n"
+            . "- **Response target:** {$p['response_minutes']} min\n"
+            . "- **Resolution target:** {$p['resolution_minutes']} min\n"
+            . "- **Due:** {$due}\n"
+            . "- **Resolved:** {$resolved}";
     }
 
     public function newTicket(): Response

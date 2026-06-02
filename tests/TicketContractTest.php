@@ -54,6 +54,24 @@ final class TicketContractTest extends DemoTestCase
         return null;
     }
 
+    /**
+     * Flatten the child blocks nested inside a `tabs` block's tabs[].blocks[].
+     *
+     * @param array<string, mixed>|null $tabsBlock
+     * @return list<array<string, mixed>>
+     */
+    private function tabsNestedBlocks(?array $tabsBlock): array
+    {
+        $out = [];
+        foreach ($tabsBlock['data']['tabs'] ?? [] as $tab) {
+            foreach ($tab['blocks'] ?? [] as $block) {
+                $out[] = $block;
+            }
+        }
+
+        return $out;
+    }
+
     #[Test]
     public function indexRendersDenseTableWithVariantColumnsAndMetricCards(): void
     {
@@ -78,20 +96,49 @@ final class TicketContractTest extends DemoTestCase
     }
 
     #[Test]
-    public function showRendersDetailAndActivityTables(): void
+    public function showRendersWorkflowProgressAndTabbedDetailActivitySla(): void
     {
         $id = $this->createTicket('Cannot reset password');
 
         $blocks = $this->contentBlocks('/tickets/' . $id);
 
-        $detail = $this->blockByKey($blocks, 'detail');
-        self::assertNotNull($detail);
-        self::assertSame('dense_table', $detail['type']);
-        $fields = array_column($detail['data']['rows'], 'value', 'field');
+        // workflow_progress (generic block escape hatch) reflects the ticket state.
+        $state = $this->blockByKey($blocks, 'state');
+        self::assertNotNull($state, 'ticket detail must contain the workflow_progress block');
+        self::assertSame('workflow_progress', $state['type']);
+        self::assertSame('new', $state['data']['currentState'] ?? null);
+        self::assertNotEmpty($state['data']['states'] ?? [], 'workflow states populated');
+
+        // tabbed_panel (wire type `tabs`) groups the detail/activity/sla blocks.
+        $tabs = $this->blockByKey($blocks, 'tabs');
+        self::assertNotNull($tabs, 'ticket detail must contain the tabbed_panel (tabs) block');
+        self::assertSame('tabs', $tabs['type']);
+
+        $nested = $this->tabsNestedBlocks($tabs);
+
+        $detail = $this->blockByKey($nested, 'detail');
+        self::assertNotNull($detail, 'Details tab carries the detail_panel');
+        self::assertSame('detail_panel', $detail['type']);
+        $fields = [];
+        foreach ($detail['data']['sections'][0]['fields'] ?? [] as $field) {
+            $fields[(string) $field['label']] = $field['value'];
+        }
         self::assertSame('Cannot reset password', $fields['Subject'] ?? null);
         self::assertSame('new', $fields['Status'] ?? null);
 
-        self::assertNotNull($this->blockByKey($blocks, 'activity'), 'activity feed table present');
+        $activity = $this->blockByKey($nested, 'activity');
+        self::assertNotNull($activity, 'Activity tab carries the activity_timeline');
+        self::assertSame('activity_timeline', $activity['type']);
+
+        $sla = $this->blockByKey($nested, 'sla');
+        self::assertNotNull($sla, 'SLA tab carries the markdown_panel');
+        self::assertSame('markdown_panel', $sla['type']);
+
+        // The aside region (sidebar layout) carries the metric cards.
+        $payload = $this->json($this->handle('GET', '/tickets/' . $id, [], ['HTTP_X_INERTIA' => 'true']));
+        $aside = $payload['props']['contract']['layout']['regions']['aside'] ?? [];
+        self::assertNotNull($this->blockByKey($aside, 'comments'), 'aside metric_card present');
+        self::assertSame('sidebar', $payload['props']['contract']['layout']['template'] ?? null);
     }
 
     #[Test]
