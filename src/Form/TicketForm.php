@@ -63,10 +63,15 @@ final class TicketForm extends AbstractForm
         ];
     }
 
-    /** @return array<int|string, string> id => "name (priority)" */
+    /** @return array<int, string> id => "name (priority)" */
     private function slaOptions(): array
     {
-        $options = ['' => '— none —'];
+        // No '' => '— none —' entry: Radix Select (the React SelectField) throws on
+        // a SelectItem with an empty value, which crashed the wizard's step 2. The
+        // field is optional, so the lib renders a "Select…" placeholder for the
+        // unselected/none state, and the backend already maps an empty
+        // sla_policy_id to null (see TicketController::wizardConfirm/update).
+        $options = [];
         foreach ($this->sla->latest() as $policy) {
             /** @var SlaPolicy $policy */
             $data = $policy->toArray();

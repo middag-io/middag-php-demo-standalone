@@ -300,10 +300,20 @@ final class TicketController extends AbstractController
 
         // Step 1 → wizardStore (validates + advances); step 2 → wizardConfirm (creates).
         $action = $step === 1 ? '/tickets/new' : '/tickets/new/confirm';
-        // Footer (right-aligned): Back to the prior step, or Cancel out on step 1.
+        // Footer holds only Back (step 2 → step 1). The form_panel itself carries the
+        // primary submit (Continue/Create) and Cancel, so step 1 needs no footer —
+        // avoids the duplicate Cancel the older two-footer wiring produced.
         $footer = $step > 1
             ? [PageBuilder::action('back', 'Back', ActionTarget::link('/tickets/new?step=' . ($step - 1)), ActionIntent::SECONDARY, 'arrow-left')]
-            : [PageBuilder::action('cancel', 'Cancel', ActionTarget::link('/tickets'), ActionIntent::SECONDARY, 'x')];
+            : [];
+        // The submit advances on step 1 and creates on step 2; Cancel abandons to
+        // the queue. Labels ride in form_panel meta (read by the React block).
+        $submitLabel = $step === 1 ? 'Continue' : 'Create ticket';
+        // Step 1 validates client-side (required core: subject/customer/...). Step 2
+        // is server-validated: its fields are all optional + nullable and the client
+        // Zod builds optional select/date as z.string() (rejects the renderer's null
+        // defaults), which would wrongly block submit. wizardConfirm is the real gate.
+        $validation = $step === 1 ? 'both' : 'server';
 
         $contract = PageBuilder::page('demo.tickets.create')
             ->shell('basic')
@@ -314,8 +324,10 @@ final class TicketController extends AbstractController
                 'steps' => self::stepIndicator($step),
                 'actions' => $footer,
             ])
-            ->region('content', function (RegionBuilder $region) use ($action, $schema, $values): void {
-                $region->formPanel('ticket_form', $action, 'POST', $schema, $values);
+            ->region('content', function (RegionBuilder $region) use ($action, $schema, $values, $submitLabel, $validation): void {
+                $region->formPanel('ticket_form', $action, 'POST', $schema, $values, null, [
+                    'meta' => ['validation' => $validation, 'submitLabel' => $submitLabel, 'cancelLabel' => 'Cancel', 'cancelHref' => '/tickets'],
+                ]);
             })
             ->build();
 
