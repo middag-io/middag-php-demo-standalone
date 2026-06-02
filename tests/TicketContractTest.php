@@ -84,10 +84,12 @@ final class TicketContractTest extends DemoTestCase
         self::assertSame('dense_table', $table['type']);
 
         // Cells are selected by the column `variant` (not `format`) — the whole point
-        // of the hand-built table.
+        // of the hand-built table; the list is the rich-cell showcase.
         $variants = array_column($table['data']['columns'], 'variant', 'key');
         self::assertSame('status', $variants['status'] ?? null);
-        self::assertSame('badge', $variants['priority'] ?? null);
+        self::assertSame('rich_status', $variants['priority'] ?? null);
+        self::assertSame('annotated', $variants['assignee'] ?? null);
+        self::assertSame('link_group', $variants['tags'] ?? null);
         self::assertSame('timestamp', $variants['created'] ?? null);
         self::assertSame('/tickets/{id}', $table['data']['rowHref'] ?? null);
 

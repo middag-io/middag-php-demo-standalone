@@ -63,24 +63,42 @@ final class TicketController extends AbstractController
         /** @var list<Ticket> $tickets */
         $tickets = Ticket::query()->orderBy('created_at', 'desc')->get();
 
+        // The queue table is the cell-renderer showcase: each column's `variant`
+        // selects the React cell, so the row VALUES are shaped per cell — a plain
+        // string for `status`, the {label,appearance,icon} object for `rich_status`,
+        // an {text,sublabel} object for `annotated`, a [{label,href}] list for
+        // `link_group`, and a unix int for `timestamp`.
         $rows = array_map(
             static function (Ticket $t) use ($customerNames, $agentNames): array {
+                $tags = $t->tags !== null && $t->tags !== '' ? explode(',', (string) $t->tags) : [];
+
                 return [
                     'id' => (int) $t->id,
                     'subject' => (string) $t->subject,
                     'status' => (string) $t->status,
-                    'priority' => (string) $t->priority,
+                    'priority' => [
+                        'label' => ucfirst((string) $t->priority),
+                        'appearance' => self::priorityAppearance((string) $t->priority),
+                        'icon' => self::priorityIcon((string) $t->priority),
+                    ],
                     'channel' => (string) $t->channel,
                     'customer' => $customerNames[(int) $t->customer_id] ?? '—',
-                    'agent' => $t->agent_id !== null ? ($agentNames[(int) $t->agent_id] ?? '—') : 'Unassigned',
-                    'created' => $t->created_at ? date('Y-m-d', (int) $t->created_at) : '',
+                    'assignee' => [
+                        'text' => $t->agent_id !== null ? ($agentNames[(int) $t->agent_id] ?? '—') : 'Unassigned',
+                        'sublabel' => $t->agent_id !== null ? 'assigned' : 'unassigned',
+                    ],
+                    'tags' => array_map(
+                        static fn (string $tag): array => ['label' => trim($tag), 'href' => null],
+                        $tags,
+                    ),
+                    'created' => (int) $t->created_at,
                 ];
             },
             $tickets,
         );
 
-        $open = array_filter($rows, static fn (array $r): bool => !in_array($r['status'], ['resolved', 'closed'], true));
-        $urgent = array_filter($rows, static fn (array $r): bool => in_array($r['priority'], ['high', 'urgent'], true));
+        $open = array_filter($tickets, static fn (Ticket $t): bool => !in_array((string) $t->status, ['resolved', 'closed'], true));
+        $urgent = array_filter($tickets, static fn (Ticket $t): bool => in_array((string) $t->priority, ['high', 'urgent'], true));
 
         $contract = PageBuilder::page('demo.tickets')
             ->shell('basic')
@@ -91,16 +109,18 @@ final class TicketController extends AbstractController
                 $region->metricCard('open', count($open), 'Open', icon: 'folder-open');
                 $region->metricCard('urgent', count($urgent), 'High / urgent', icon: 'flame');
 
-                // Hand-built columns keyed by `variant` (the renderer the React
-                // DenseTableBlock selects per column): status/badge/timestamp cells.
+                // Hand-built columns keyed by `variant` — the cell renderer the React
+                // DenseTableBlock selects per column. Exercises status, rich_status,
+                // annotated, link_group and timestamp cells in one table.
                 $region->denseTable('tickets', [
                     ['key' => 'subject', 'label' => 'Subject'],
                     ['key' => 'status', 'label' => 'Status', 'variant' => 'status'],
-                    ['key' => 'priority', 'label' => 'Priority', 'variant' => 'badge'],
+                    ['key' => 'priority', 'label' => 'Priority', 'variant' => 'rich_status'],
                     ['key' => 'channel', 'label' => 'Channel'],
                     ['key' => 'customer', 'label' => 'Customer'],
-                    ['key' => 'agent', 'label' => 'Assignee'],
-                    ['key' => 'created', 'label' => 'Created', 'variant' => 'timestamp'],
+                    ['key' => 'assignee', 'label' => 'Assignee', 'variant' => 'annotated'],
+                    ['key' => 'tags', 'label' => 'Tags', 'variant' => 'link_group'],
+                    ['key' => 'created', 'label' => 'Created', 'variant' => 'timestamp', 'timestampFormat' => 'date'],
                 ], $rows, [
                     'rowHref' => '/tickets/{id}',
                 ]);
@@ -328,6 +348,26 @@ final class TicketController extends AbstractController
         $this->flash('success', 'Ticket updated.');
 
         return $this->redirectToRoute('tickets.index');
+    }
+
+    /** rich_status appearance for a ticket priority (one of success/warning/danger/info/neutral). */
+    private static function priorityAppearance(string $priority): string
+    {
+        return match ($priority) {
+            'urgent' => 'danger',
+            'high' => 'warning',
+            'normal' => 'info',
+            default => 'neutral',
+        };
+    }
+
+    private static function priorityIcon(string $priority): string
+    {
+        return match ($priority) {
+            'urgent', 'high' => 'flame',
+            'low' => 'arrow-down',
+            default => 'circle',
+        };
     }
 
     /** @return array<string, mixed> */
