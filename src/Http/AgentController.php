@@ -142,13 +142,16 @@ final class AgentController extends AbstractController
 
         $contract = PageBuilder::page('demo.agents.show')
             ->shell('basic')
-            ->layout('stack')
+            ->layout('dashboard')
             ->title((string) $d['name'])
             ->subtitle('Agent detail — workload aggregate + assigned open tickets')
-            ->region('content', function (RegionBuilder $region) use ($section, $open, $assigned, $links): void {
-                $region->detailPanel('detail', [$section]);
+            // metrics region → StatRow grid; detail + link_list stay in content as cards.
+            ->region('metrics', function (RegionBuilder $region) use ($open, $assigned): void {
                 $region->metricCard('workload', count($open), 'Open assigned', icon: 'briefcase');
                 $region->metricCard('total_assigned', count($assigned), 'Total assigned', icon: 'inbox');
+            })
+            ->region('content', function (RegionBuilder $region) use ($section, $links): void {
+                $region->detailPanel('detail', [$section]);
                 $region->linkList('assigned', $links);
             })
             ->build();

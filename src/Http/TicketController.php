@@ -120,13 +120,17 @@ final class TicketController extends AbstractController
 
         $contract = PageBuilder::page('demo.tickets')
             ->shell('basic')
+            ->layout('dashboard')
             ->title('Tickets')
             ->subtitle('Help-desk queue — active-record tickets, data-mapper customer/agent names')
-            ->region('content', function (RegionBuilder $region) use ($rows, $open, $urgent): void {
+            // metrics region → StatRow grid (dashboard layout); keeps the cards out of
+            // `content` so they are not double-wrapped in a per-block Card.
+            ->region('metrics', function (RegionBuilder $region) use ($rows, $open, $urgent): void {
                 $region->metricCard('total', count($rows), 'Total tickets', icon: 'inbox');
                 $region->metricCard('open', count($open), 'Open', icon: 'folder-open');
                 $region->metricCard('urgent', count($urgent), 'High / urgent', icon: 'flame');
-
+            })
+            ->region('content', function (RegionBuilder $region) use ($rows): void {
                 // Hand-built columns keyed by `variant` — the cell renderer the React
                 // DenseTableBlock selects per column. Exercises status, rich_status,
                 // annotated, link_group and timestamp cells in one table.

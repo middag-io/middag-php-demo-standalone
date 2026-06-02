@@ -100,12 +100,16 @@ final class DashboardController extends AbstractController
             ->layout('dashboard')
             ->title('Help-desk dashboard')
             ->subtitle('SLA health, queue metrics and the ticket trend — dual-ORM reads')
-            ->region('content', function (RegionBuilder $region) use ($total, $open, $highUrgent, $avgCsat, $strip, $score, $rows, $categories, $series): void {
+            // metrics region: the dashboard layout grids these as a StatRow (4-up),
+            // unwrapped — content blocks instead get a per-block Card. Keeping the
+            // metric_cards out of `content` is what stops the double-card wrap.
+            ->region('metrics', function (RegionBuilder $region) use ($total, $open, $highUrgent, $avgCsat): void {
                 $region->metricCard('total', $total, 'Total tickets', icon: 'inbox');
                 $region->metricCard('open', count($open), 'Open', icon: 'folder-open');
                 $region->metricCard('urgent', $highUrgent, 'High / urgent open', icon: 'flame');
                 $region->metricCard('csat', $avgCsat, 'Avg CSAT', icon: 'star');
-
+            })
+            ->region('content', function (RegionBuilder $region) use ($strip, $score, $rows, $categories, $series): void {
                 // status_strip with the score ring → generic block() (no typed score arg).
                 $region->block('status_strip', 'sla_health', ['items' => $strip, 'score' => $score]);
 

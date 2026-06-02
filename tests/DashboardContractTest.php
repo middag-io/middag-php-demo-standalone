@@ -58,9 +58,12 @@ final class DashboardContractTest extends DemoTestCase
         $contract = $this->contract('/');
         self::assertSame('dashboard', $contract['layout']['template'] ?? null);
 
+        $metrics = $contract['layout']['regions']['metrics'] ?? [];
         $blocks = $contract['layout']['regions']['content'] ?? [];
 
-        $total = $this->blockByKey($blocks, 'total');
+        // metric cards live in the `metrics` region so the dashboard layout grids
+        // them as a StatRow instead of double-wrapping each in a content Card.
+        $total = $this->blockByKey($metrics, 'total');
         self::assertNotNull($total, 'metric_card present');
         self::assertSame('metric_card', $total['type']);
 

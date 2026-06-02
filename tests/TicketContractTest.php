@@ -36,11 +36,12 @@ final class TicketContractTest extends DemoTestCase
         $payload = $this->json($this->handle('GET', $path, [], ['HTTP_X_INERTIA' => 'true']));
         self::assertSame('Page', $payload['component']);
 
-        // The list/create/edit pages use stack (region `content`); the sidebar
-        // detail page uses region `main`. Merge both so callers find their blocks.
+        // The list page uses dashboard (metric cards in `metrics`, table in
+        // `content`); create/edit use stack (`content`); the sidebar detail page
+        // uses `main`. Merge all three so callers find their blocks by key.
         $regions = $payload['props']['contract']['layout']['regions'] ?? [];
 
-        return array_merge($regions['content'] ?? [], $regions['main'] ?? []);
+        return array_merge($regions['metrics'] ?? [], $regions['content'] ?? [], $regions['main'] ?? []);
     }
 
     /**

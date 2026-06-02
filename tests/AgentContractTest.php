@@ -125,7 +125,10 @@ final class AgentContractTest extends DemoTestCase
     {
         $id = $this->seedAgent('Bruno Test', 'agent');
 
-        $blocks = $this->contract('/agents/' . $id)['layout']['regions']['content'] ?? [];
+        // detail page uses the dashboard layout: workload metric in `metrics`,
+        // detail_panel + link_list in `content`. Merge so both are found by key.
+        $regions = $this->contract('/agents/' . $id)['layout']['regions'] ?? [];
+        $blocks = array_merge($regions['metrics'] ?? [], $regions['content'] ?? []);
 
         $detail = $this->blockByKey($blocks, 'detail');
         self::assertNotNull($detail);
