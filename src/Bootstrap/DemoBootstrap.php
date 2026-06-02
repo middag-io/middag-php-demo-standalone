@@ -19,7 +19,6 @@ use Middag\Demo\Standalone\Logging\CleanLogsHandler;
 use Middag\Framework\Bus\Command\CommandWorker;
 use Middag\Framework\Bus\Contract\MessageBusInterface;
 use Middag\Framework\Bus\Contract\UserContextResolverInterface;
-use Middag\Framework\Bus\MessageBus;
 use Middag\Framework\Bus\MessageBusFactory;
 use Middag\Framework\Bus\Middleware\ProfilingMiddleware;
 use Middag\Framework\Bus\Transport\InMemoryTransport;
@@ -29,15 +28,11 @@ use Middag\Framework\Database\Contract\SchemaBuilderAdapterInterface;
 use Middag\Framework\Database\PdoConnectionAdapter;
 use Middag\Framework\Database\Schema\SchemaBuilder;
 use Middag\Framework\Database\Schema\SqliteSchemaBuilderAdapter;
-use Middag\Framework\Form\ConditionEvaluator;
 use Middag\Framework\Form\EntitySourceRegistry;
-use Middag\Framework\Form\FormValidator;
-use Middag\Framework\Form\Renderer\InertiaFieldMapper;
-use Middag\Framework\Form\Renderer\InertiaRenderer;
-use Middag\Framework\Form\Renderer\RendererRegistry;
 use Middag\Framework\Http\Auth\SessionAuthenticator;
 use Middag\Framework\Http\Auth\SessionUserContextResolver;
 use Middag\Framework\Http\Contract\AuthenticatorInterface;
+use Middag\Framework\Http\Contract\HttpKernelInterface;
 use Middag\Framework\Http\Contract\SessionInterface;
 use Middag\Framework\Http\HttpKernel;
 use Middag\Framework\Http\Inertia\InertiaAdapter;
@@ -52,11 +47,9 @@ use Middag\Framework\Http\Security\CsrfTokenManager;
 use Middag\Framework\Http\Session\FlashBag;
 use Middag\Framework\Http\Session\NativeSession;
 use Middag\Framework\Kernel\Bootstrap\EnvConfigResolver;
-use Middag\Framework\Kernel\Bootstrap\IdentityTranslator;
 use Middag\Framework\Kernel\Contract\BootstrapInterface;
 use Middag\Framework\Kernel\Contract\ConfigResolverInterface;
 use Middag\Framework\Kernel\Contract\HookManagerInterface;
-use Middag\Framework\Kernel\Contract\TranslatorInterface;
 use Middag\Framework\Kernel\Manager\HookManager;
 use Middag\Framework\Logging\Contract\ActorResolverInterface;
 use Middag\Framework\Logging\Contract\OriginResolverInterface;
@@ -67,6 +60,8 @@ use Middag\Framework\Observability\Contract\ProfileCollectorInterface;
 use Middag\Framework\Observability\ProfileCollector;
 use Middag\Framework\Persistence\Contract\ConnectionResolverInterface;
 use Middag\Framework\Persistence\SingleConnectionResolver;
+use Middag\Framework\Translation\Contract\TranslatorInterface;
+use Middag\Framework\Translation\FallbackTranslator;
 use Monolog\Logger;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PDO;
@@ -127,7 +122,7 @@ final class DemoBootstrap implements BootstrapInterface
 
         // (3) Config (env-driven) + i18n (no-op identity translator).
         $c->register(ConfigResolverInterface::class, EnvConfigResolver::class)->setPublic(true);
-        $c->register(TranslatorInterface::class, IdentityTranslator::class)->setPublic(true);
+        $c->register(TranslatorInterface::class, FallbackTranslator::class)->setPublic(true);
 
         // (4) Hooks (instance manager + facade, wired by ContainerFactory) + user context.
         $c->register(HookManagerInterface::class, HookManager::class)
@@ -165,7 +160,9 @@ final class DemoBootstrap implements BootstrapInterface
         // {Command}Handler convention; async commands routed to an in-memory
         // transport drained by the CommandWorker.
         $c->register(InMemoryTransport::class, InMemoryTransport::class)->setPublic(true);
-        $c->register(MessageBusInterface::class, MessageBus::class)
+        // Bound impl is produced by createMessageBus() via MessageBusFactory (@api);
+        // the concrete MessageBus (@internal) is never named here.
+        $c->register(MessageBusInterface::class)
             ->setFactory([self::class, 'createMessageBus'])
             ->setArguments([new Reference('service_container')])
             ->setPublic(true);
@@ -182,23 +179,15 @@ final class DemoBootstrap implements BootstrapInterface
             ->setArguments([$this->projectRoot . '/var/log', new Reference(LoggerInterface::class)])
             ->setPublic(true);
 
-        // (8) Forms + renderers + entity sources.
-        $c->register(ConditionEvaluator::class, ConditionEvaluator::class)->setPublic(true);
-        $c->register(FormValidator::class, FormValidator::class)
-            ->setArguments([new Reference(ConditionEvaluator::class)])
-            ->setPublic(true);
-        $c->register(InertiaFieldMapper::class, InertiaFieldMapper::class)->setPublic(true);
-        $c->register(InertiaRenderer::class, InertiaRenderer::class)
-            ->setArguments([new Reference(InertiaFieldMapper::class)])
-            ->setPublic(true);
-        $c->register(RendererRegistry::class, RendererRegistry::class)
-            ->setFactory([self::class, 'rendererRegistryFactory'])
-            ->setArguments([new Reference(InertiaRenderer::class)])
-            ->setPublic(true);
+        // (8) Forms + entity sources. The form pipeline (validator + Inertia
+        // renderer + registry) is provided by the framework's ServiceProvider
+        // defaults (registerFormDefaults), so the composition root no longer
+        // names those @internal collaborators; TaskForm autowires the
+        // FormValidator it inherits.
         $c->register(EntitySourceRegistry::class, EntitySourceRegistry::class)->setPublic(true);
         $c->register(TaskEntitySource::class, TaskEntitySource::class)->setPublic(true);
         $c->register(TaskForm::class, TaskForm::class)
-            ->setArguments([new Reference(FormValidator::class)])
+            ->setAutowired(true)
             ->setShared(false)
             ->setPublic(true);
 
@@ -222,7 +211,9 @@ final class DemoBootstrap implements BootstrapInterface
                 new Reference(Psr17Factory::class),
             ])
             ->setPublic(true);
-        $c->register(HttpKernel::class, HttpKernel::class)
+        // Service is keyed on the @api HttpKernelInterface; the concrete HttpKernel
+        // (@internal) appears only as the bound impl — the standard DI seam.
+        $c->register(HttpKernelInterface::class, HttpKernel::class)
             ->setArguments([
                 new Reference('service_container'),
                 new Reference(RouteCollection::class),
@@ -264,7 +255,7 @@ final class DemoBootstrap implements BootstrapInterface
             ->setPublic(true);
         $c->register(MiddlewareDispatcher::class, MiddlewareDispatcher::class)
             ->setArguments([
-                new Reference(HttpKernel::class),
+                new Reference(HttpKernelInterface::class),
                 new Reference(StartSessionMiddleware::class),
                 new Reference(ShareFlashMiddleware::class),
                 new Reference(VerifyCsrfMiddleware::class),
@@ -427,11 +418,6 @@ final class DemoBootstrap implements BootstrapInterface
         return (new MessageBusFactory())->create($c, $senders, null, [
             new ProfilingMiddleware($c->get(ProfileCollectorInterface::class)),
         ]);
-    }
-
-    public static function rendererRegistryFactory(InertiaRenderer $renderer): RendererRegistry
-    {
-        return new RendererRegistry([$renderer]);
     }
 
     public static function routes(): RouteCollection

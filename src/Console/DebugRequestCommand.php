@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Console;
 
-use Middag\Framework\Http\HttpKernel;
+use Middag\Framework\Http\Contract\HttpKernelInterface;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Command\Command;
@@ -34,8 +34,8 @@ final class DebugRequestCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        /** @var HttpKernel $kernel */
-        $kernel = $this->container->get(HttpKernel::class);
+        /** @var HttpKernelInterface $kernel */
+        $kernel = $this->container->get(HttpKernelInterface::class);
 
         $method = (string) $input->getArgument('method');
         $path = (string) $input->getArgument('path');
