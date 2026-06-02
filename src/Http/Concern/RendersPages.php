@@ -6,7 +6,7 @@ namespace Middag\Demo\Standalone\Http\Concern;
 
 use Middag\Demo\Standalone\Framework\DebugCollector;
 use Middag\Framework\Http\Inertia\InertiaFactory;
-use Middag\Ui\Envelope\ContractEnvelopeInterface;
+use Middag\Ui\Envelope\Contract\ContractEnvelopeInterface;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
