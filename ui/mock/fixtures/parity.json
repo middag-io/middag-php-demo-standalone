@@ -1,0 +1,257 @@
+{
+    "component": "Page",
+    "props": {
+        "auth": {
+            "id": 1,
+            "name": "Demo User",
+            "email": "demo@middag.io",
+            "capabilities": [
+                "helpdesk:supervise"
+            ]
+        },
+        "navigation": {
+            "tree": [
+                {
+                    "key": "dashboard",
+                    "label": "Dashboard",
+                    "icon": "layout-dashboard",
+                    "href": "/dashboard",
+                    "children": []
+                },
+                {
+                    "key": "tickets",
+                    "label": "Tickets",
+                    "icon": "inbox",
+                    "href": "/tickets",
+                    "children": []
+                },
+                {
+                    "key": "agents",
+                    "label": "Agents",
+                    "icon": "users",
+                    "href": "/agents",
+                    "children": []
+                },
+                {
+                    "key": "customers",
+                    "label": "Customers",
+                    "icon": "building",
+                    "href": "/customers",
+                    "children": []
+                },
+                {
+                    "key": "parity",
+                    "label": "Dual-ORM parity",
+                    "icon": "columns",
+                    "href": "/parity",
+                    "children": []
+                },
+                {
+                    "key": "coverage",
+                    "label": "Coverage",
+                    "icon": "shield-check",
+                    "href": "/coverage",
+                    "children": []
+                },
+                {
+                    "key": "help",
+                    "label": "Help",
+                    "icon": "help-circle",
+                    "href": "/help",
+                    "children": []
+                }
+            ],
+            "activeKey": "parity",
+            "footer": []
+        },
+        "version": "demo-0.5",
+        "locale": "en",
+        "theme": {
+            "appearance": "light"
+        },
+        "flash": [],
+        "errors": [],
+        "csrf_token": "dev-csrf-token",
+        "contract": {
+            "version": "1",
+            "shell": "basic",
+            "page": {
+                "key": "demo.parity",
+                "title": "Dual-ORM parity",
+                "subtitle": "Same dataset, two read paths — data-mapper QueryBuilder vs active-record Model"
+            },
+            "layout": {
+                "template": "stack",
+                "regions": {
+                    "content": [
+                        {
+                            "type": "tabs",
+                            "key": "sources",
+                            "data": {
+                                "tabs": [
+                                    {
+                                        "id": "data_mapper",
+                                        "label": "Data-mapper",
+                                        "blocks": [
+                                            {
+                                                "type": "dense_table",
+                                                "key": "dm",
+                                                "data": {
+                                                    "columns": [
+                                                        {
+                                                            "key": "status",
+                                                            "label": "Status",
+                                                            "variant": "status"
+                                                        },
+                                                        {
+                                                            "key": "count",
+                                                            "label": "Tickets"
+                                                        }
+                                                    ],
+                                                    "rows": [
+                                                        {
+                                                            "status": "new",
+                                                            "count": 2
+                                                        },
+                                                        {
+                                                            "status": "open",
+                                                            "count": 3
+                                                        },
+                                                        {
+                                                            "status": "pending",
+                                                            "count": 2
+                                                        },
+                                                        {
+                                                            "status": "resolved",
+                                                            "count": 2
+                                                        },
+                                                        {
+                                                            "status": "closed",
+                                                            "count": 3
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "id": "active_record",
+                                        "label": "Active-record",
+                                        "blocks": [
+                                            {
+                                                "type": "dense_table",
+                                                "key": "ar",
+                                                "data": {
+                                                    "columns": [
+                                                        {
+                                                            "key": "status",
+                                                            "label": "Status",
+                                                            "variant": "status"
+                                                        },
+                                                        {
+                                                            "key": "count",
+                                                            "label": "Tickets"
+                                                        }
+                                                    ],
+                                                    "rows": [
+                                                        {
+                                                            "status": "new",
+                                                            "count": 2
+                                                        },
+                                                        {
+                                                            "status": "open",
+                                                            "count": 3
+                                                        },
+                                                        {
+                                                            "status": "pending",
+                                                            "count": 2
+                                                        },
+                                                        {
+                                                            "status": "resolved",
+                                                            "count": 2
+                                                        },
+                                                        {
+                                                            "status": "closed",
+                                                            "count": 3
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "type": "dense_table",
+                            "key": "parity",
+                            "data": {
+                                "columns": [
+                                    {
+                                        "key": "status",
+                                        "label": "Status",
+                                        "variant": "status"
+                                    },
+                                    {
+                                        "key": "data_mapper",
+                                        "label": "Data-mapper"
+                                    },
+                                    {
+                                        "key": "active_record",
+                                        "label": "Active-record"
+                                    },
+                                    {
+                                        "key": "match",
+                                        "label": "Match",
+                                        "variant": "boolean"
+                                    }
+                                ],
+                                "rows": [
+                                    {
+                                        "status": "new",
+                                        "data_mapper": 2,
+                                        "active_record": 2,
+                                        "match": true
+                                    },
+                                    {
+                                        "status": "open",
+                                        "data_mapper": 3,
+                                        "active_record": 3,
+                                        "match": true
+                                    },
+                                    {
+                                        "status": "pending",
+                                        "data_mapper": 2,
+                                        "active_record": 2,
+                                        "match": true
+                                    },
+                                    {
+                                        "status": "resolved",
+                                        "data_mapper": 2,
+                                        "active_record": 2,
+                                        "match": true
+                                    },
+                                    {
+                                        "status": "closed",
+                                        "data_mapper": 3,
+                                        "active_record": 3,
+                                        "match": true
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "type": "markdown_panel",
+                            "key": "query_sources",
+                            "data": {
+                                "content": "### The two read paths\n\n**Active-record** (`ModelQuery`, hydrates `Ticket` models):\n\n```php\nTicket::query()->where('status', $status)->get();\n```\n\n**Data-mapper** (`QueryBuilder` repository seam, raw rows + aggregate):\n\n```php\nQueryBuilder::on($connection, 'demo_tickets')\n    ->where('status', Operator::EQ, $status)\n    ->count();\n```\n\nBoth hit the single `demo_tickets` SQLite table; the parity table above asserts every status count matches."
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    "url": "/parity",
+    "version": "demo-0.5"
+}

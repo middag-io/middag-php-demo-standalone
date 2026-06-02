@@ -8,6 +8,7 @@
  * This is the demonstrated host-extension seam the help-desk demo is built around.
  */
 import type { ComponentType } from "react";
+import type { BlockProps } from "@middag-io/react";
 
 interface ChartSeries {
   name: string;
@@ -21,13 +22,9 @@ interface ChartBlockData {
   options?: Record<string, unknown>;
 }
 
-interface ChartBlockProps {
-  block: { type: string; key: string; data: ChartBlockData; title?: unknown };
-}
-
 const PALETTE = ["var(--primary, #4f46e5)", "#06b6d4", "#f59e0b", "#10b981"];
 
-export const ChartBlock: ComponentType<ChartBlockProps> = ({ block }) => {
+export const ChartBlock: ComponentType<BlockProps<ChartBlockData>> = ({ block }) => {
   const data = block.data ?? {};
   const series = data.series ?? [];
   const categories = data.categories ?? [];

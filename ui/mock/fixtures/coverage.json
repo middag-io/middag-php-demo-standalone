@@ -1,0 +1,423 @@
+{
+    "component": "Page",
+    "props": {
+        "auth": {
+            "id": 1,
+            "name": "Demo User",
+            "email": "demo@middag.io",
+            "capabilities": [
+                "helpdesk:supervise"
+            ]
+        },
+        "navigation": {
+            "tree": [
+                {
+                    "key": "dashboard",
+                    "label": "Dashboard",
+                    "icon": "layout-dashboard",
+                    "href": "/dashboard",
+                    "children": []
+                },
+                {
+                    "key": "tickets",
+                    "label": "Tickets",
+                    "icon": "inbox",
+                    "href": "/tickets",
+                    "children": []
+                },
+                {
+                    "key": "agents",
+                    "label": "Agents",
+                    "icon": "users",
+                    "href": "/agents",
+                    "children": []
+                },
+                {
+                    "key": "customers",
+                    "label": "Customers",
+                    "icon": "building",
+                    "href": "/customers",
+                    "children": []
+                },
+                {
+                    "key": "parity",
+                    "label": "Dual-ORM parity",
+                    "icon": "columns",
+                    "href": "/parity",
+                    "children": []
+                },
+                {
+                    "key": "coverage",
+                    "label": "Coverage",
+                    "icon": "shield-check",
+                    "href": "/coverage",
+                    "children": []
+                },
+                {
+                    "key": "help",
+                    "label": "Help",
+                    "icon": "help-circle",
+                    "href": "/help",
+                    "children": []
+                }
+            ],
+            "activeKey": "coverage",
+            "footer": []
+        },
+        "version": "demo-0.5",
+        "locale": "en",
+        "theme": {
+            "appearance": "light"
+        },
+        "flash": [],
+        "errors": [],
+        "csrf_token": "dev-csrf-token",
+        "contract": {
+            "version": "1",
+            "shell": "immersive",
+            "page": {
+                "key": "demo.coverage",
+                "title": "Surface coverage",
+                "subtitle": "The CI-enforced manifest: every covered symbol maps to a proof route; gaps are catalogued, not hidden"
+            },
+            "layout": {
+                "template": "stack",
+                "regions": {
+                    "content": [
+                        {
+                            "type": "markdown_panel",
+                            "key": "summary",
+                            "data": {
+                                "content": "### Surface coverage\n\nExercises **38** documented free symbols; **9** catalogued gaps.\n\nCovered by kind:\n\n- **block**: 14\n- **cell**: 7\n- **engine**: 6\n- **field**: 5\n- **layout**: 3\n- **provider**: 1\n- **shell**: 2\n\nEach covered symbol below maps to the route that emits it; CoverageManifestTest boots those routes on every push and fails if a covered symbol stops emitting, a PRO symbol leaks, or a gap symbol is silently shipped."
+                            }
+                        },
+                        {
+                            "type": "dense_table",
+                            "key": "covered",
+                            "data": {
+                                "columns": [
+                                    {
+                                        "key": "symbol",
+                                        "label": "Symbol"
+                                    },
+                                    {
+                                        "key": "kind",
+                                        "label": "Kind",
+                                        "variant": "status"
+                                    },
+                                    {
+                                        "key": "route",
+                                        "label": "Proof route"
+                                    },
+                                    {
+                                        "key": "note",
+                                        "label": "Note"
+                                    }
+                                ],
+                                "rows": [
+                                    {
+                                        "symbol": "shell:basic",
+                                        "kind": "shell",
+                                        "route": "/",
+                                        "note": "login + every help-desk page"
+                                    },
+                                    {
+                                        "symbol": "shell:immersive",
+                                        "kind": "shell",
+                                        "route": "/help",
+                                        "note": "help + coverage pages"
+                                    },
+                                    {
+                                        "symbol": "layout:dashboard",
+                                        "kind": "layout",
+                                        "route": "/",
+                                        "note": "metrics + chart grid"
+                                    },
+                                    {
+                                        "symbol": "layout:sidebar",
+                                        "kind": "layout",
+                                        "route": "/agents",
+                                        "note": "list + aside"
+                                    },
+                                    {
+                                        "symbol": "layout:stack",
+                                        "kind": "layout",
+                                        "route": "/customers",
+                                        "note": "default single column"
+                                    },
+                                    {
+                                        "symbol": "block:metric_card",
+                                        "kind": "block",
+                                        "route": "/",
+                                        "note": "queue metrics"
+                                    },
+                                    {
+                                        "symbol": "block:status_strip",
+                                        "kind": "block",
+                                        "route": "/",
+                                        "note": "SLA health + score ring"
+                                    },
+                                    {
+                                        "symbol": "block:dense_table",
+                                        "kind": "block",
+                                        "route": "/tickets",
+                                        "note": "the cell showcase"
+                                    },
+                                    {
+                                        "symbol": "block:chart",
+                                        "kind": "block",
+                                        "route": "/",
+                                        "note": "custom registerBlock (inline SVG)"
+                                    },
+                                    {
+                                        "symbol": "block:detail_panel",
+                                        "kind": "block",
+                                        "route": "/agents/{id}",
+                                        "note": "agent fields"
+                                    },
+                                    {
+                                        "symbol": "block:link_list",
+                                        "kind": "block",
+                                        "route": "/agents/{id}",
+                                        "note": "assigned tickets"
+                                    },
+                                    {
+                                        "symbol": "block:card_grid",
+                                        "kind": "block",
+                                        "route": "/customers",
+                                        "note": "customer cards"
+                                    },
+                                    {
+                                        "symbol": "block:markdown_panel",
+                                        "kind": "block",
+                                        "route": "/help",
+                                        "note": "walkthrough"
+                                    },
+                                    {
+                                        "symbol": "block:empty_state",
+                                        "kind": "block",
+                                        "route": "/help",
+                                        "note": "first-use nudge"
+                                    },
+                                    {
+                                        "symbol": "block:action_grid",
+                                        "kind": "block",
+                                        "route": "/help",
+                                        "note": "quick links"
+                                    },
+                                    {
+                                        "symbol": "block:form_panel",
+                                        "kind": "block",
+                                        "route": "/tickets/new",
+                                        "note": "framework form pipeline"
+                                    },
+                                    {
+                                        "symbol": "block:workflow_progress",
+                                        "kind": "block",
+                                        "route": "/tickets/{id}",
+                                        "note": "status state machine"
+                                    },
+                                    {
+                                        "symbol": "block:tabbed_panel",
+                                        "kind": "block",
+                                        "route": "/tickets/{id}",
+                                        "note": "emitted as wire type \"tabs\"; host aliases tabs->tabbed_panel + id->key"
+                                    },
+                                    {
+                                        "symbol": "block:activity_timeline",
+                                        "kind": "block",
+                                        "route": "/tickets/{id}",
+                                        "note": "comment feed, nested in the tabbed_panel"
+                                    },
+                                    {
+                                        "symbol": "cell:status",
+                                        "kind": "cell",
+                                        "route": "/tickets",
+                                        "note": "ticket status"
+                                    },
+                                    {
+                                        "symbol": "cell:rich_status",
+                                        "kind": "cell",
+                                        "route": "/tickets",
+                                        "note": "priority {label,appearance,icon}"
+                                    },
+                                    {
+                                        "symbol": "cell:annotated",
+                                        "kind": "cell",
+                                        "route": "/tickets",
+                                        "note": "assignee {text,sublabel}"
+                                    },
+                                    {
+                                        "symbol": "cell:link_group",
+                                        "kind": "cell",
+                                        "route": "/tickets",
+                                        "note": "tags as chips"
+                                    },
+                                    {
+                                        "symbol": "cell:timestamp",
+                                        "kind": "cell",
+                                        "route": "/tickets",
+                                        "note": "created date"
+                                    },
+                                    {
+                                        "symbol": "cell:boolean",
+                                        "kind": "cell",
+                                        "route": "/parity",
+                                        "note": "parity match flag"
+                                    },
+                                    {
+                                        "symbol": "cell:progress",
+                                        "kind": "cell",
+                                        "route": "/agents",
+                                        "note": "agent workload (supervisor view)"
+                                    },
+                                    {
+                                        "symbol": "field:text",
+                                        "kind": "field",
+                                        "route": "/tickets/new",
+                                        "note": "subject, tags"
+                                    },
+                                    {
+                                        "symbol": "field:textarea",
+                                        "kind": "field",
+                                        "route": "/tickets/new",
+                                        "note": "description"
+                                    },
+                                    {
+                                        "symbol": "field:select",
+                                        "kind": "field",
+                                        "route": "/tickets/new",
+                                        "note": "channel, priority, SLA"
+                                    },
+                                    {
+                                        "symbol": "field:entity_picker",
+                                        "kind": "field",
+                                        "route": "/tickets/new",
+                                        "note": "customer + assignee (live source)"
+                                    },
+                                    {
+                                        "symbol": "field:date",
+                                        "kind": "field",
+                                        "route": "/tickets/new",
+                                        "note": "due date"
+                                    },
+                                    {
+                                        "symbol": "engine:message_bus",
+                                        "kind": "engine",
+                                        "route": "—",
+                                        "note": "sync command dispatch (create/update/transition/comment)"
+                                    },
+                                    {
+                                        "symbol": "engine:async_signal",
+                                        "kind": "engine",
+                                        "route": "—",
+                                        "note": "demo.ticket.created -> EscalateSlaCommand on the async transport"
+                                    },
+                                    {
+                                        "symbol": "engine:dual_orm_parity",
+                                        "kind": "engine",
+                                        "route": "/parity",
+                                        "note": "data-mapper QueryBuilder vs active-record ModelQuery, identical counts"
+                                    },
+                                    {
+                                        "symbol": "engine:entity_source",
+                                        "kind": "engine",
+                                        "route": "/tickets/new",
+                                        "note": "EntitySourceRegistry: demo_customers + demo_agents"
+                                    },
+                                    {
+                                        "symbol": "engine:capability_gate",
+                                        "kind": "provider",
+                                        "route": "/agents",
+                                        "note": "helpdesk:supervise gates the supervisor columns"
+                                    },
+                                    {
+                                        "symbol": "engine:register_block",
+                                        "kind": "engine",
+                                        "route": "/",
+                                        "note": "host registerBlock(\"chart\") + tabs alias"
+                                    },
+                                    {
+                                        "symbol": "condition:required_when_in",
+                                        "kind": "engine",
+                                        "route": "/tickets/new",
+                                        "note": "assignee required_when priority IN [high,urgent]"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "type": "dense_table",
+                            "key": "gaps",
+                            "data": {
+                                "columns": [
+                                    {
+                                        "key": "symbol",
+                                        "label": "Gap"
+                                    },
+                                    {
+                                        "key": "reason",
+                                        "label": "Why"
+                                    },
+                                    {
+                                        "key": "filed",
+                                        "label": "Filed"
+                                    }
+                                ],
+                                "rows": [
+                                    {
+                                        "symbol": "layout:wizard",
+                                        "reason": "ticket create uses a single-step form_panel; the FormStep wizard layout is not built",
+                                        "filed": "demo: wizard ticket create"
+                                    },
+                                    {
+                                        "symbol": "cell:link",
+                                        "reason": "no natural single-link column in the help-desk; link_group covers grouped links",
+                                        "filed": "demo: link cell"
+                                    },
+                                    {
+                                        "symbol": "cell:html",
+                                        "reason": "raw-HTML cell (dangerouslySetInnerHTML) avoided as an XSS surface in a reference demo",
+                                        "filed": "demo: html cell"
+                                    },
+                                    {
+                                        "symbol": "cell:sparkline",
+                                        "reason": "custom registerCell extension not built (only the custom chart block is)",
+                                        "filed": "demo: sparkline cell"
+                                    },
+                                    {
+                                        "symbol": "block:pro",
+                                        "reason": "PRO blocks (chart_panel, kanban_board, flow_editor, form_builder, condition_tree, sentence_builder) + the product shell ship in @middag-io/react-pro, out of the free OSS surface",
+                                        "filed": "n/a (by design)"
+                                    },
+                                    {
+                                        "symbol": "field:duration",
+                                        "reason": "emittable via FieldDefinition::duration() but no free React field renderer (would hit \"Unknown field component\")",
+                                        "filed": "react: duration renderer"
+                                    },
+                                    {
+                                        "symbol": "field:otp_slider_native_select_tags",
+                                        "reason": "React-renderable but no FieldDefinition factory method",
+                                        "filed": "framework: field factories"
+                                    },
+                                    {
+                                        "symbol": "field:currency_rating_slug_color_phone_document",
+                                        "reason": "React-renderable but absent from the PHP FieldType enum entirely",
+                                        "filed": "framework: field types"
+                                    },
+                                    {
+                                        "symbol": "transport:persistent_bus",
+                                        "reason": "only InMemoryTransport ships; bus-routed async cannot cross processes (the demo uses the in-memory worker, not a cross-process outbox)",
+                                        "filed": "framework: persistent transport"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    "url": "/coverage",
+    "version": "demo-0.5"
+}

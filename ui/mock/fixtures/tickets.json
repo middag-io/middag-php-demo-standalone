@@ -1,0 +1,486 @@
+{
+    "component": "Page",
+    "props": {
+        "auth": {
+            "id": 1,
+            "name": "Demo User",
+            "email": "demo@middag.io",
+            "capabilities": [
+                "helpdesk:supervise"
+            ]
+        },
+        "navigation": {
+            "tree": [
+                {
+                    "key": "dashboard",
+                    "label": "Dashboard",
+                    "icon": "layout-dashboard",
+                    "href": "/dashboard",
+                    "children": []
+                },
+                {
+                    "key": "tickets",
+                    "label": "Tickets",
+                    "icon": "inbox",
+                    "href": "/tickets",
+                    "children": []
+                },
+                {
+                    "key": "agents",
+                    "label": "Agents",
+                    "icon": "users",
+                    "href": "/agents",
+                    "children": []
+                },
+                {
+                    "key": "customers",
+                    "label": "Customers",
+                    "icon": "building",
+                    "href": "/customers",
+                    "children": []
+                },
+                {
+                    "key": "parity",
+                    "label": "Dual-ORM parity",
+                    "icon": "columns",
+                    "href": "/parity",
+                    "children": []
+                },
+                {
+                    "key": "coverage",
+                    "label": "Coverage",
+                    "icon": "shield-check",
+                    "href": "/coverage",
+                    "children": []
+                },
+                {
+                    "key": "help",
+                    "label": "Help",
+                    "icon": "help-circle",
+                    "href": "/help",
+                    "children": []
+                }
+            ],
+            "activeKey": "tickets",
+            "footer": []
+        },
+        "version": "demo-0.5",
+        "locale": "en",
+        "theme": {
+            "appearance": "light"
+        },
+        "flash": [],
+        "errors": [],
+        "csrf_token": "dev-csrf-token",
+        "contract": {
+            "version": "1",
+            "shell": "basic",
+            "page": {
+                "key": "demo.tickets",
+                "title": "Tickets",
+                "subtitle": "Help-desk queue — active-record tickets, data-mapper customer/agent names"
+            },
+            "layout": {
+                "template": "stack",
+                "regions": {
+                    "content": [
+                        {
+                            "type": "metric_card",
+                            "key": "total",
+                            "data": {
+                                "value": 12,
+                                "label": "Total tickets",
+                                "icon": "inbox"
+                            }
+                        },
+                        {
+                            "type": "metric_card",
+                            "key": "open",
+                            "data": {
+                                "value": 7,
+                                "label": "Open",
+                                "icon": "folder-open"
+                            }
+                        },
+                        {
+                            "type": "metric_card",
+                            "key": "urgent",
+                            "data": {
+                                "value": 6,
+                                "label": "High / urgent",
+                                "icon": "flame"
+                            }
+                        },
+                        {
+                            "type": "dense_table",
+                            "key": "tickets",
+                            "data": {
+                                "columns": [
+                                    {
+                                        "key": "subject",
+                                        "label": "Subject"
+                                    },
+                                    {
+                                        "key": "status",
+                                        "label": "Status",
+                                        "variant": "status"
+                                    },
+                                    {
+                                        "key": "priority",
+                                        "label": "Priority",
+                                        "variant": "rich_status"
+                                    },
+                                    {
+                                        "key": "channel",
+                                        "label": "Channel"
+                                    },
+                                    {
+                                        "key": "customer",
+                                        "label": "Customer"
+                                    },
+                                    {
+                                        "key": "assignee",
+                                        "label": "Assignee",
+                                        "variant": "annotated"
+                                    },
+                                    {
+                                        "key": "tags",
+                                        "label": "Tags",
+                                        "variant": "link_group"
+                                    },
+                                    {
+                                        "key": "created",
+                                        "label": "Created",
+                                        "variant": "timestamp",
+                                        "timestampFormat": "date"
+                                    }
+                                ],
+                                "rows": [
+                                    {
+                                        "id": 1,
+                                        "subject": "Cannot log in after password reset",
+                                        "status": "new",
+                                        "priority": {
+                                            "label": "Urgent",
+                                            "appearance": "danger",
+                                            "icon": "flame"
+                                        },
+                                        "channel": "phone",
+                                        "customer": "Joao Pereira",
+                                        "assignee": {
+                                            "text": "Unassigned",
+                                            "sublabel": "unassigned"
+                                        },
+                                        "tags": [
+                                            {
+                                                "label": "auth",
+                                                "href": "/tickets?search=auth"
+                                            },
+                                            {
+                                                "label": "login",
+                                                "href": "/tickets?search=login"
+                                            }
+                                        ],
+                                        "created": 1780425529
+                                    },
+                                    {
+                                        "id": 2,
+                                        "subject": "Invoice PDF export is blank",
+                                        "status": "new",
+                                        "priority": {
+                                            "label": "High",
+                                            "appearance": "warning",
+                                            "icon": "flame"
+                                        },
+                                        "channel": "web",
+                                        "customer": "Lucia Costa",
+                                        "assignee": {
+                                            "text": "Unassigned",
+                                            "sublabel": "unassigned"
+                                        },
+                                        "tags": [
+                                            {
+                                                "label": "billing",
+                                                "href": "/tickets?search=billing"
+                                            },
+                                            {
+                                                "label": "export",
+                                                "href": "/tickets?search=export"
+                                            }
+                                        ],
+                                        "created": 1780421929
+                                    },
+                                    {
+                                        "id": 3,
+                                        "subject": "API returns 500 on bulk import",
+                                        "status": "open",
+                                        "priority": {
+                                            "label": "High",
+                                            "appearance": "warning",
+                                            "icon": "flame"
+                                        },
+                                        "channel": "email",
+                                        "customer": "Maria Silva",
+                                        "assignee": {
+                                            "text": "Carla Dias",
+                                            "sublabel": "assigned"
+                                        },
+                                        "tags": [
+                                            {
+                                                "label": "api",
+                                                "href": "/tickets?search=api"
+                                            },
+                                            {
+                                                "label": "import",
+                                                "href": "/tickets?search=import"
+                                            }
+                                        ],
+                                        "created": 1780331929
+                                    },
+                                    {
+                                        "id": 5,
+                                        "subject": "Production dashboard not loading",
+                                        "status": "open",
+                                        "priority": {
+                                            "label": "Urgent",
+                                            "appearance": "danger",
+                                            "icon": "flame"
+                                        },
+                                        "channel": "phone",
+                                        "customer": "Rafael Alves",
+                                        "assignee": {
+                                            "text": "Ana Souza",
+                                            "sublabel": "assigned"
+                                        },
+                                        "tags": [
+                                            {
+                                                "label": "outage",
+                                                "href": "/tickets?search=outage"
+                                            },
+                                            {
+                                                "label": "dashboard",
+                                                "href": "/tickets?search=dashboard"
+                                            }
+                                        ],
+                                        "created": 1780324729
+                                    },
+                                    {
+                                        "id": 4,
+                                        "subject": "Feature request: dark mode",
+                                        "status": "open",
+                                        "priority": {
+                                            "label": "Normal",
+                                            "appearance": "info",
+                                            "icon": "circle"
+                                        },
+                                        "channel": "web",
+                                        "customer": "Pedro Santos",
+                                        "assignee": {
+                                            "text": "Diego Melo",
+                                            "sublabel": "assigned"
+                                        },
+                                        "tags": [
+                                            {
+                                                "label": "ux",
+                                                "href": "/tickets?search=ux"
+                                            },
+                                            {
+                                                "label": "enhancement",
+                                                "href": "/tickets?search=enhancement"
+                                            }
+                                        ],
+                                        "created": 1780241929
+                                    },
+                                    {
+                                        "id": 6,
+                                        "subject": "Awaiting customer logs for sync issue",
+                                        "status": "pending",
+                                        "priority": {
+                                            "label": "Normal",
+                                            "appearance": "info",
+                                            "icon": "circle"
+                                        },
+                                        "channel": "email",
+                                        "customer": "Sofia Nunes",
+                                        "assignee": {
+                                            "text": "Bruno Lima",
+                                            "sublabel": "assigned"
+                                        },
+                                        "tags": [
+                                            {
+                                                "label": "sync",
+                                                "href": "/tickets?search=sync"
+                                            },
+                                            {
+                                                "label": "waiting",
+                                                "href": "/tickets?search=waiting"
+                                            }
+                                        ],
+                                        "created": 1780148329
+                                    },
+                                    {
+                                        "id": 7,
+                                        "subject": "Clarify pricing tiers",
+                                        "status": "pending",
+                                        "priority": {
+                                            "label": "Low",
+                                            "appearance": "neutral",
+                                            "icon": "arrow-down"
+                                        },
+                                        "channel": "web",
+                                        "customer": "Joao Pereira",
+                                        "assignee": {
+                                            "text": "Carla Dias",
+                                            "sublabel": "assigned"
+                                        },
+                                        "tags": [
+                                            {
+                                                "label": "sales",
+                                                "href": "/tickets?search=sales"
+                                            },
+                                            {
+                                                "label": "pricing",
+                                                "href": "/tickets?search=pricing"
+                                            }
+                                        ],
+                                        "created": 1780058329
+                                    },
+                                    {
+                                        "id": 8,
+                                        "subject": "Typo on settings page",
+                                        "status": "resolved",
+                                        "priority": {
+                                            "label": "Normal",
+                                            "appearance": "info",
+                                            "icon": "circle"
+                                        },
+                                        "channel": "web",
+                                        "customer": "Lucia Costa",
+                                        "assignee": {
+                                            "text": "Diego Melo",
+                                            "sublabel": "assigned"
+                                        },
+                                        "tags": [
+                                            {
+                                                "label": "ui",
+                                                "href": "/tickets?search=ui"
+                                            },
+                                            {
+                                                "label": "copy",
+                                                "href": "/tickets?search=copy"
+                                            }
+                                        ],
+                                        "created": 1779968329
+                                    },
+                                    {
+                                        "id": 9,
+                                        "subject": "CSV upload encoding fixed",
+                                        "status": "resolved",
+                                        "priority": {
+                                            "label": "High",
+                                            "appearance": "warning",
+                                            "icon": "flame"
+                                        },
+                                        "channel": "email",
+                                        "customer": "Maria Silva",
+                                        "assignee": {
+                                            "text": "Ana Souza",
+                                            "sublabel": "assigned"
+                                        },
+                                        "tags": [
+                                            {
+                                                "label": "import",
+                                                "href": "/tickets?search=import"
+                                            },
+                                            {
+                                                "label": "csv",
+                                                "href": "/tickets?search=csv"
+                                            }
+                                        ],
+                                        "created": 1779878329
+                                    },
+                                    {
+                                        "id": 10,
+                                        "subject": "How to invite a teammate",
+                                        "status": "closed",
+                                        "priority": {
+                                            "label": "Normal",
+                                            "appearance": "info",
+                                            "icon": "circle"
+                                        },
+                                        "channel": "web",
+                                        "customer": "Pedro Santos",
+                                        "assignee": {
+                                            "text": "Bruno Lima",
+                                            "sublabel": "assigned"
+                                        },
+                                        "tags": [
+                                            {
+                                                "label": "onboarding",
+                                                "href": "/tickets?search=onboarding"
+                                            }
+                                        ],
+                                        "created": 1779701929
+                                    },
+                                    {
+                                        "id": 11,
+                                        "subject": "Update billing address",
+                                        "status": "closed",
+                                        "priority": {
+                                            "label": "Low",
+                                            "appearance": "neutral",
+                                            "icon": "arrow-down"
+                                        },
+                                        "channel": "email",
+                                        "customer": "Rafael Alves",
+                                        "assignee": {
+                                            "text": "Carla Dias",
+                                            "sublabel": "assigned"
+                                        },
+                                        "tags": [
+                                            {
+                                                "label": "billing",
+                                                "href": "/tickets?search=billing"
+                                            }
+                                        ],
+                                        "created": 1779611929
+                                    },
+                                    {
+                                        "id": 12,
+                                        "subject": "Refund processed for duplicate charge",
+                                        "status": "closed",
+                                        "priority": {
+                                            "label": "High",
+                                            "appearance": "warning",
+                                            "icon": "flame"
+                                        },
+                                        "channel": "phone",
+                                        "customer": "Sofia Nunes",
+                                        "assignee": {
+                                            "text": "Diego Melo",
+                                            "sublabel": "assigned"
+                                        },
+                                        "tags": [
+                                            {
+                                                "label": "billing",
+                                                "href": "/tickets?search=billing"
+                                            },
+                                            {
+                                                "label": "refund",
+                                                "href": "/tickets?search=refund"
+                                            }
+                                        ],
+                                        "created": 1779521929
+                                    }
+                                ],
+                                "rowHref": "/tickets/{id}"
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    "url": "/tickets",
+    "version": "demo-0.5"
+}
