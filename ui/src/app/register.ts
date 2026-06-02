@@ -41,6 +41,11 @@ import {
   LinkListBlock,
   FormPanelBlock,
 } from "@middag-io/react";
+// Host-registered blocks that fill the free-surface gaps (P5):
+//  - chart: React free ships no chart block (chart_panel is PRO) → custom inline SVG.
+//  - tabs:  BlockBuilder::tabs() emits type "tabs"; alias it onto TabbedPanelBlock.
+import { ChartBlock } from "../blocks/chart-block";
+import { TabsAliasBlock } from "../blocks/tabs-alias";
 
 let registered = false;
 
@@ -76,6 +81,12 @@ export function registerDefaults(): void {
   registerBlock("link_list", LinkListBlock);
   // form_panel pulls react-hook-form + zod; drop it if this bundle has no forms.
   registerBlock("form_panel", FormPanelBlock);
+
+  // Host-extension seam (P5): a custom free chart block + the tabs->tabbed_panel
+  // alias. These let the PHP contract emit `chart` and `tabs` block types that the
+  // free React engine does not register out of the box.
+  registerBlock("chart", ChartBlock);
+  registerBlock("tabs", TabsAliasBlock);
 
   // Cell renderers (status, timestamp, link, boolean, etc.)
   registerDefaultCells();
