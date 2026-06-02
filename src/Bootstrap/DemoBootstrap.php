@@ -386,7 +386,10 @@ final class DemoBootstrap implements BootstrapInterface
 
         return [
             'tree' => [
-                ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'layout-dashboard', 'href' => '/dashboard', 'children' => []],
+                // Dashboard lives at '/' (route dashboard.index); the nav must point
+                // there, not '/dashboard' (no such route → 404 in prod / blank in the
+                // react-router dev app).
+                ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'layout-dashboard', 'href' => '/', 'children' => []],
                 ['key' => 'tickets', 'label' => 'Tickets', 'icon' => 'inbox', 'href' => '/tickets', 'children' => []],
                 ['key' => 'agents', 'label' => 'Agents', 'icon' => 'users', 'href' => '/agents', 'children' => []],
                 ['key' => 'customers', 'label' => 'Customers', 'icon' => 'building', 'href' => '/customers', 'children' => []],

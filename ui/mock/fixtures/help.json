@@ -15,7 +15,7 @@
                     "key": "dashboard",
                     "label": "Dashboard",
                     "icon": "layout-dashboard",
-                    "href": "/dashboard",
+                    "href": "/",
                     "children": []
                 },
                 {
@@ -118,7 +118,7 @@
                                         "intent": "primary",
                                         "target": {
                                             "kind": "link",
-                                            "href": "/dashboard"
+                                            "href": "/"
                                         }
                                     },
                                     {

@@ -53,6 +53,9 @@ export function App() {
           <Routes>
             <Route path="/login" element={<FixturePage name="login" />} />
             <Route path="/" element={<FixturePage name="dashboard" />} />
+            {/* Alias: the dashboard route is '/', but tolerate a direct /dashboard
+                visit so a bookmarked/typed URL doesn't render a blank screen. */}
+            <Route path="/dashboard" element={<FixturePage name="dashboard" />} />
             <Route path="/tickets" element={<FixturePage name="tickets" />} />
             <Route path="/tickets/new" element={<FixturePage name="ticket-new" />} />
             <Route path="/tickets/:id" element={<FixturePage name="ticket-detail" />} />

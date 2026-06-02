@@ -15,7 +15,7 @@
                     "key": "dashboard",
                     "label": "Dashboard",
                     "icon": "layout-dashboard",
-                    "href": "/dashboard",
+                    "href": "/",
                     "children": []
                 },
                 {
