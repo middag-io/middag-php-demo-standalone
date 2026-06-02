@@ -476,11 +476,23 @@ final class DemoBootstrap implements BootstrapInterface
             $html = '<!doctype html>'
                 . '<html lang="en"><head><meta charset="utf-8">'
                 . '<meta name="viewport" content="width=device-width, initial-scale=1">'
-                . '<title>middag demo-standalone</title></head><body>'
-                . '<div id="middag-app" data-page="' . $attr . '"></div>'
-                . '<div id="middag-portals"></div>'
+                . '<title>middag demo-standalone</title>'
+                // The Vite lib build emits CSS separately; the host links it (the
+                // ESM module does not auto-inject). #middag-portals carries
+                // `middag-root` so floating UI (toasts/modals) inherits the tokens.
+                . '<link rel="stylesheet" href="/build/style.css">'
+                . '</head><body>'
+                // Inertia v3 reads the initial page from a JSON <script data-page>
+                // (getInitialPageFromDOM queries `script[data-page="<id>"][type="application/json"]`
+                // and JSON.parses its textContent), NOT a data-page attribute on
+                // the mount. textContent is raw JSON; escape `</` so a string value
+                // cannot close the <script> tag early.
+                . '<script data-page="middag-app" type="application/json">'
+                . str_replace('</', '<\/', $json)
+                . '</script>'
+                . '<div id="middag-app"></div>'
+                . '<div id="middag-portals" class="middag-root"></div>'
                 . '<script type="module" src="/build/app.js"></script>'
-                . '<!-- @middag-io/react mounts on #middag-app from the ui/ bundle; data-page carries the Inertia payload -->'
                 . '</body></html>';
 
             return new Response($html, 200, ['Content-Type' => 'text/html; charset=utf-8']);

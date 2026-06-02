@@ -32,7 +32,10 @@ final class TaskForm extends AbstractForm
                 ->options(['open' => 'Open', 'done' => 'Done'])
                 ->default('open'),
             FieldDefinition::date('due_on')->label('Due date')->optional(),
-            FieldDefinition::integer('estimate_minutes')->label('Estimate (minutes)')->min(0)->max(100000),
+            // default(0): the lib seeds untouched fields to "" and an optional int's
+            // Zod schema is number|null, so an empty estimate fails client validation;
+            // a numeric default keeps it a number (0 minutes).
+            FieldDefinition::integer('estimate_minutes')->label('Estimate (minutes)')->min(0)->max(100000)->default(0),
             FieldDefinition::toggle('notify')->label('Notify on create')->default(true),
 
             // Conditional field: shown + required only when status == done.

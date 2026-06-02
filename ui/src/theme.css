@@ -1,0 +1,122 @@
+/**
+ * Theme customization — override MIDDAG design tokens here.
+ *
+ * @middag-io/react uses CSS custom properties for all visual tokens.
+ * Override them in :root for global changes, or scope them to a class
+ * for switchable themes.
+ *
+ * All colors use OKLCH color space: oklch(lightness chroma hue)
+ * Visual picker: https://oklch.com
+ *
+ * Import order matters — this file is loaded AFTER @middag-io/react/style.css
+ * so overrides here take precedence.
+ *
+ * ── Built-in themes ───────────────────────────────────────────────
+ * classic ships with Community; PRO adds enterprise/soft/midnight (imported in main.tsx):
+ *   classic (Maia) — default, warm neutral, shadcn/ui feel
+ *   enterprise     — Jira/Linear, dense, corporate blue
+ *   soft           — Notion/Craft, friendly, rose/pink
+ *   midnight       — GitHub Dark/Vercel, dev-tools
+ *
+ * Switch via: document.body.classList.add("theme-enterprise")
+ * See: https://ui-docs.middag.io/guides/theme#built-in-themes
+ *
+ * ── Custom themes (all users) ────────────────────────────────────────────
+ * Override :root for global changes, or create a .theme-{name} class
+ * for a switchable theme. Both Community and PRO users can create
+ * unlimited custom themes.
+ * See: https://ui-docs.middag.io/guides/theme#custom-themes
+ */
+
+/* ── Global token overrides ────────────────────────────────────────────────
+ *
+ * Uncomment to change the default appearance globally.
+ * Every MIDDAG component reads from these tokens.
+ */
+
+/*
+:root {
+  --primary: oklch(0.45 0.2 260);
+  --primary-foreground: oklch(0.98 0 0);
+  --accent: oklch(0.95 0.02 260);
+  --accent-foreground: oklch(0.21 0.014 286);
+  --radius: 0.5rem;
+}
+*/
+
+/* ── Example custom theme: Ocean ───────────────────────────────────────────
+ *
+ * A complete custom theme scoped to a CSS class.
+ * Apply with: document.body.classList.add("theme-ocean")
+ *
+ * Override colors, radius, density, shadows, and layout in one class.
+ * Dark mode: use :root.dark .theme-ocean for dark overrides.
+ */
+
+.theme-ocean {
+  /* Brand */
+  --primary: oklch(0.45 0.18 230);
+  --primary-foreground: oklch(0.98 0 0);
+  --primary-subtle: oklch(0.92 0.04 230);
+  --primary-muted: oklch(0.85 0.06 230);
+
+  /* Accents */
+  --accent: oklch(0.94 0.03 230);
+  --accent-foreground: oklch(0.2 0.02 230);
+  --info: oklch(0.55 0.14 200);
+  --info-foreground: oklch(0.98 0 0);
+
+  /* Shape — tighter corners, denser rows */
+  --radius: 0.5rem;
+  --radius-sm: 4px;
+  --radius-lg: 8px;
+  --size-table-row: 44px;
+  --size-button-md: 34px;
+
+  /* Sidebar */
+  --sidebar: oklch(0.15 0.03 230);
+  --sidebar-foreground: oklch(0.75 0.02 230);
+  --sidebar-primary: oklch(0.55 0.15 230);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.22 0.04 230);
+  --sidebar-accent-foreground: oklch(0.9 0.005 230);
+  --sidebar-hover: oklch(0.19 0.025 230);
+  --sidebar-border: oklch(0.25 0.03 230);
+}
+
+/* Dark mode for custom theme */
+:root.dark .theme-ocean,
+[data-theme="dark"] .theme-ocean {
+  --primary: oklch(0.65 0.14 230);
+  --primary-foreground: oklch(0.1 0.01 230);
+  --background: oklch(0.12 0.01 230);
+  --sidebar: oklch(0.10 0.02 230);
+  --sidebar-foreground: oklch(0.70 0.01 230);
+}
+
+/* ── Custom project styles ────────────────────────────────────────────────
+ *
+ * Add project-specific styles below. These can target MIDDAG components
+ * or your own custom elements.
+ *
+ * Available token groups:
+ *   Colors:  var(--primary), var(--foreground), var(--background),
+ *            var(--muted), var(--card), var(--border), var(--destructive),
+ *            var(--success), var(--warning), var(--info), var(--accent)
+ *   Spacing: var(--space-1) through var(--space-20)  (4px grid)
+ *   Radius:  var(--radius-sm|md|lg|xl|2xl|full)
+ *   Shadows: var(--shadow-xs|sm|md|lg|xl|2xl)
+ *   Motion:  var(--duration-fast|normal|moderate|slow)
+ *   Sizing:  var(--size-button-sm|md|lg), var(--size-table-row),
+ *            var(--size-input), var(--sidebar-width)
+ */
+
+
+/* ── Host integration ──────────────────────────────────────────────────────────
+ * Set --host-header-height and --host-sidebar-width as needed.
+ */
+
+:root {
+  --host-header-height: 0px;
+  --host-sidebar-width: 0px;
+}

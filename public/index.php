@@ -2,6 +2,16 @@
 
 declare(strict_types=1);
 
+// Dev convenience: under the built-in server (`php -S … public/index.php`), serve
+// an existing static file (e.g. /build/app.js, /build/style.css) directly rather
+// than routing it through the kernel. No-op under nginx/php-fpm in production.
+if (PHP_SAPI === 'cli-server') {
+    $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+    if ($path !== '/' && is_file(__DIR__ . $path)) {
+        return false;
+    }
+}
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use Middag\Demo\Standalone\Bootstrap\DemoKernel;
