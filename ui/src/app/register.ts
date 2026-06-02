@@ -48,6 +48,7 @@ import {
 import { ChartBlock } from "../blocks/chart-block";
 import { TabsAliasBlock } from "../blocks/tabs-alias";
 import { SparklineCell } from "../cells/sparkline-cell";
+import { AuthShell } from "../shells/auth-shell";
 
 let registered = false;
 
@@ -61,6 +62,9 @@ export function registerDefaults(): void {
   registerShell("basic", BasicShell);
   registerShell("product", BasicShell);
   registerShell("immersive", ImmersiveShell);
+  // Custom demo shell: a chromeless centered login (no app sidebar/nav) — the
+  // shell-level twin of the host-registered `chart` block + `sparkline` cell.
+  registerShell("auth", AuthShell);
 
   // Layouts
   registerLayout("stack", StackLayout);

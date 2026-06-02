@@ -45,11 +45,25 @@ final class AuthController extends AbstractController
         $rendered = $this->renderers->get(RenderTarget::PROPS)->render($this->form)->props;
 
         $contract = PageBuilder::page('demo.login')
-            ->shell('basic')
+            // Custom chromeless shell (registered host-side) — no app sidebar/nav
+            // on the unauthenticated entry point. The form_panel still rides in the
+            // `content` region (stack layout), centered by AuthShell.
+            ->shell('auth')
             ->title('Sign in')
-            ->subtitle('Demo login — the form_panel schema comes from the framework form pipeline')
+            ->subtitle('')
             ->region('content', function (RegionBuilder $region) use ($rendered): void {
-                $region->formPanel('login', '/login', 'POST', $rendered['schema'] ?? [], $rendered['values'] ?? []);
+                // submit/cancel labels + cancel target ride in form_panel meta (the
+                // React FormPanelBlock reads data.meta.submitLabel/cancelLabel/cancelHref).
+                // Cancel → /login reloads a clean form, so it reads as "Reset".
+                $region->formPanel(
+                    'login',
+                    '/login',
+                    'POST',
+                    $rendered['schema'] ?? [],
+                    $rendered['values'] ?? [],
+                    null,
+                    ['meta' => ['validation' => 'both', 'submitLabel' => 'Sign in', 'cancelLabel' => 'Reset', 'cancelHref' => '/login']],
+                );
             })
             ->build();
 

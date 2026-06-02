@@ -349,8 +349,13 @@ final class DemoBootstrap implements BootstrapInterface
         });
         // `navigation` follows the lib's NavigationTreePayload ({tree, activeKey}),
         // not a flat list; activeKey is derived from the current request path (the
-        // kernel seeds RequestContext method/host/scheme but not pathInfo).
-        InertiaManager::share('navigation', static fn (): array => self::navigationProps());
+        // kernel seeds RequestContext method/host/scheme but not pathInfo). Gated on
+        // auth: anonymous visitors (only /login is public, and it uses the chromeless
+        // AuthShell) carry an empty tree — the app nav is never shipped to logged-out
+        // clients.
+        InertiaManager::share('navigation', static fn (): array => is_array($c->get(AuthenticatorInterface::class)->user())
+            ? self::navigationProps()
+            : ['tree' => [], 'activeKey' => '', 'footer' => []]);
         InertiaManager::share('version', InertiaVersionManager::getVersion());
         // `theme`/`locale` complete the @middag-io/react SharedProps contract (both
         // type-required, though the lib's providers default them); emitting them
