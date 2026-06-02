@@ -43,9 +43,10 @@ final class AgentController extends AbstractController
         $agents = $this->agents->latest();
         $canSupervise = $this->canSupervise();
         $openByAgent = $this->openCountByAgent();
+        $intakeByAgent = $this->intakeByAgent(7);
 
         $rows = array_map(
-            static function (Agent $a) use ($openByAgent): array {
+            static function (Agent $a) use ($openByAgent, $intakeByAgent): array {
                 $d = $a->toArray();
 
                 return [
@@ -54,7 +55,11 @@ final class AgentController extends AbstractController
                     'role' => (string) $d['role'],
                     'active' => (bool) $d['active'],
                     'email' => (string) $d['email'],
+                    // server-CONTROLLED HTML for the `html` cell (role escaped).
+                    'availability' => self::availabilityHtml((bool) $d['active'], (string) $d['role']),
                     'workload' => $openByAgent[(int) $d['id']] ?? 0,
+                    // per-row number[] for the custom `sparkline` cell.
+                    'intake' => $intakeByAgent[(int) $d['id']] ?? array_fill(0, 7, 0),
                 ];
             },
             $agents,
@@ -67,8 +72,14 @@ final class AgentController extends AbstractController
             ['key' => 'active', 'label' => 'Active', 'variant' => 'boolean'],
         ];
         if ($canSupervise) {
-            $columns[] = ['key' => 'email', 'label' => 'Email'];
+            // Contact + load + activity, supervisor-only. The cell showcase that the
+            // /tickets queue can't reach: email → single `link` cell (mailto; href
+            // interpolates {email} from the row), availability → server-controlled
+            // `html` cell, workload → `progress`, intake → the custom `sparkline` cell.
+            $columns[] = ['key' => 'email', 'label' => 'Email', 'variant' => 'link', 'href' => 'mailto:{email}'];
+            $columns[] = ['key' => 'availability', 'label' => 'Availability', 'variant' => 'html'];
             $columns[] = ['key' => 'workload', 'label' => 'Open load', 'variant' => 'progress'];
+            $columns[] = ['key' => 'intake', 'label' => '7-day intake', 'variant' => 'sparkline'];
         }
 
         $supervisors = count(array_filter($agents, static fn (Agent $a): bool => $a->isSupervisor()));
@@ -173,5 +184,56 @@ final class AgentController extends AbstractController
         }
 
         return $counts;
+    }
+
+    /**
+     * A server-CONTROLLED HTML badge for the `html` cell. The React HtmlCell uses
+     * dangerouslySetInnerHTML with NO client sanitization, so this string is built
+     * only from enum-safe values (the active flag + role); the role is escaped
+     * defensively. NEVER interpolate user/DB free-text here without escaping.
+     */
+    private static function availabilityHtml(bool $active, string $role): string
+    {
+        $dot = $active ? '#16a34a' : '#9ca3af';
+        $word = $active ? 'Available' : 'Offline';
+
+        return sprintf(
+            '<span style="display:inline-flex;align-items:center;gap:.4rem">'
+            . '<span style="width:.5rem;height:.5rem;border-radius:9999px;background:%s"></span>'
+            . '<strong>%s</strong> &middot; <span style="opacity:.7">%s</span></span>',
+            $dot,
+            $word,
+            htmlspecialchars($role, ENT_QUOTES, 'UTF-8'),
+        );
+    }
+
+    /**
+     * Per-agent ticket intake over the last $days days — assigned tickets bucketed
+     * by created_at day, read the active-record way. The per-row number[] (oldest
+     * day first) the custom `sparkline` cell renders.
+     *
+     * @return array<int, list<int>>
+     */
+    private function intakeByAgent(int $days): array
+    {
+        $today = (int) (floor(time() / 86400) * 86400);
+
+        /** @var list<Ticket> $tickets */
+        $tickets = Ticket::query()->get();
+        $buckets = [];
+        foreach ($tickets as $t) {
+            if ($t->agent_id === null) {
+                continue;
+            }
+            $aid = (int) $t->agent_id;
+            $buckets[$aid] ??= array_fill(0, $days, 0);
+            $dayStart = (int) (floor((int) $t->created_at / 86400) * 86400);
+            $offset = (int) (($today - $dayStart) / 86400);
+            if ($offset >= 0 && $offset < $days) {
+                $buckets[$aid][$days - 1 - $offset]++;
+            }
+        }
+
+        return $buckets;
     }
 }

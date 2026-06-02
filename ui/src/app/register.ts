@@ -16,6 +16,7 @@ import {
   registerLayout,
   registerBlock,
   registerDefaultCells,
+  registerCellRenderer,
   registerDefaultFields,
   registerDefaultIcons,
   // Shells
@@ -46,6 +47,7 @@ import {
 //  - tabs:  BlockBuilder::tabs() emits type "tabs"; alias it onto TabbedPanelBlock.
 import { ChartBlock } from "../blocks/chart-block";
 import { TabsAliasBlock } from "../blocks/tabs-alias";
+import { SparklineCell } from "../cells/sparkline-cell";
 
 let registered = false;
 
@@ -90,6 +92,10 @@ export function registerDefaults(): void {
 
   // Cell renderers (status, timestamp, link, boolean, etc.)
   registerDefaultCells();
+  // Custom free `sparkline` cell — the cell-level twin of the custom `chart`
+  // block. A dense_table column with variant "sparkline" resolves here (P5).
+  // Register AFTER the defaults.
+  registerCellRenderer("sparkline", SparklineCell);
 
   // Form field components (text, select, switch, entity_picker, etc.)
   registerDefaultFields();

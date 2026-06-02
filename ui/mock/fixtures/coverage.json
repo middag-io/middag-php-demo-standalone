@@ -88,7 +88,7 @@
                             "type": "markdown_panel",
                             "key": "summary",
                             "data": {
-                                "content": "### Surface coverage\n\nExercises **38** documented free symbols; **9** catalogued gaps.\n\nCovered by kind:\n\n- **block**: 14\n- **cell**: 7\n- **engine**: 6\n- **field**: 5\n- **layout**: 3\n- **provider**: 1\n- **shell**: 2\n\nEach covered symbol below maps to the route that emits it; CoverageManifestTest boots those routes on every push and fails if a covered symbol stops emitting, a PRO symbol leaks, or a gap symbol is silently shipped."
+                                "content": "### Surface coverage\n\nExercises **41** documented free symbols; **6** catalogued gaps.\n\nCovered by kind:\n\n- **block**: 14\n- **cell**: 10\n- **engine**: 6\n- **field**: 5\n- **layout**: 3\n- **provider**: 1\n- **shell**: 2\n\nEach covered symbol below maps to the route that emits it; CoverageManifestTest boots those routes on every push and fails if a covered symbol stops emitting, a PRO symbol leaks, or a gap symbol is silently shipped."
                             }
                         },
                         {
@@ -272,6 +272,24 @@
                                         "note": "agent workload (supervisor view)"
                                     },
                                     {
+                                        "symbol": "cell:link",
+                                        "kind": "cell",
+                                        "route": "/agents",
+                                        "note": "agent email as a mailto link, href interpolates {email} (supervisor view)"
+                                    },
+                                    {
+                                        "symbol": "cell:html",
+                                        "kind": "cell",
+                                        "route": "/agents",
+                                        "note": "availability badge — server-controlled HTML, role escaped (supervisor view)"
+                                    },
+                                    {
+                                        "symbol": "cell:sparkline",
+                                        "kind": "cell",
+                                        "route": "/agents",
+                                        "note": "custom registerCellRenderer (the chart-block seam, cell edition) — 7-day intake (supervisor view)"
+                                    },
+                                    {
                                         "symbol": "field:text",
                                         "kind": "field",
                                         "route": "/tickets/new",
@@ -369,21 +387,6 @@
                                         "symbol": "layout:wizard",
                                         "reason": "ticket create uses a single-step form_panel; the FormStep wizard layout is not built",
                                         "filed": "demo: wizard ticket create"
-                                    },
-                                    {
-                                        "symbol": "cell:link",
-                                        "reason": "no natural single-link column in the help-desk; link_group covers grouped links",
-                                        "filed": "demo: link cell"
-                                    },
-                                    {
-                                        "symbol": "cell:html",
-                                        "reason": "raw-HTML cell (dangerouslySetInnerHTML) avoided as an XSS surface in a reference demo",
-                                        "filed": "demo: html cell"
-                                    },
-                                    {
-                                        "symbol": "cell:sparkline",
-                                        "reason": "custom registerCell extension not built (only the custom chart block is)",
-                                        "filed": "demo: sparkline cell"
                                     },
                                     {
                                         "symbol": "block:pro",

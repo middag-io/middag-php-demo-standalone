@@ -69,7 +69,9 @@
         "theme": {
             "appearance": "light"
         },
-        "flash": [],
+        "flash": {
+            "success": "Welcome, Demo User."
+        },
         "errors": [],
         "csrf_token": "dev-csrf-token",
         "contract": {
@@ -105,12 +107,24 @@
                                     },
                                     {
                                         "key": "email",
-                                        "label": "Email"
+                                        "label": "Email",
+                                        "variant": "link",
+                                        "href": "mailto:{email}"
+                                    },
+                                    {
+                                        "key": "availability",
+                                        "label": "Availability",
+                                        "variant": "html"
                                     },
                                     {
                                         "key": "workload",
                                         "label": "Open load",
                                         "variant": "progress"
+                                    },
+                                    {
+                                        "key": "intake",
+                                        "label": "7-day intake",
+                                        "variant": "sparkline"
                                     }
                                 ],
                                 "rows": [
@@ -120,7 +134,17 @@
                                         "role": "supervisor",
                                         "active": true,
                                         "email": "ana@middag.io",
-                                        "workload": 1
+                                        "availability": "<span style=\"display:inline-flex;align-items:center;gap:.4rem\"><span style=\"width:.5rem;height:.5rem;border-radius:9999px;background:#16a34a\"></span><strong>Available</strong> &middot; <span style=\"opacity:.7\">supervisor</span></span>",
+                                        "workload": 1,
+                                        "intake": [
+                                            1,
+                                            0,
+                                            0,
+                                            0,
+                                            0,
+                                            1,
+                                            0
+                                        ]
                                     },
                                     {
                                         "id": 2,
@@ -128,7 +152,17 @@
                                         "role": "agent",
                                         "active": true,
                                         "email": "bruno@middag.io",
-                                        "workload": 1
+                                        "availability": "<span style=\"display:inline-flex;align-items:center;gap:.4rem\"><span style=\"width:.5rem;height:.5rem;border-radius:9999px;background:#16a34a\"></span><strong>Available</strong> &middot; <span style=\"opacity:.7\">agent</span></span>",
+                                        "workload": 1,
+                                        "intake": [
+                                            0,
+                                            0,
+                                            0,
+                                            1,
+                                            0,
+                                            0,
+                                            0
+                                        ]
                                     },
                                     {
                                         "id": 3,
@@ -136,7 +170,17 @@
                                         "role": "agent",
                                         "active": true,
                                         "email": "carla@middag.io",
-                                        "workload": 2
+                                        "availability": "<span style=\"display:inline-flex;align-items:center;gap:.4rem\"><span style=\"width:.5rem;height:.5rem;border-radius:9999px;background:#16a34a\"></span><strong>Available</strong> &middot; <span style=\"opacity:.7\">agent</span></span>",
+                                        "workload": 2,
+                                        "intake": [
+                                            0,
+                                            0,
+                                            1,
+                                            0,
+                                            0,
+                                            1,
+                                            0
+                                        ]
                                     },
                                     {
                                         "id": 4,
@@ -144,7 +188,17 @@
                                         "role": "admin",
                                         "active": true,
                                         "email": "diego@middag.io",
-                                        "workload": 1
+                                        "availability": "<span style=\"display:inline-flex;align-items:center;gap:.4rem\"><span style=\"width:.5rem;height:.5rem;border-radius:9999px;background:#16a34a\"></span><strong>Available</strong> &middot; <span style=\"opacity:.7\">admin</span></span>",
+                                        "workload": 1,
+                                        "intake": [
+                                            0,
+                                            1,
+                                            0,
+                                            0,
+                                            1,
+                                            0,
+                                            0
+                                        ]
                                     }
                                 ],
                                 "rowHref": "/agents/{id}"

@@ -46,7 +46,7 @@ return [
         'block:tabbed_panel' => ['kind' => 'block', 'route' => '/tickets/{id}', 'note' => 'emitted as wire type "tabs"; host aliases tabs->tabbed_panel + id->key'],
         'block:activity_timeline' => ['kind' => 'block', 'route' => '/tickets/{id}', 'note' => 'comment feed, nested in the tabbed_panel'],
 
-        // dense_table cell renderers (7 of 9 free exercised).
+        // dense_table cell renderers (9 of 9 free exercised + 1 custom sparkline).
         'cell:status' => ['kind' => 'cell', 'route' => '/tickets', 'note' => 'ticket status'],
         'cell:rich_status' => ['kind' => 'cell', 'route' => '/tickets', 'note' => 'priority {label,appearance,icon}'],
         'cell:annotated' => ['kind' => 'cell', 'route' => '/tickets', 'note' => 'assignee {text,sublabel}'],
@@ -54,6 +54,9 @@ return [
         'cell:timestamp' => ['kind' => 'cell', 'route' => '/tickets', 'note' => 'created date'],
         'cell:boolean' => ['kind' => 'cell', 'route' => '/parity', 'note' => 'parity match flag'],
         'cell:progress' => ['kind' => 'cell', 'route' => '/agents', 'note' => 'agent workload (supervisor view)'],
+        'cell:link' => ['kind' => 'cell', 'route' => '/agents', 'note' => 'agent email as a mailto link, href interpolates {email} (supervisor view)'],
+        'cell:html' => ['kind' => 'cell', 'route' => '/agents', 'note' => 'availability badge — server-controlled HTML, role escaped (supervisor view)'],
+        'cell:sparkline' => ['kind' => 'cell', 'route' => '/agents', 'note' => 'custom registerCellRenderer (the chart-block seam, cell edition) — 7-day intake (supervisor view)'],
 
         // Form fields (the reachable PHP-factory ∩ React-free set used by the ticket form).
         'field:text' => ['kind' => 'field', 'route' => '/tickets/new', 'note' => 'subject, tags'],
@@ -74,9 +77,6 @@ return [
 
     'gaps' => [
         'layout:wizard' => ['reason' => 'ticket create uses a single-step form_panel; the FormStep wizard layout is not built', 'filed' => 'demo: wizard ticket create'],
-        'cell:link' => ['reason' => 'no natural single-link column in the help-desk; link_group covers grouped links', 'filed' => 'demo: link cell'],
-        'cell:html' => ['reason' => 'raw-HTML cell (dangerouslySetInnerHTML) avoided as an XSS surface in a reference demo', 'filed' => 'demo: html cell'],
-        'cell:sparkline' => ['reason' => 'custom registerCell extension not built (only the custom chart block is)', 'filed' => 'demo: sparkline cell'],
         'block:pro' => ['reason' => 'PRO blocks (chart_panel, kanban_board, flow_editor, form_builder, condition_tree, sentence_builder) + the product shell ship in @middag-io/react-pro, out of the free OSS surface', 'filed' => 'n/a (by design)'],
         'field:duration' => ['reason' => 'emittable via FieldDefinition::duration() but no free React field renderer (would hit "Unknown field component")', 'filed' => 'react: duration renderer'],
         'field:otp_slider_native_select_tags' => ['reason' => 'React-renderable but no FieldDefinition factory method', 'filed' => 'framework: field factories'],

@@ -74,6 +74,8 @@ final class AgentContractTest extends DemoTestCase
         self::assertContains('role', $cols);
         self::assertNotContains('email', $cols, 'email is supervisor-gated');
         self::assertNotContains('workload', $cols, 'workload is supervisor-gated');
+        self::assertNotContains('availability', $cols, 'availability is supervisor-gated');
+        self::assertNotContains('intake', $cols, 'intake is supervisor-gated');
 
         self::assertNotNull($this->blockByKey($contract['layout']['regions']['aside'] ?? [], 'agent_count'), 'aside metric_card');
     }
@@ -88,18 +90,34 @@ final class AgentContractTest extends DemoTestCase
         $this->loginWithCapabilities('helpdesk:supervise');
 
         $contract = $this->contract('/agents');
-        $columns = $this->blockByKey($contract['layout']['regions']['main'] ?? [], 'agents')['data']['columns'];
+        $table = $this->blockByKey($contract['layout']['regions']['main'] ?? [], 'agents');
+        self::assertNotNull($table);
+        $columns = $table['data']['columns'];
 
         $keys = array_column($columns, 'key');
         self::assertContains('email', $keys, 'supervisor sees the email column');
         self::assertContains('workload', $keys, 'supervisor sees the workload column');
 
-        // The workload column uses the progress cell variant.
+        // Cell variants: workload=progress, plus the three gaps closed on this route —
+        // email=link (mailto), availability=html, intake=sparkline (custom renderer).
         $variants = [];
+        $byKey = [];
         foreach ($columns as $col) {
             $variants[(string) $col['key']] = $col['variant'] ?? null;
+            $byKey[(string) $col['key']] = $col;
         }
         self::assertSame('progress', $variants['workload'] ?? null);
+        self::assertSame('link', $variants['email'] ?? null, 'email is a mailto link cell');
+        self::assertSame('mailto:{email}', $byKey['email']['href'] ?? null, 'link href template interpolates the row email');
+        self::assertSame('html', $variants['availability'] ?? null, 'availability is a server-html cell');
+        self::assertSame('sparkline', $variants['intake'] ?? null, 'intake is the custom sparkline cell');
+
+        // Per-row cell values are shaped for their renderers.
+        $row = $table['data']['rows'][0] ?? [];
+        self::assertIsString($row['availability'] ?? null);
+        self::assertStringContainsString('<span', (string) ($row['availability'] ?? ''), 'html cell value is server-built markup');
+        self::assertIsArray($row['intake'] ?? null);
+        self::assertCount(7, $row['intake'] ?? [], 'sparkline value is a 7-point series');
     }
 
     #[Test]

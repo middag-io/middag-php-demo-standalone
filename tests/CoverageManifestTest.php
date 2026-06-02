@@ -201,10 +201,19 @@ final class CoverageManifestTest extends DemoTestCase
     #[Test]
     public function catalogedGapCellsAreNotSilentlyEmitted(): void
     {
-        // The cell gaps (link/html/sparkline) must NOT appear as a column variant on
+        // A cell gap claimed in the manifest must NOT appear as a column variant on
         // the cell-showcase route — claiming a gap then shipping it would be a lie.
+        // Manifest-driven: closing a gap (cell -> covered) keeps this guard honest
+        // instead of leaving a stale hardcoded list.
+        $gapCells = [];
+        foreach (array_keys($this->manifest()['gaps']) as $symbol) {
+            if (str_starts_with((string) $symbol, 'cell:')) {
+                $gapCells[] = explode(':', (string) $symbol, 2)[1];
+            }
+        }
+
         $variants = $this->columnVariants($this->contractFor('/tickets'));
-        foreach (['link', 'html', 'sparkline'] as $gapCell) {
+        foreach ($gapCells as $gapCell) {
             self::assertNotContains($gapCell, $variants, "gap cell {$gapCell} must not be emitted on /tickets");
         }
     }
