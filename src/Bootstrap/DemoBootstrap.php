@@ -19,6 +19,8 @@ use Middag\Demo\Standalone\Http\AgentController;
 use Middag\Demo\Standalone\Http\AuthController;
 use Middag\Demo\Standalone\Http\CustomerController;
 use Middag\Demo\Standalone\Http\DashboardController;
+use Middag\Demo\Standalone\Http\HelpController;
+use Middag\Demo\Standalone\Http\ParityController;
 use Middag\Demo\Standalone\Http\TaskApiController;
 use Middag\Demo\Standalone\Http\TaskController;
 use Middag\Demo\Standalone\Http\TicketApiController;
@@ -500,6 +502,10 @@ final class DemoBootstrap implements BootstrapInterface
         $routes->add('agents.index', new Route('/agents', ['_controller' => AgentController::class . '::index'], [], [], '', [], ['GET']));
         $routes->add('agents.show', new Route('/agents/{id}', ['_controller' => AgentController::class . '::show'], [], ['id' => '\d+'], '', [], ['GET']));
         $routes->add('customers.index', new Route('/customers', ['_controller' => CustomerController::class . '::index'], [], [], '', [], ['GET']));
+
+        // Dual-ORM parity proof + help/about (immersive shell).
+        $routes->add('parity.index', new Route('/parity', ['_controller' => ParityController::class . '::index'], [], [], '', [], ['GET']));
+        $routes->add('help.index', new Route('/help', ['_controller' => HelpController::class . '::index'], [], [], '', [], ['GET']));
 
         // JSON API.
         $routes->add('api.tasks.store', new Route('/api/tasks', ['_controller' => TaskApiController::class . '::store'], [], [], '', [], ['POST']));
