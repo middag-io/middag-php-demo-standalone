@@ -13,8 +13,8 @@
     "php": "^8.2",
     "ext-pdo": "*",
     "ext-pdo_sqlite": "*",
-    "middag-io/framework": "^0.6.0",
-    "middag-io/ui": "^0.6.1",
+    "middag-io/framework": "^0.6.1",
+    "middag-io/ui": "^0.6.3",
     "symfony/dotenv": "^7.0 || ^8.0"
   },
   "require-dev": {
