@@ -34,7 +34,7 @@ export function AuthShell({ children }: { children: ReactNode }): ReactElement {
         <div className="bg-card border-border rounded-xl border p-6 shadow-sm">
           {page.title && <h1 className="text-foreground text-base font-semibold">{page.title}</h1>}
           {page.subtitle && (
-            <p className="text-muted-foreground mt-1 mb-2 text-xs">{page.subtitle}</p>
+            <p className="text-muted-foreground mb-2 mt-1 text-xs">{page.subtitle}</p>
           )}
           {children}
         </div>

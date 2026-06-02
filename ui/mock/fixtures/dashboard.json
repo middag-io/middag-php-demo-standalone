@@ -85,7 +85,7 @@
             "layout": {
                 "template": "dashboard",
                 "regions": {
-                    "content": [
+                    "metrics": [
                         {
                             "type": "metric_card",
                             "key": "total",
@@ -121,7 +121,9 @@
                                 "label": "Avg CSAT",
                                 "icon": "star"
                             }
-                        },
+                        }
+                    ],
+                    "content": [
                         {
                             "type": "status_strip",
                             "key": "sla_health",

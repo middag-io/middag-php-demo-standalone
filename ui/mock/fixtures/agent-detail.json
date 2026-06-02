@@ -81,8 +81,28 @@
                 "subtitle": "Agent detail — workload aggregate + assigned open tickets"
             },
             "layout": {
-                "template": "stack",
+                "template": "dashboard",
                 "regions": {
+                    "metrics": [
+                        {
+                            "type": "metric_card",
+                            "key": "workload",
+                            "data": {
+                                "value": 1,
+                                "label": "Open assigned",
+                                "icon": "briefcase"
+                            }
+                        },
+                        {
+                            "type": "metric_card",
+                            "key": "total_assigned",
+                            "data": {
+                                "value": 2,
+                                "label": "Total assigned",
+                                "icon": "inbox"
+                            }
+                        }
+                    ],
                     "content": [
                         {
                             "type": "detail_panel",
@@ -116,24 +136,6 @@
                                         ]
                                     }
                                 ]
-                            }
-                        },
-                        {
-                            "type": "metric_card",
-                            "key": "workload",
-                            "data": {
-                                "value": 1,
-                                "label": "Open assigned",
-                                "icon": "briefcase"
-                            }
-                        },
-                        {
-                            "type": "metric_card",
-                            "key": "total_assigned",
-                            "data": {
-                                "value": 2,
-                                "label": "Total assigned",
-                                "icon": "inbox"
                             }
                         },
                         {

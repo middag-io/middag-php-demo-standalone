@@ -69,9 +69,7 @@
         "theme": {
             "appearance": "light"
         },
-        "flash": {
-            "success": "Welcome, Demo User."
-        },
+        "flash": [],
         "errors": [],
         "csrf_token": "dev-csrf-token",
         "contract": {
@@ -206,7 +204,10 @@
                                 },
                                 "errors": [],
                                 "meta": {
-                                    "validation": "both"
+                                    "validation": "both",
+                                    "submitLabel": "Continue",
+                                    "cancelLabel": "Cancel",
+                                    "cancelHref": "/tickets"
                                 }
                             }
                         }
@@ -223,18 +224,7 @@
                             "status": "pending"
                         }
                     ],
-                    "actions": [
-                        {
-                            "id": "cancel",
-                            "label": "Cancel",
-                            "target": {
-                                "kind": "link",
-                                "href": "/tickets"
-                            },
-                            "intent": "secondary",
-                            "icon": "x"
-                        }
-                    ]
+                    "actions": []
                 }
             }
         }

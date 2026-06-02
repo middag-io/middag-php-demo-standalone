@@ -59,15 +59,18 @@ final class AgentContractTest extends DemoTestCase
     }
 
     #[Test]
-    public function listRendersSidebarRosterAndGatesSupervisorColumnsByDefault(): void
+    public function listRendersRosterAndGatesSupervisorColumnsByDefault(): void
     {
         $this->seedAgent();
 
         // Default session (no capability — DemoTestCase logs in with empty caps).
+        // The roster uses the dashboard layout: table in `content`, the two metric
+        // cards in the gridded `metrics` region (the wide rich-cell table needs the
+        // full content width; sidebar+aside is proven on the ticket detail page).
         $contract = $this->contract('/agents');
-        self::assertSame('sidebar', $contract['layout']['template'] ?? null);
+        self::assertSame('dashboard', $contract['layout']['template'] ?? null);
 
-        $table = $this->blockByKey($contract['layout']['regions']['main'] ?? [], 'agents');
+        $table = $this->blockByKey($contract['layout']['regions']['content'] ?? [], 'agents');
         self::assertNotNull($table);
         self::assertSame('dense_table', $table['type']);
         $cols = array_column($table['data']['columns'], 'key');
@@ -77,7 +80,7 @@ final class AgentContractTest extends DemoTestCase
         self::assertNotContains('availability', $cols, 'availability is supervisor-gated');
         self::assertNotContains('intake', $cols, 'intake is supervisor-gated');
 
-        self::assertNotNull($this->blockByKey($contract['layout']['regions']['aside'] ?? [], 'agent_count'), 'aside metric_card');
+        self::assertNotNull($this->blockByKey($contract['layout']['regions']['metrics'] ?? [], 'agent_count'), 'metrics metric_card');
     }
 
     #[Test]
@@ -90,7 +93,7 @@ final class AgentContractTest extends DemoTestCase
         $this->loginWithCapabilities('helpdesk:supervise');
 
         $contract = $this->contract('/agents');
-        $table = $this->blockByKey($contract['layout']['regions']['main'] ?? [], 'agents');
+        $table = $this->blockByKey($contract['layout']['regions']['content'] ?? [], 'agents');
         self::assertNotNull($table);
         $columns = $table['data']['columns'];
 

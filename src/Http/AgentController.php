@@ -86,18 +86,22 @@ final class AgentController extends AbstractController
 
         $contract = PageBuilder::page('demo.agents')
             ->shell('basic')
-            ->layout('sidebar')
+            // Dashboard layout (not sidebar): the roster is a wide rich-cell table
+            // (7 supervisor columns) that a sidebar's fixed 320px aside squeezes —
+            // metric cards go in the gridded `metrics` row, the table gets the full
+            // content width. The sidebar+aside pattern is still proven on the ticket
+            // detail page. metrics → StatRow grid (no double Card wrap).
+            ->layout('dashboard')
             ->title('Agents')
             ->subtitle($canSupervise
                 ? 'Supervisor view — data-mapper roster with contact + workload columns'
                 : 'Agent roster — data-mapper list (supervisor columns gated by capability)')
-            // sidebar layout renders the `main` + `aside` regions (not `content`).
-            ->region('main', function (RegionBuilder $region) use ($columns, $rows): void {
-                $region->denseTable('agents', $columns, $rows, ['rowHref' => '/agents/{id}']);
-            })
-            ->region('aside', function (RegionBuilder $region) use ($agents, $supervisors): void {
+            ->region('metrics', function (RegionBuilder $region) use ($agents, $supervisors): void {
                 $region->metricCard('agent_count', count($agents), 'Agents', icon: 'users');
                 $region->metricCard('supervisors', $supervisors, 'Supervisors', icon: 'shield');
+            })
+            ->region('content', function (RegionBuilder $region) use ($columns, $rows): void {
+                $region->denseTable('agents', $columns, $rows, ['rowHref' => '/agents/{id}']);
             })
             ->build();
 

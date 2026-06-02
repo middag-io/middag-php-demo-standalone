@@ -69,9 +69,7 @@
         "theme": {
             "appearance": "light"
         },
-        "flash": {
-            "success": "Welcome, Demo User."
-        },
+        "flash": [],
         "errors": [],
         "csrf_token": "dev-csrf-token",
         "contract": {
@@ -83,9 +81,29 @@
                 "subtitle": "Supervisor view — data-mapper roster with contact + workload columns"
             },
             "layout": {
-                "template": "sidebar",
+                "template": "dashboard",
                 "regions": {
-                    "main": [
+                    "metrics": [
+                        {
+                            "type": "metric_card",
+                            "key": "agent_count",
+                            "data": {
+                                "value": 4,
+                                "label": "Agents",
+                                "icon": "users"
+                            }
+                        },
+                        {
+                            "type": "metric_card",
+                            "key": "supervisors",
+                            "data": {
+                                "value": 2,
+                                "label": "Supervisors",
+                                "icon": "shield"
+                            }
+                        }
+                    ],
+                    "content": [
                         {
                             "type": "dense_table",
                             "key": "agents",
@@ -202,26 +220,6 @@
                                     }
                                 ],
                                 "rowHref": "/agents/{id}"
-                            }
-                        }
-                    ],
-                    "aside": [
-                        {
-                            "type": "metric_card",
-                            "key": "agent_count",
-                            "data": {
-                                "value": 4,
-                                "label": "Agents",
-                                "icon": "users"
-                            }
-                        },
-                        {
-                            "type": "metric_card",
-                            "key": "supervisors",
-                            "data": {
-                                "value": 2,
-                                "label": "Supervisors",
-                                "icon": "shield"
                             }
                         }
                     ]

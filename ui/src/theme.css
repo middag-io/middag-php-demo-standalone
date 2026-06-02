@@ -120,3 +120,19 @@
   --host-header-height: 0px;
   --host-sidebar-width: 0px;
 }
+
+/* ── Markdown block-code contrast fix ──────────────────────────────────────
+ * The lib's markdown_panel styles EVERY <code> with the inline-code chip
+ * (bg-muted + padding), including block code inside a dark <pre> (bg-zinc-900,
+ * text-zinc-100). That paints a near-white background under near-white inherited
+ * text → the command lines render as invisible light bars (e.g. the /help
+ * "Run it" block). Reset block code (code within pre) to ride the <pre>'s own
+ * dark styling. Specificity (.middag-root + 2 type selectors) beats `.bg-muted`.
+ * (middag-react markdown bug: block <code> should not get the inline-code chip.)
+ */
+.middag-root pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  border-radius: 0;
+}

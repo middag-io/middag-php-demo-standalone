@@ -10,13 +10,13 @@ One file per route:
 
 | Fixture | Route | Shell / layout |
 |---|---|---|
-| `login.json` | `/login` | basic / stack — `form_panel` |
+| `login.json` | `/login` | auth / stack — chromeless `form_panel` |
 | `dashboard.json` | `/` | basic / dashboard — metrics + chart |
-| `tickets.json` | `/tickets` | basic / stack — the cell showcase |
+| `tickets.json` | `/tickets` | basic / dashboard — metrics + cell showcase |
 | `ticket-detail.json` | `/tickets/1` | basic / sidebar — workflow + tabs |
-| `ticket-new.json` | `/tickets/new` | basic / stack — `form_panel` |
-| `agents.json` | `/agents` | basic / sidebar — supervisor view |
-| `agent-detail.json` | `/agents/1` | basic / stack |
+| `ticket-new.json` | `/tickets/new` | basic / wizard — `form_panel` |
+| `agents.json` | `/agents` | basic / dashboard — supervisor roster (full width) |
+| `agent-detail.json` | `/agents/1` | basic / dashboard — metrics + detail |
 | `customers.json` | `/customers` | basic / stack — card grid |
 | `parity.json` | `/parity` | basic / stack — dual-ORM |
 | `help.json` | `/help` | immersive / stack |

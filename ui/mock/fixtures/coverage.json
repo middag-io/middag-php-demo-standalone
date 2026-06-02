@@ -136,8 +136,8 @@
                                     {
                                         "symbol": "layout:sidebar",
                                         "kind": "layout",
-                                        "route": "/agents",
-                                        "note": "list + aside"
+                                        "route": "/tickets/{id}",
+                                        "note": "ticket detail — main + aside metric cards"
                                     },
                                     {
                                         "symbol": "layout:stack",

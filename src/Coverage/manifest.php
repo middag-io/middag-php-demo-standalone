@@ -27,7 +27,7 @@ return [
 
         // Layouts (4/4 free).
         'layout:dashboard' => ['kind' => 'layout', 'route' => '/', 'note' => 'metrics + chart grid'],
-        'layout:sidebar' => ['kind' => 'layout', 'route' => '/agents', 'note' => 'list + aside'],
+        'layout:sidebar' => ['kind' => 'layout', 'route' => '/tickets/{id}', 'note' => 'ticket detail — main + aside metric cards'],
         'layout:stack' => ['kind' => 'layout', 'route' => '/customers', 'note' => 'default single column'],
         'layout:wizard' => ['kind' => 'layout', 'route' => '/tickets/new', 'note' => 'guided two-step ticket create — server-driven stepping, partial in session'],
 

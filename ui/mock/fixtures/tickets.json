@@ -81,9 +81,9 @@
                 "subtitle": "Help-desk queue — active-record tickets, data-mapper customer/agent names"
             },
             "layout": {
-                "template": "stack",
+                "template": "dashboard",
                 "regions": {
-                    "content": [
+                    "metrics": [
                         {
                             "type": "metric_card",
                             "key": "total",
@@ -110,7 +110,9 @@
                                 "label": "High / urgent",
                                 "icon": "flame"
                             }
-                        },
+                        }
+                    ],
+                    "content": [
                         {
                             "type": "dense_table",
                             "key": "tickets",
@@ -181,7 +183,7 @@
                                                 "href": "/tickets?search=login"
                                             }
                                         ],
-                                        "created": 1780425529
+                                        "created": 1780444567
                                     },
                                     {
                                         "id": 2,
@@ -208,7 +210,7 @@
                                                 "href": "/tickets?search=export"
                                             }
                                         ],
-                                        "created": 1780421929
+                                        "created": 1780440967
                                     },
                                     {
                                         "id": 3,
@@ -235,7 +237,7 @@
                                                 "href": "/tickets?search=import"
                                             }
                                         ],
-                                        "created": 1780331929
+                                        "created": 1780350967
                                     },
                                     {
                                         "id": 5,
@@ -262,7 +264,7 @@
                                                 "href": "/tickets?search=dashboard"
                                             }
                                         ],
-                                        "created": 1780324729
+                                        "created": 1780343767
                                     },
                                     {
                                         "id": 4,
@@ -289,7 +291,7 @@
                                                 "href": "/tickets?search=enhancement"
                                             }
                                         ],
-                                        "created": 1780241929
+                                        "created": 1780260967
                                     },
                                     {
                                         "id": 6,
@@ -316,7 +318,7 @@
                                                 "href": "/tickets?search=waiting"
                                             }
                                         ],
-                                        "created": 1780148329
+                                        "created": 1780167367
                                     },
                                     {
                                         "id": 7,
@@ -343,7 +345,7 @@
                                                 "href": "/tickets?search=pricing"
                                             }
                                         ],
-                                        "created": 1780058329
+                                        "created": 1780077367
                                     },
                                     {
                                         "id": 8,
@@ -370,7 +372,7 @@
                                                 "href": "/tickets?search=copy"
                                             }
                                         ],
-                                        "created": 1779968329
+                                        "created": 1779987367
                                     },
                                     {
                                         "id": 9,
@@ -397,7 +399,7 @@
                                                 "href": "/tickets?search=csv"
                                             }
                                         ],
-                                        "created": 1779878329
+                                        "created": 1779897367
                                     },
                                     {
                                         "id": 10,
@@ -420,7 +422,7 @@
                                                 "href": "/tickets?search=onboarding"
                                             }
                                         ],
-                                        "created": 1779701929
+                                        "created": 1779720967
                                     },
                                     {
                                         "id": 11,
@@ -443,7 +445,7 @@
                                                 "href": "/tickets?search=billing"
                                             }
                                         ],
-                                        "created": 1779611929
+                                        "created": 1779630967
                                     },
                                     {
                                         "id": 12,
@@ -470,7 +472,7 @@
                                                 "href": "/tickets?search=refund"
                                             }
                                         ],
-                                        "created": 1779521929
+                                        "created": 1779540967
                                     }
                                 ],
                                 "rowHref": "/tickets/{id}"

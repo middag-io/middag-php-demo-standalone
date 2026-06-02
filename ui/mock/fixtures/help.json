@@ -118,7 +118,7 @@
                                         "intent": "primary",
                                         "target": {
                                             "kind": "link",
-                                            "href": "/"
+                                            "href": "/dashboard"
                                         }
                                     },
                                     {

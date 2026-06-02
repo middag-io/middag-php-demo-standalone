@@ -191,7 +191,7 @@
                                                                 {
                                                                     "key": "created",
                                                                     "label": "Created",
-                                                                    "value": "2026-06-02 18:38"
+                                                                    "value": "2026-06-02 23:56"
                                                                 },
                                                                 {
                                                                     "key": "resolved",
@@ -228,7 +228,7 @@
                                                                     "action": "Opening this ticket. Cannot log in after password reset.",
                                                                     "icon": "message-circle",
                                                                     "color": "info",
-                                                                    "timestamp": 1780425589
+                                                                    "timestamp": 1780444627
                                                                 }
                                                             ]
                                                         }
@@ -246,7 +246,7 @@
                                                 "type": "markdown_panel",
                                                 "key": "sla",
                                                 "data": {
-                                                    "content": "### Urgent SLA\n\n- **Priority tier:** urgent\n- **Response target:** 15 min\n- **Resolution target:** 240 min\n- **Due:** 2026-06-03 18:38\n- **Resolved:** not yet"
+                                                    "content": "### Urgent SLA\n\n- **Priority tier:** urgent\n- **Response target:** 15 min\n- **Resolution target:** 240 min\n- **Due:** 2026-06-03 23:56\n- **Resolved:** not yet"
                                                 }
                                             }
                                         ]
