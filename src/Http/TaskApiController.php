@@ -46,6 +46,9 @@ final class TaskApiController extends AbstractApiController
             priority: (string) ($data['priority'] ?? 'normal'),
             status: (string) ($data['status'] ?? 'open'),
             dueOn: isset($data['due_on']) && $data['due_on'] !== '' ? (string) $data['due_on'] : null,
+            estimateMinutes: (int) ($data['estimate_minutes'] ?? 0),
+            notify: (bool) ($data['notify'] ?? true),
+            parentTask: isset($data['parent_task']) && $data['parent_task'] !== '' ? (int) $data['parent_task'] : null,
         ));
 
         $id = $envelope->last(HandledStamp::class)?->getResult();
@@ -64,6 +67,9 @@ final class TaskApiController extends AbstractApiController
             priority: (string) ($data['priority'] ?? 'normal'),
             status: (string) ($data['status'] ?? 'open'),
             dueOn: isset($data['due_on']) && $data['due_on'] !== '' ? (string) $data['due_on'] : null,
+            estimateMinutes: (int) ($data['estimate_minutes'] ?? 0),
+            notify: (bool) ($data['notify'] ?? true),
+            parentTask: isset($data['parent_task']) && $data['parent_task'] !== '' ? (int) $data['parent_task'] : null,
         ));
 
         return $this->jsonResponse(['id' => $id, 'updated' => true]);

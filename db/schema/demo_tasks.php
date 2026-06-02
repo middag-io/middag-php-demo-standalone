@@ -22,6 +22,9 @@ return [
         ['name' => 'status', 'type' => 'varchar', 'length' => 20, 'notnull' => true, 'default' => 'open'],
         ['name' => 'priority', 'type' => 'varchar', 'length' => 20, 'notnull' => true, 'default' => 'normal'],
         ['name' => 'due_on', 'type' => 'date', 'notnull' => false],
+        ['name' => 'estimate_minutes', 'type' => 'bigint', 'notnull' => false, 'default' => 0],
+        ['name' => 'notify', 'type' => 'boolean', 'notnull' => true, 'default' => 1],
+        ['name' => 'parent_task', 'type' => 'bigint', 'notnull' => false],
         ['name' => 'created_at', 'type' => 'bigint', 'notnull' => true, 'default' => 0],
     ],
     'indexes' => [

@@ -26,6 +26,9 @@ final readonly class UpdateTaskCommandHandler
         $task->priority = $command->priority;
         $task->status = $command->status;
         $task->due_on = $command->dueOn;
+        $task->estimate_minutes = $command->estimateMinutes;
+        $task->notify = $command->notify;
+        $task->parent_task = $command->parentTask;
         $task->save();
 
         $this->logger->info('UpdateTaskCommand handled', ['id' => $command->id]);

@@ -24,6 +24,9 @@ final class CreateTaskRequest extends AbstractFormRequest
             'priority' => 'required|in:low,normal,high',
             'status' => 'nullable|in:open,done',
             'due_on' => 'nullable|string',
+            'estimate_minutes' => 'nullable|integer',
+            'notify' => 'nullable|boolean',
+            'parent_task' => 'nullable|integer',
         ];
     }
 }

@@ -23,19 +23,25 @@ use Middag\Framework\Persistence\Model;
  * @property string|null $notes
  * @property string      $status     open|done
  * @property string      $priority   low|normal|high
- * @property string|null $due_on     Y-m-d
- * @property int         $created_at unix timestamp
+ * @property string|null $due_on           Y-m-d
+ * @property int         $estimate_minutes minutes
+ * @property bool        $notify           notify-on-create flag
+ * @property int|null    $parent_task      id of the parent task (self-reference)
+ * @property int         $created_at       unix timestamp
  */
 final class Task extends Model
 {
     protected string $table = 'demo_tasks';
 
     /** @var list<string> */
-    protected array $fillable = ['title', 'notes', 'status', 'priority', 'due_on', 'created_at'];
+    protected array $fillable = ['title', 'notes', 'status', 'priority', 'due_on', 'estimate_minutes', 'notify', 'parent_task', 'created_at'];
 
     /** @var array<string, string> */
     protected array $casts = [
         'id' => 'int',
+        'estimate_minutes' => 'int',
+        'notify' => 'bool',
+        'parent_task' => 'int',
         'created_at' => 'int',
     ];
 }

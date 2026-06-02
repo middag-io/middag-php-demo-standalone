@@ -154,6 +154,9 @@ final class TaskController extends AbstractController
             priority: (string) ($data['priority'] ?? 'normal'),
             status: (string) ($data['status'] ?? 'open'),
             dueOn: isset($data['due_on']) && $data['due_on'] !== '' ? (string) $data['due_on'] : null,
+            estimateMinutes: (int) ($data['estimate_minutes'] ?? 0),
+            notify: (bool) ($data['notify'] ?? true),
+            parentTask: isset($data['parent_task']) && $data['parent_task'] !== '' ? (int) $data['parent_task'] : null,
         ));
 
         $this->flash('success', 'Task created.');
@@ -165,13 +168,20 @@ final class TaskController extends AbstractController
     {
         $task = Task::findOrFail($id);
         $form = $this->formProps();
-        $values = [
+        // Seed the schema's default values (so optional fields like estimate_minutes
+        // carry a valid number, not ""), then override with the task's stored fields.
+        // Without the merge, fields absent here render as "" and fail client validation.
+        $values = array_merge($form['values'] ?? [], [
             'title' => (string) $task->title,
             'notes' => $task->notes !== null ? (string) $task->notes : null,
             'priority' => (string) $task->priority,
             'status' => (string) $task->status,
             'due_on' => $task->due_on !== null ? (string) $task->due_on : null,
-        ];
+            'estimate_minutes' => (int) $task->estimate_minutes,
+            'notify' => (bool) $task->notify,
+            // entity_picker value is the parent task id as a string ('' when unset).
+            'parent_task' => $task->parent_task !== null ? (string) $task->parent_task : '',
+        ]);
 
         $contract = PageBuilder::page('demo.tasks.edit')
             ->shell('product')
@@ -196,6 +206,9 @@ final class TaskController extends AbstractController
             priority: (string) ($data['priority'] ?? 'normal'),
             status: (string) ($data['status'] ?? 'open'),
             dueOn: isset($data['due_on']) && $data['due_on'] !== '' ? (string) $data['due_on'] : null,
+            estimateMinutes: (int) ($data['estimate_minutes'] ?? 0),
+            notify: (bool) ($data['notify'] ?? true),
+            parentTask: isset($data['parent_task']) && $data['parent_task'] !== '' ? (int) $data['parent_task'] : null,
         ));
 
         $this->flash('success', 'Task updated.');

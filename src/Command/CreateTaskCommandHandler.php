@@ -41,6 +41,9 @@ final readonly class CreateTaskCommandHandler
             'priority' => $command->priority,
             'status' => $command->status,
             'due_on' => $command->dueOn,
+            'estimate_minutes' => $command->estimateMinutes,
+            'notify' => $command->notify,
+            'parent_task' => $command->parentTask,
             'created_at' => time(),
         ]);
         $task->save();

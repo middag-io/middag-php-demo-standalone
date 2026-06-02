@@ -22,6 +22,9 @@ final class CreateTaskCommand extends AbstractCommand
         public readonly string $priority = 'normal',
         public readonly string $status = 'open',
         public readonly ?string $dueOn = null,
+        public readonly int $estimateMinutes = 0,
+        public readonly bool $notify = true,
+        public readonly ?int $parentTask = null,
     ) {}
 
     /** @return array<string, mixed> */
@@ -33,6 +36,9 @@ final class CreateTaskCommand extends AbstractCommand
             'priority' => $this->priority,
             'status' => $this->status,
             'due_on' => $this->dueOn,
+            'estimate_minutes' => $this->estimateMinutes,
+            'notify' => $this->notify,
+            'parent_task' => $this->parentTask,
         ];
     }
 
@@ -45,6 +51,11 @@ final class CreateTaskCommand extends AbstractCommand
             priority: (string) ($payload['priority'] ?? 'normal'),
             status: (string) ($payload['status'] ?? 'open'),
             dueOn: isset($payload['due_on']) && $payload['due_on'] !== null ? (string) $payload['due_on'] : null,
+            estimateMinutes: (int) ($payload['estimate_minutes'] ?? 0),
+            notify: (bool) ($payload['notify'] ?? true),
+            parentTask: isset($payload['parent_task']) && $payload['parent_task'] !== null && $payload['parent_task'] !== ''
+                ? (int) $payload['parent_task']
+                : null,
         );
     }
 }
