@@ -115,6 +115,11 @@ phpstan-baseline.neon
 coverage/
 .nyc_output/
 *.tsbuildinfo
+# The `coverage/` pattern above (phpunit/nyc report output) also matches the
+# source dir src/Coverage/ on case-insensitive filesystems — keep the tracked
+# coverage manifest source.
+!/src/Coverage/
+!/src/Coverage/**
 
 # -----------------------------------------------------------------------------
 # Builds e artefatos de distribuição
