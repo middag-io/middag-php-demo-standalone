@@ -187,6 +187,10 @@ final class DemoBootstrap implements BootstrapInterface
         // FormValidator it inherits.
         $c->register(EntitySourceRegistry::class, EntitySourceRegistry::class)->setPublic(true);
         $c->register(TaskEntitySource::class, TaskEntitySource::class)->setPublic(true);
+        $c->register(\Middag\Demo\Standalone\Form\CustomerEntitySource::class, \Middag\Demo\Standalone\Form\CustomerEntitySource::class)
+            ->setAutowired(true)->setPublic(true);
+        $c->register(\Middag\Demo\Standalone\Form\AgentEntitySource::class, \Middag\Demo\Standalone\Form\AgentEntitySource::class)
+            ->setAutowired(true)->setPublic(true);
         $c->register(TaskForm::class, TaskForm::class)
             ->setAutowired(true)
             ->setShared(false)
@@ -305,6 +309,8 @@ final class DemoBootstrap implements BootstrapInterface
 
         // Entity source feeding the form's entity-picker.
         $c->get(EntitySourceRegistry::class)->register('demo_tasks', $c->get(TaskEntitySource::class));
+        $c->get(EntitySourceRegistry::class)->register('demo_customers', $c->get(\Middag\Demo\Standalone\Form\CustomerEntitySource::class));
+        $c->get(EntitySourceRegistry::class)->register('demo_agents', $c->get(\Middag\Demo\Standalone\Form\AgentEntitySource::class));
 
         // Inertia — static-by-design seams, wired standalone (no host).
         InertiaVersionManager::setVersion('demo-0.5');
