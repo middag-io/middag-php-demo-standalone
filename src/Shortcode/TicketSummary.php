@@ -12,11 +12,11 @@ use Middag\Framework\Shared\Attribute\TrustedOutput;
  * host should NOT re-sanitize. Standalone it's an inert marker a host adapter
  * reads via reflection; ShortcodeTest asserts its presence.
  */
-final class TaskSummary
+final class TicketSummary
 {
     #[TrustedOutput]
     public function render(int $count): string
     {
-        return sprintf('<span class="task-summary">%d open task(s)</span>', $count);
+        return sprintf('<span class="ticket-summary">%d open ticket(s)</span>', $count);
     }
 }

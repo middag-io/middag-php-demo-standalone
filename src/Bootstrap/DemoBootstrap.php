@@ -6,14 +6,10 @@ namespace Middag\Demo\Standalone\Bootstrap;
 
 use Closure;
 use Middag\Demo\Standalone\Command\EscalateSlaCommand;
-use Middag\Demo\Standalone\Command\NotifyTaskCreatedCommand;
-use Middag\Demo\Standalone\Domain\Eloquent\Task;
-use Middag\Demo\Standalone\Form\TaskEntitySource;
+use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
 use Middag\Demo\Standalone\Form\LoginForm;
-use Middag\Demo\Standalone\Form\TaskForm;
 use Middag\Demo\Standalone\Form\TicketForm;
 use Middag\Demo\Standalone\Framework\DebugCollector;
-use Middag\Demo\Standalone\Hook\TaskHooks;
 use Middag\Demo\Standalone\Hook\TicketHooks;
 use Middag\Demo\Standalone\Http\AgentController;
 use Middag\Demo\Standalone\Http\AuthController;
@@ -22,8 +18,6 @@ use Middag\Demo\Standalone\Http\CustomerController;
 use Middag\Demo\Standalone\Http\DashboardController;
 use Middag\Demo\Standalone\Http\HelpController;
 use Middag\Demo\Standalone\Http\ParityController;
-use Middag\Demo\Standalone\Http\TaskApiController;
-use Middag\Demo\Standalone\Http\TaskController;
 use Middag\Demo\Standalone\Http\TicketApiController;
 use Middag\Demo\Standalone\Http\TicketController;
 use Middag\Demo\Standalone\Http\UiController;
@@ -197,15 +191,10 @@ final class DemoBootstrap implements BootstrapInterface
         // names those @internal collaborators; TaskForm autowires the
         // FormValidator it inherits.
         $c->register(EntitySourceRegistry::class, EntitySourceRegistry::class)->setPublic(true);
-        $c->register(TaskEntitySource::class, TaskEntitySource::class)->setPublic(true);
         $c->register(\Middag\Demo\Standalone\Form\CustomerEntitySource::class, \Middag\Demo\Standalone\Form\CustomerEntitySource::class)
             ->setAutowired(true)->setPublic(true);
         $c->register(\Middag\Demo\Standalone\Form\AgentEntitySource::class, \Middag\Demo\Standalone\Form\AgentEntitySource::class)
             ->setAutowired(true)->setPublic(true);
-        $c->register(TaskForm::class, TaskForm::class)
-            ->setAutowired(true)
-            ->setShared(false)
-            ->setPublic(true);
         $c->register(LoginForm::class, LoginForm::class)
             ->setAutowired(true)
             ->setShared(false)
@@ -309,8 +298,9 @@ final class DemoBootstrap implements BootstrapInterface
      */
     public static function wireRuntime(ContainerInterface $c): void
     {
-        // Active-Record connection — static + shared by every Model subclass.
-        Task::setConnection($c->get(ConnectionAdapterInterface::class));
+        // Active-Record connection — static + shared by every Model subclass
+        // (Ticket/Comment/User), so setting it on any one model arms them all.
+        Ticket::setConnection($c->get(ConnectionAdapterInterface::class));
 
         // M10: route bus dispatches + fired hooks into the shared profile sink, and
         // hand it to the dev debug bar.
@@ -319,13 +309,11 @@ final class DemoBootstrap implements BootstrapInterface
         $hooks->setProfileCollector($profile);
         DebugCollector::useProfileCollector($profile);
 
-        // Demo hooks on the live HookManager instance.
-        TaskHooks::register($hooks, $c->get(LoggerInterface::class));
-        // Help-desk: demo.ticket.created → enqueue async SLA escalation (high/urgent).
+        // Help-desk hook on the live HookManager: demo.ticket.created → enqueue the
+        // async SLA escalation (high/urgent) onto the in-memory transport.
         TicketHooks::register($hooks, $c->get(MessageBusInterface::class), $c->get(LoggerInterface::class));
 
-        // Entity source feeding the form's entity-picker.
-        $c->get(EntitySourceRegistry::class)->register('demo_tasks', $c->get(TaskEntitySource::class));
+        // Entity sources feeding the ticket form's entity-pickers.
         $c->get(EntitySourceRegistry::class)->register('demo_customers', $c->get(\Middag\Demo\Standalone\Form\CustomerEntitySource::class));
         $c->get(EntitySourceRegistry::class)->register('demo_agents', $c->get(\Middag\Demo\Standalone\Form\AgentEntitySource::class));
 
@@ -460,7 +448,6 @@ final class DemoBootstrap implements BootstrapInterface
 
         $senders = new SendersLocator(
             [
-                NotifyTaskCreatedCommand::class => [DemoBootstrap::ASYNC_TRANSPORT],
                 EscalateSlaCommand::class => [DemoBootstrap::ASYNC_TRANSPORT],
             ],
             $senderLocator,
@@ -477,18 +464,8 @@ final class DemoBootstrap implements BootstrapInterface
     {
         $routes = new RouteCollection();
 
-        // Inertia-rendered task UI.
-        $routes->add('tasks.index', new Route('/', ['_controller' => TaskController::class . '::index'], [], [], '', [], ['GET']));
-        $routes->add('tasks.new', new Route('/tasks/new', ['_controller' => TaskController::class . '::newTask'], [], [], '', [], ['GET']));
-        $routes->add('tasks.store', new Route('/tasks', ['_controller' => TaskController::class . '::store'], [], [], '', [], ['POST']));
-        $routes->add('tasks.show', new Route('/tasks/{id}', ['_controller' => TaskController::class . '::show'], [], ['id' => '\d+'], '', [], ['GET']));
-        $routes->add('tasks.edit', new Route('/tasks/{id}/edit', ['_controller' => TaskController::class . '::edit'], [], ['id' => '\d+'], '', [], ['GET']));
-        $routes->add('tasks.update', new Route('/tasks/{id}', ['_controller' => TaskController::class . '::update'], [], ['id' => '\d+'], '', [], ['PUT', 'PATCH']));
-        $routes->add('tasks.destroy', new Route('/tasks/{id}', ['_controller' => TaskController::class . '::destroy'], [], ['id' => '\d+'], '', [], ['DELETE']));
-
-        // Help-desk dashboard (the `dashboard` layout; promoted to `/` when
-        // demo_tasks is retired — additive at /dashboard for now).
-        $routes->add('dashboard.index', new Route('/dashboard', ['_controller' => DashboardController::class . '::index'], [], [], '', [], ['GET']));
+        // Help-desk dashboard at `/` — the landing page (the `dashboard` layout).
+        $routes->add('dashboard.index', new Route('/', ['_controller' => DashboardController::class . '::index'], [], [], '', [], ['GET']));
 
         // Help-desk ticket UI (contract-driven, dual-ORM reads + form pipeline).
         $routes->add('tickets.index', new Route('/tickets', ['_controller' => TicketController::class . '::index'], [], [], '', [], ['GET']));
@@ -511,15 +488,10 @@ final class DemoBootstrap implements BootstrapInterface
         // Self-verifying coverage manifest, rendered live.
         $routes->add('coverage.index', new Route('/coverage', ['_controller' => CoverageController::class . '::index'], [], [], '', [], ['GET']));
 
-        // JSON API.
-        $routes->add('api.tasks.store', new Route('/api/tasks', ['_controller' => TaskApiController::class . '::store'], [], [], '', [], ['POST']));
-        $routes->add('api.tasks.import', new Route('/api/tasks/import', ['_controller' => TaskApiController::class . '::import'], [], [], '', [], ['POST']));
-        $routes->add('api.entities.tasks', new Route('/api/entities/tasks', ['_controller' => TaskApiController::class . '::entities'], [], [], '', [], ['GET']));
+        // JSON API — ticket entity sources + create.
         $routes->add('api.entities.customers', new Route('/api/entities/customers', ['_controller' => TicketApiController::class . '::customers'], [], [], '', [], ['GET']));
         $routes->add('api.entities.agents', new Route('/api/entities/agents', ['_controller' => TicketApiController::class . '::agents'], [], [], '', [], ['GET']));
         $routes->add('api.tickets.store', new Route('/api/tickets', ['_controller' => TicketApiController::class . '::store'], [], [], '', [], ['POST']));
-        $routes->add('api.tasks.update', new Route('/api/tasks/{id}', ['_controller' => TaskApiController::class . '::update'], [], ['id' => '\d+'], '', [], ['PUT', 'PATCH']));
-        $routes->add('api.tasks.destroy', new Route('/api/tasks/{id}', ['_controller' => TaskApiController::class . '::destroy'], [], ['id' => '\d+'], '', [], ['DELETE']));
 
         // ui 0.6.0 contract endpoints.
         $routes->add('ui.page', new Route('/ui/page', ['_controller' => UiController::class . '::page'], [], [], '', [], ['GET']));

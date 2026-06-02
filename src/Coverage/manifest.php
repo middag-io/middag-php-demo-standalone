@@ -22,19 +22,19 @@ declare(strict_types=1);
 return [
     'covered' => [
         // Shells (2/2 free).
-        'shell:basic' => ['kind' => 'shell', 'route' => '/dashboard', 'note' => 'login + every help-desk page'],
+        'shell:basic' => ['kind' => 'shell', 'route' => '/', 'note' => 'login + every help-desk page'],
         'shell:immersive' => ['kind' => 'shell', 'route' => '/help', 'note' => 'help + coverage pages'],
 
         // Layouts (3/4 free — wizard is a catalogued gap).
-        'layout:dashboard' => ['kind' => 'layout', 'route' => '/dashboard', 'note' => 'metrics + chart grid'],
+        'layout:dashboard' => ['kind' => 'layout', 'route' => '/', 'note' => 'metrics + chart grid'],
         'layout:sidebar' => ['kind' => 'layout', 'route' => '/agents', 'note' => 'list + aside'],
         'layout:stack' => ['kind' => 'layout', 'route' => '/customers', 'note' => 'default single column'],
 
         // Blocks (13 free + 1 custom).
-        'block:metric_card' => ['kind' => 'block', 'route' => '/dashboard', 'note' => 'queue metrics'],
-        'block:status_strip' => ['kind' => 'block', 'route' => '/dashboard', 'note' => 'SLA health + score ring'],
+        'block:metric_card' => ['kind' => 'block', 'route' => '/', 'note' => 'queue metrics'],
+        'block:status_strip' => ['kind' => 'block', 'route' => '/', 'note' => 'SLA health + score ring'],
         'block:dense_table' => ['kind' => 'block', 'route' => '/tickets', 'note' => 'the cell showcase'],
-        'block:chart' => ['kind' => 'block', 'route' => '/dashboard', 'note' => 'custom registerBlock (inline SVG)'],
+        'block:chart' => ['kind' => 'block', 'route' => '/', 'note' => 'custom registerBlock (inline SVG)'],
         'block:detail_panel' => ['kind' => 'block', 'route' => '/agents/{id}', 'note' => 'agent fields'],
         'block:link_list' => ['kind' => 'block', 'route' => '/agents/{id}', 'note' => 'assigned tickets'],
         'block:card_grid' => ['kind' => 'block', 'route' => '/customers', 'note' => 'customer cards'],
@@ -68,7 +68,7 @@ return [
         'engine:dual_orm_parity' => ['kind' => 'engine', 'route' => '/parity', 'note' => 'data-mapper QueryBuilder vs active-record ModelQuery, identical counts'],
         'engine:entity_source' => ['kind' => 'engine', 'route' => '/tickets/new', 'note' => 'EntitySourceRegistry: demo_customers + demo_agents'],
         'engine:capability_gate' => ['kind' => 'provider', 'route' => '/agents', 'note' => 'helpdesk:supervise gates the supervisor columns'],
-        'engine:register_block' => ['kind' => 'engine', 'route' => '/dashboard', 'note' => 'host registerBlock("chart") + tabs alias'],
+        'engine:register_block' => ['kind' => 'engine', 'route' => '/', 'note' => 'host registerBlock("chart") + tabs alias'],
         'condition:required_when_in' => ['kind' => 'engine', 'route' => '/tickets/new', 'note' => 'assignee required_when priority IN [high,urgent]'],
     ],
 

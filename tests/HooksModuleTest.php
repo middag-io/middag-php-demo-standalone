@@ -28,13 +28,13 @@ final class HooksModuleTest extends DemoTestCase
     public function filterChainRespectsPriorityOrder(): void
     {
         // prio 5 strips "[draft]", prio 10 trims + collapses whitespace.
-        self::assertSame('a b', $this->hooks()->applyFilters('demo.task.title', '  [draft]   a   b  '));
+        self::assertSame('a b', $this->hooks()->applyFilters('demo.ticket.subject', '  [draft]   a   b  '));
     }
 
     #[Test]
     public function createdActionIsRegistered(): void
     {
-        self::assertTrue($this->hooks()->hasAction('demo.task.created'));
+        self::assertTrue($this->hooks()->hasAction('demo.ticket.created'));
     }
 
     #[Test]

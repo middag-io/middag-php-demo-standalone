@@ -10,7 +10,7 @@ use Middag\Framework\Form\FieldDefinition;
 /**
  * Login form — two fields declared with the Field DSL and rendered through the
  * framework form pipeline (AbstractForm → InertiaRenderer), exactly like
- * {@see TaskForm}. The renderer emits the canonical @middag-io/react
+ * {@see TicketForm}. The renderer emits the canonical @middag-io/react
  * FormFieldNode schema for the middag-io/ui form_panel block, so the login
  * screen never hand-builds wire arrays.
  *

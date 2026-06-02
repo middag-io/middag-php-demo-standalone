@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Tests;
 
-use Middag\Demo\Standalone\Command\CreateTaskCommand;
+use Middag\Demo\Standalone\Command\CreateTicketCommand;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Bus\Contract\MessageBusInterface;
 use PHPUnit\Framework\Attributes\Test;
@@ -15,9 +15,8 @@ use Symfony\Component\Messenger\Stamp\HandledStamp;
  * every page is a middag-io/ui PageContract delivered over Inertia in a reserved
  * `props.contract`, plus SharedProps on every response, mounting on `#middag-app`.
  *
- * This is the executable spec for the UI-contract → Inertia bridge (was G1):
- * the framework now ships `InertiaFactory::page()`, the demo-hosted reference
- * responder is gone, and these stay green over the framework-native bridge.
+ * The landing page `/` is the help-desk dashboard (basic shell); the ticket
+ * create/detail flow exercises the form pipeline + PRG flash/error SharedProps.
  *
  * @internal
  */
@@ -37,8 +36,8 @@ final class FrontendContractTest extends DemoTestCase
         $contract = $payload['props']['contract'] ?? null;
         self::assertIsArray($contract, 'page must be delivered as a ui contract in props.contract');
         self::assertSame('1', $contract['version']);
-        self::assertSame('product', $contract['shell']);
-        self::assertArrayHasKey('layout', $contract);
+        self::assertSame('basic', $contract['shell']);
+        self::assertSame('dashboard', $contract['layout']['template']);
         self::assertArrayHasKey('content', $contract['layout']['regions']);
     }
 
@@ -64,7 +63,7 @@ final class FrontendContractTest extends DemoTestCase
     #[Test]
     public function createPageEmitsFormPanelBlock(): void
     {
-        $payload = $this->json($this->handle('GET', '/tasks/new', [], ['HTTP_X_INERTIA' => 'true']));
+        $payload = $this->json($this->handle('GET', '/tickets/new', [], ['HTTP_X_INERTIA' => 'true']));
 
         $blocks = $payload['props']['contract']['layout']['regions']['content'] ?? [];
         $types = array_column($blocks, 'type');
@@ -75,9 +74,9 @@ final class FrontendContractTest extends DemoTestCase
     #[Test]
     public function showEmitsDetailContract(): void
     {
-        $id = $this->createTask('Detail me');
+        $id = $this->createTicket('Detail me');
 
-        $payload = $this->json($this->handle('GET', '/tasks/' . $id, [], ['HTTP_X_INERTIA' => 'true']));
+        $payload = $this->json($this->handle('GET', '/tickets/' . $id, [], ['HTTP_X_INERTIA' => 'true']));
 
         self::assertSame('Page', $payload['component']);
         self::assertSame('1', $payload['props']['contract']['version']);
@@ -87,34 +86,38 @@ final class FrontendContractTest extends DemoTestCase
     public function createFlashesSuccessOnNextVisit(): void
     {
         // PRG (M7): the web create flashes via the framework FlashBag; the next
-        // Inertia visit surfaces it as the `flash` SharedProp (ShareFlashMiddleware),
-        // then it is cleared.
-        $this->handle('POST', '/tasks', ['title' => 'Flashed', 'priority' => 'normal', 'status' => 'open']);
+        // Inertia visit surfaces it as the `flash` SharedProp (ShareFlashMiddleware).
+        $this->handle('POST', '/tickets', [
+            'subject' => 'Flashed',
+            'priority' => 'normal',
+            'channel' => 'web',
+            'customer_id' => 1,
+        ]);
 
         $payload = $this->json($this->handle('GET', '/', [], ['HTTP_X_INERTIA' => 'true']));
 
-        self::assertSame('Task created.', $payload['props']['flash']['success'] ?? null);
+        self::assertSame('Ticket created.', $payload['props']['flash']['success'] ?? null);
     }
 
     #[Test]
     public function invalidCreateRedirectsBackWithFlashedErrors(): void
     {
-        // H2 web half (kernel + M7): missing required title → the CreateTaskRequest
-        // throws MiddagValidationException; the kernel flashes the field errors and
-        // redirects back to the referring page (303). The next visit surfaces them
-        // as the `errors` SharedProp for useForm().errors.
-        $response = $this->handle('POST', '/tasks', ['priority' => 'high'], ['HTTP_REFERER' => '/tasks/new']);
+        // H2 web half: missing required `subject` -> MiddagValidationException; the
+        // kernel flashes the field errors and redirects back (303). The next visit
+        // surfaces them as the `errors` SharedProp for useForm().errors.
+        $response = $this->handle('POST', '/tickets', ['priority' => 'high'], ['HTTP_REFERER' => '/tickets/new']);
 
         self::assertSame(303, $response->getStatusCode());
-        self::assertStringContainsString('/tasks/new', (string) $response->headers->get('Location'));
+        self::assertStringContainsString('/tickets/new', (string) $response->headers->get('Location'));
 
-        $payload = $this->json($this->handle('GET', '/tasks/new', [], ['HTTP_X_INERTIA' => 'true']));
-        self::assertArrayHasKey('title', $payload['props']['errors'] ?? []);
+        $payload = $this->json($this->handle('GET', '/tickets/new', [], ['HTTP_X_INERTIA' => 'true']));
+        self::assertArrayHasKey('subject', $payload['props']['errors'] ?? []);
     }
 
-    private function createTask(string $title): int
+    private function createTicket(string $subject): int
     {
-        $envelope = $this->container->get(MessageBusInterface::class)->dispatch(new CreateTaskCommand($title));
+        $envelope = $this->container->get(MessageBusInterface::class)
+            ->dispatch(new CreateTicketCommand(subject: $subject, customerId: 1));
 
         return (int) $envelope->last(HandledStamp::class)?->getResult();
     }

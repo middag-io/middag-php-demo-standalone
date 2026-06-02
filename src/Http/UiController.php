@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Http;
 
-use Middag\Demo\Standalone\Domain\Eloquent\Task;
+use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
 use Middag\Framework\Http\Controller\AbstractController;
 use Middag\Framework\Kernel\Facade\HookFacade;
 use Middag\Ui\Page\PageBuilder;
@@ -33,22 +33,22 @@ final class UiController extends AbstractController
     public function page(): Response
     {
         $rows = array_map(
-            static fn (Task $task): array => [
-                'title' => (string) $task->title,
-                'status' => (string) $task->status,
-                'created' => $task->created_at ? date('Y-m-d', (int) $task->created_at) : '',
+            static fn (Ticket $ticket): array => [
+                'subject' => (string) $ticket->subject,
+                'status' => (string) $ticket->status,
+                'created' => $ticket->created_at ? date('Y-m-d', (int) $ticket->created_at) : '',
             ],
-            Task::query()->orderBy('id', 'desc')->get(),
+            Ticket::query()->orderBy('id', 'desc')->get(),
         );
 
-        $contract = PageBuilder::page('demo.dashboard')
-            ->shell('product')
-            ->title('Task dashboard')
+        $contract = PageBuilder::page('demo.ui-sample')
+            ->shell('basic')
+            ->title('Ticket dashboard')
             ->subtitle('Standalone demo — ui 0.6.0 full PageContract')
             ->region('content', function (RegionBuilder $region) use ($rows): void {
-                $region->metricCard('task_count', count($rows), 'Tasks', icon: 'list-check');
-                $region->denseTable('tasks', [
-                    ['key' => 'title', 'label' => 'Title'],
+                $region->metricCard('ticket_count', count($rows), 'Tickets', icon: 'inbox');
+                $region->denseTable('tickets', [
+                    ['key' => 'subject', 'label' => 'Subject'],
                     ['key' => 'status', 'label' => 'Status'],
                     ['key' => 'created', 'label' => 'Created', 'format' => ValueFormat::DATE->value],
                 ], $rows);
@@ -69,7 +69,7 @@ final class UiController extends AbstractController
     {
         $table = new TableConfig(
             columns: [
-                new Column(key: 'title', label: 'Title', sortable: true, searchable: true),
+                new Column(key: 'subject', label: 'Subject', sortable: true, searchable: true),
                 new Column(key: 'created', label: 'Created', format: ValueFormat::DATE),
             ],
             options: new TableOptions(
@@ -81,10 +81,10 @@ final class UiController extends AbstractController
             ),
         );
 
-        $count = count(Task::all());
+        $count = count(Ticket::all());
 
         $fragment = Fragment::table($table)
-            ->withNotifications(new Notification(NotificationLevel::INFO, sprintf('%d task(s) in store', $count)));
+            ->withNotifications(new Notification(NotificationLevel::INFO, sprintf('%d ticket(s) in store', $count)));
 
         return JsonResponse::fromJsonString((string) json_encode($fragment));
     }

@@ -4,77 +4,81 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Tests;
 
-use Middag\Demo\Standalone\Domain\Doctrine\Task as DmTask;
-use Middag\Demo\Standalone\Domain\Doctrine\TaskRepository;
-use Middag\Demo\Standalone\Domain\Eloquent\Task as ArTask;
+use Middag\Demo\Standalone\Domain\Doctrine\Customer;
+use Middag\Demo\Standalone\Domain\Doctrine\CustomerRepository;
+use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
+use Middag\Framework\Database\Contract\ConnectionAdapterInterface;
 use Middag\Framework\Persistence\Query\Page;
+use Middag\Framework\Persistence\Query\QueryBuilder;
+use Middag\Framework\Shared\Enum\Operator;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
- * Two persistence experiences over one SQLite engine + table: Active Record
- * (Eloquent-style Model + ModelQuery) and Data Mapper (Doctrine-style Entity +
- * Mapper + Repository + QueryBuilder + Page), plus paradigm parity — the same
- * rows reached both ways.
+ * Two persistence experiences over one SQLite engine: Active Record (Eloquent-style
+ * Model + ModelQuery) on the write-heavy Ticket, and Data Mapper (Doctrine-style
+ * Entity + Mapper + Repository + QueryBuilder + Page) on the reference Customer.
+ * Plus paradigm parity — a ticket written the active-record way, read back through
+ * the data-mapper QueryBuilder over the same `demo_tickets` table.
  *
  * @internal
  */
 final class PersistenceTest extends DemoTestCase
 {
-    private function repository(): TaskRepository
+    private function repository(): CustomerRepository
     {
-        return $this->container->get(TaskRepository::class);
+        return $this->container->get(CustomerRepository::class);
     }
 
     #[Test]
     public function activeRecordCrud(): void
     {
-        $task = new ArTask(['title' => 'AR task', 'status' => 'open', 'priority' => 'high', 'created_at' => time()]);
-        $task->save();
+        $ticket = new Ticket(['subject' => 'AR ticket', 'status' => 'open', 'priority' => 'high', 'channel' => 'web', 'customer_id' => 1, 'created_at' => time()]);
+        $ticket->save();
 
-        $id = (int) $task->getKey();
+        $id = (int) $ticket->getKey();
         self::assertGreaterThan(0, $id);
-        self::assertSame('AR task', ArTask::find($id)->title);
-        self::assertCount(1, ArTask::all());
+        self::assertSame('AR ticket', Ticket::find($id)->subject);
+        self::assertCount(1, Ticket::all());
 
-        $task->status = 'done';
-        $task->save();
-        self::assertSame('done', ArTask::find($id)->status);
+        $ticket->status = 'resolved';
+        $ticket->save();
+        self::assertSame('resolved', Ticket::find($id)->status);
 
-        self::assertTrue($task->delete());
-        self::assertNull(ArTask::find($id));
+        self::assertTrue($ticket->delete());
+        self::assertNull(Ticket::find($id));
     }
 
     #[Test]
     public function activeRecordModelQuery(): void
     {
-        foreach (['a' => 'open', 'b' => 'done', 'c' => 'open'] as $title => $status) {
-            (new ArTask(['title' => $title, 'status' => $status, 'created_at' => time()]))->save();
+        foreach (['a' => 'open', 'b' => 'pending', 'c' => 'open'] as $subject => $status) {
+            (new Ticket(['subject' => $subject, 'status' => $status, 'priority' => 'normal', 'channel' => 'web', 'customer_id' => 1, 'created_at' => time()]))->save();
         }
 
-        self::assertSame(2, ArTask::where('status', 'open')->count());
-        self::assertSame('b', ArTask::query()->where('status', '=', 'done')->first()->title);
+        self::assertSame(2, Ticket::where('status', 'open')->count());
+        self::assertSame('b', Ticket::query()->where('status', '=', 'pending')->first()->subject);
 
-        $titles = array_map(static fn (ArTask $t): string => (string) $t->title, ArTask::query()->orderBy('title', 'asc')->get());
-        self::assertSame(['a', 'b', 'c'], $titles);
+        $subjects = array_map(static fn (Ticket $t): string => (string) $t->subject, Ticket::query()->orderBy('subject', 'asc')->get());
+        self::assertSame(['a', 'b', 'c'], $subjects);
     }
 
     #[Test]
     public function dataMapperCrud(): void
     {
         $repo = $this->repository();
-        $repo->save(new DmTask(null, 'DM task', null, 'open', 'low'));
+        $repo->save(new Customer(null, 'DM cust', 'dm@x.example', null, 'Co', time()));
 
         $all = $repo->findAll();
         self::assertCount(1, $all);
 
         $id = (int) $all[0]->getId();
         $entity = $repo->find($id);
-        self::assertSame('DM task', $entity->title);
+        self::assertSame('DM cust', $entity->name);
 
-        $entity->markDone();
+        $entity->name = 'Renamed';
         $repo->save($entity);
-        self::assertSame('done', $repo->find($id)->status);
+        self::assertSame('Renamed', $repo->find($id)->name);
 
         $repo->delete($entity);
         self::assertNull($repo->find($id));
@@ -85,7 +89,7 @@ final class PersistenceTest extends DemoTestCase
     {
         $repo = $this->repository();
         for ($i = 1; $i <= 5; $i++) {
-            $repo->save(new DmTask(null, "t{$i}", null, 'open', 'normal', null, time()));
+            $repo->save(new Customer(null, "c{$i}", "c{$i}@x.example", null, null, time()));
         }
 
         $page = $repo->paginate(1, 2);
@@ -94,28 +98,25 @@ final class PersistenceTest extends DemoTestCase
         self::assertSame(5, $page->total());
         self::assertCount(2, $page->items());
         self::assertSame(3, $page->pages());
-        self::assertContainsOnlyInstancesOf(DmTask::class, $page->items());
-        self::assertSame(5, $repo->countByStatus('open'));
+        self::assertContainsOnlyInstancesOf(Customer::class, $page->items());
+        self::assertSame(5, $repo->count());
     }
 
     #[Test]
-    public function paradigmParityActiveRecordToDataMapper(): void
+    public function paradigmParityActiveRecordWriteDataMapperRead(): void
     {
-        $task = new ArTask(['title' => 'parity', 'status' => 'open', 'priority' => 'high', 'created_at' => time()]);
-        $task->save();
+        // Write the ticket the active-record way...
+        $ticket = new Ticket(['subject' => 'parity', 'status' => 'open', 'priority' => 'high', 'channel' => 'web', 'customer_id' => 1, 'created_at' => time()]);
+        $ticket->save();
+        $id = (int) $ticket->getKey();
 
-        $entity = $this->repository()->find((int) $task->getKey());
-        self::assertSame('parity', $entity->title);
-        self::assertSame('high', $entity->priority);
-    }
+        // ...read it back through the data-mapper QueryBuilder over the same table.
+        $row = QueryBuilder::on($this->container->get(ConnectionAdapterInterface::class), 'demo_tickets')
+            ->where('id', Operator::EQ, $id)
+            ->first();
 
-    #[Test]
-    public function paradigmParityDataMapperToActiveRecord(): void
-    {
-        $this->repository()->save(new DmTask(null, 'parity2', null, 'done', 'low', null, time()));
-
-        $row = ArTask::where('title', 'parity2')->first();
         self::assertNotNull($row);
-        self::assertSame('done', $row->status);
+        self::assertSame('parity', (string) $row['subject']);
+        self::assertSame('high', (string) $row['priority']);
     }
 }

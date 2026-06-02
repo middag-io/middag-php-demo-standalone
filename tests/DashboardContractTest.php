@@ -55,7 +55,7 @@ final class DashboardContractTest extends DemoTestCase
     {
         $this->createTicket('Server on fire', 'urgent');
 
-        $contract = $this->contract('/dashboard');
+        $contract = $this->contract('/');
         self::assertSame('dashboard', $contract['layout']['template'] ?? null);
 
         $blocks = $contract['layout']['regions']['content'] ?? [];

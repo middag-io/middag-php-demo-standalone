@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Tests;
 
-use Middag\Demo\Standalone\Domain\Eloquent\Task;
+use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Database\Contract\ConnectionInterface;
 use Middag\Framework\Exception\MiddagAuthenticationException;
@@ -59,7 +59,7 @@ final class ExceptionsTest extends DemoTestCase
     public function findOrFailThrowsNotFound(): void
     {
         $this->expectException(MiddagNotFoundException::class);
-        Task::findOrFail(987654);
+        Ticket::findOrFail(987654);
     }
 
     #[Test]

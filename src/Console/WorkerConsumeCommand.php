@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Console;
 
-use Middag\Demo\Standalone\Command\NotifyTaskCreatedCommand;
+use Middag\Demo\Standalone\Command\EscalateSlaCommand;
 use Middag\Framework\Bus\Command\CommandWorker;
 use Middag\Framework\Bus\Contract\MessageBusInterface;
 use Psr\Container\ContainerInterface;
@@ -56,7 +56,7 @@ final class WorkerConsumeCommand extends Command
                 /** @var MessageBusInterface $bus */
                 $bus = $this->container->get(MessageBusInterface::class);
                 for ($i = 1; $i <= $seed; $i++) {
-                    $bus->dispatch(new NotifyTaskCreatedCommand($i));
+                    $bus->dispatch(new EscalateSlaCommand($i, 'high'));
                 }
                 $output->writeln(sprintf('<info>seeded %d async command(s)</info>', $seed));
             }

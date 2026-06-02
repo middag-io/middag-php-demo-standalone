@@ -19,8 +19,12 @@ final readonly class CreateTicketCommandHandler
 
     public function __invoke(CreateTicketCommand $command): int
     {
+        // Run the subject through the priority-ordered demo.ticket.subject filter
+        // chain (TicketHooks) — the WordPress-style transform seam.
+        $subject = (string) HookFacade::applyFilters('demo.ticket.subject', $command->subject);
+
         $ticket = new Ticket([
-            'subject' => $command->subject,
+            'subject' => $subject,
             'body' => $command->body,
             'status' => 'new',
             'priority' => $command->priority,

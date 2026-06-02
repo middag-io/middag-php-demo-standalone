@@ -4,38 +4,40 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Tests;
 
-use Middag\Demo\Standalone\Form\TaskForm;
-use Middag\Framework\Form\ConditionEvaluator;
-use Middag\Framework\Form\FormValidator;
+use Middag\Demo\Standalone\Form\TicketForm;
+use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Form\Renderer\InertiaFieldMapper;
 use Middag\Framework\Form\Renderer\InertiaRenderer;
 use Middag\Ui\Shared\Enum\RenderTarget;
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\TestCase;
 
 /**
- * Form engine (no DB needed): AbstractForm + Field factory over many types,
- * FormValidator (required + requiredWhen conditional), and rendering to ui
- * Inertia props via InertiaRenderer (the ui FormRendererInterface).
+ * Form engine over the ticket form: AbstractForm + Field factory across types,
+ * FormValidator (required + the IN-operator conditional), and rendering to the
+ * canonical @middag-io/react FormFieldNode via InertiaRenderer.
+ *
+ * Extends DemoTestCase (not bare TestCase) because TicketForm reads SLA options
+ * the data-mapper way in schema() — it needs the container's DB connection (the
+ * table is empty in tests, yielding the "— none —" option).
  *
  * @internal
  */
-final class FormTest extends TestCase
+final class FormTest extends DemoTestCase
 {
-    private function form(): TaskForm
+    private function form(): TicketForm
     {
-        return new TaskForm(new FormValidator(new ConditionEvaluator()));
+        return $this->container->get(TicketForm::class);
     }
 
     #[Test]
     public function validatesValidSubmission(): void
     {
         $form = $this->form();
-        $form->hydrate(['title' => 'Buy milk', 'priority' => 'high']);
+        $form->hydrate(['subject' => 'Cannot log in', 'priority' => 'normal', 'channel' => 'web', 'customer_id' => 1]);
         $form->validate();
 
-        self::assertTrue($form->isSubmittedAndValid());
-        self::assertSame('Buy milk', $form->validated()['title']);
+        self::assertTrue($form->isSubmittedAndValid(), implode(',', array_keys($form->errors())));
+        self::assertSame('Cannot log in', $form->validated()['subject']);
         self::assertSame([], $form->errors());
     }
 
@@ -43,25 +45,26 @@ final class FormTest extends TestCase
     public function rejectsMissingRequiredField(): void
     {
         $form = $this->form();
-        $form->hydrate(['priority' => 'high']); // no title
+        $form->hydrate(['priority' => 'normal', 'channel' => 'web']); // no subject, no customer_id
         $form->validate();
 
         self::assertFalse($form->isSubmittedAndValid());
-        self::assertArrayHasKey('title', $form->errors());
+        self::assertArrayHasKey('subject', $form->errors());
     }
 
     #[Test]
-    public function conditionalRequiredWhenStatusDone(): void
+    public function conditionalRequiredWhenPriorityHighOrUrgent(): void
     {
-        $whenDone = $this->form();
-        $whenDone->hydrate(['title' => 'X', 'priority' => 'low', 'status' => 'done']);
-        $whenDone->validate();
-        self::assertArrayHasKey('done_reason', $whenDone->errors(), 'done_reason required when status=done');
+        // High/urgent tickets must be assigned (agent_id required_when priority IN).
+        $whenHigh = $this->form();
+        $whenHigh->hydrate(['subject' => 'X', 'priority' => 'high', 'channel' => 'web', 'customer_id' => 1]);
+        $whenHigh->validate();
+        self::assertArrayHasKey('agent_id', $whenHigh->errors(), 'agent_id required when priority=high');
 
-        $whenOpen = $this->form();
-        $whenOpen->hydrate(['title' => 'X', 'priority' => 'low', 'status' => 'open']);
-        $whenOpen->validate();
-        self::assertArrayNotHasKey('done_reason', $whenOpen->errors());
+        $whenNormal = $this->form();
+        $whenNormal->hydrate(['subject' => 'X', 'priority' => 'normal', 'channel' => 'web', 'customer_id' => 1]);
+        $whenNormal->validate();
+        self::assertArrayNotHasKey('agent_id', $whenNormal->errors());
     }
 
     #[Test]
@@ -85,17 +88,17 @@ final class FormTest extends TestCase
         }
 
         // Every declared field reaches the client under its key.
-        self::assertArrayHasKey('title', $fields);
+        self::assertArrayHasKey('subject', $fields);
         self::assertArrayHasKey('priority', $fields);
-        self::assertArrayHasKey('done_reason', $fields);
-        self::assertArrayHasKey('parent_task', $fields);
+        self::assertArrayHasKey('agent_id', $fields);
+        self::assertArrayHasKey('customer_id', $fields);
 
         // Canonical FormFieldNode: lowercase component, pre-resolved string label,
         // no leaked props.name.
-        self::assertSame('text', $fields['title']['component']);
-        self::assertSame('Title', $fields['title']['props']['label']);
-        self::assertIsString($fields['title']['props']['label']);
-        self::assertArrayNotHasKey('name', $fields['title']['props']);
+        self::assertSame('text', $fields['subject']['component']);
+        self::assertSame('Subject', $fields['subject']['props']['label']);
+        self::assertIsString($fields['subject']['props']['label']);
+        self::assertArrayNotHasKey('name', $fields['subject']['props']);
 
         // select options are a [{value,label}] list, not an assoc map.
         self::assertSame(
@@ -103,28 +106,24 @@ final class FormTest extends TestCase
                 ['value' => 'low', 'label' => 'Low'],
                 ['value' => 'normal', 'label' => 'Normal'],
                 ['value' => 'high', 'label' => 'High'],
+                ['value' => 'urgent', 'label' => 'Urgent'],
             ],
             $fields['priority']['props']['options'],
         );
 
-        // The conditional field carries discrete FormCondition props (eq -> equals).
+        // The conditional field carries a discrete FormCondition prop (IN operator).
         self::assertSame(
-            ['field' => 'status', 'operator' => 'equals', 'value' => 'done'],
-            $fields['done_reason']['props']['visible_when'],
-        );
-        self::assertSame(
-            ['field' => 'status', 'operator' => 'equals', 'value' => 'done'],
-            $fields['done_reason']['props']['required_when'],
+            ['field' => 'priority', 'operator' => 'in', 'value' => ['high', 'urgent']],
+            $fields['agent_id']['props']['required_when'],
         );
 
         // entity_picker surfaces its display field + async search URL for the lib.
-        self::assertSame('entity_picker', $fields['parent_task']['component']);
-        self::assertSame('title', $fields['parent_task']['props']['entityDisplayField']);
-        self::assertSame('/api/entities/tasks', $fields['parent_task']['props']['autocompleteHref']);
+        self::assertSame('entity_picker', $fields['customer_id']['component']);
+        self::assertSame('label', $fields['customer_id']['props']['entityDisplayField']);
+        self::assertSame('/api/entities/customers', $fields['customer_id']['props']['autocompleteHref']);
 
         // Field defaults seed the initial values the client form binds to.
         self::assertSame('normal', $props['values']['priority']);
-        self::assertSame('open', $props['values']['status']);
-        self::assertTrue($props['values']['notify']);
+        self::assertSame('web', $props['values']['channel']);
     }
 }

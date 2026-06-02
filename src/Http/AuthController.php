@@ -70,14 +70,16 @@ final class AuthController extends AbstractController
             return $this->redirectToRoute('login.form');
         }
 
+        // The single demo operator is the help-desk supervisor — the capability
+        // opens the supervisor-only columns on /agents (the Can gate).
         $this->auth->login((int) $user->id, [
             'name' => (string) $user->name,
             'email' => (string) $user->email,
-            'capabilities' => [],
+            'capabilities' => ['helpdesk:supervise'],
         ]);
         $this->flash('success', 'Welcome, ' . (string) $user->name . '.');
 
-        return $this->redirectToRoute('tasks.index');
+        return $this->redirectToRoute('dashboard.index');
     }
 
     public function logout(): Response

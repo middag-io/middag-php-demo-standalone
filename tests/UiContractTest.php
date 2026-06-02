@@ -21,8 +21,8 @@ final class UiContractTest extends DemoTestCase
         $payload = $this->json($this->handle('GET', '/ui/page'));
 
         self::assertSame('1', $payload['version']);
-        self::assertSame('product', $payload['shell']);
-        self::assertSame('Task dashboard', $payload['page']['title']);
+        self::assertSame('basic', $payload['shell']);
+        self::assertSame('Ticket dashboard', $payload['page']['title']);
         self::assertArrayHasKey('content', $payload['layout']['regions']);
 
         $types = array_map(static fn (array $b): string => $b['type'], $payload['layout']['regions']['content']);

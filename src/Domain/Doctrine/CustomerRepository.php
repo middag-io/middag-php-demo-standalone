@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Middag\Demo\Standalone\Domain\Doctrine;
 
 use Middag\Framework\Persistence\Contract\MapperInterface;
+use Middag\Framework\Persistence\Query\Page;
 use Middag\Framework\Persistence\Repository\AbstractRepository;
 
 /**
@@ -53,6 +54,30 @@ final class CustomerRepository extends AbstractRepository
         ));
 
         return array_slice($matched, 0, $limit);
+    }
+
+    public function count(): int
+    {
+        return $this->query()->count();
+    }
+
+    /**
+     * Paginated customers — proves QueryBuilder::paginate() + Page, re-wrapping the
+     * raw-row Page into a domain-object Page via the mapper (the data-mapper read).
+     *
+     * @return Page<Customer>
+     */
+    public function paginate(int $page, int $perPage): Page
+    {
+        $result = $this->query()->orderBy('id', 'asc')->paginate($page, $perPage);
+
+        return new Page(
+            $this->hydrate($result->items()),
+            $result->total(),
+            $result->page(),
+            $result->perpage(),
+            false,
+        );
     }
 
     /**

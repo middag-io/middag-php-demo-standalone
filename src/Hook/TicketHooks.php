@@ -13,6 +13,11 @@ use Psr\Log\LoggerInterface;
  * Help-desk hooks on the live HookManager instance — the seam where a domain
  * event triggers async work (the OSS replacement for a core domain Signal).
  *
+ * Filters (transform a value through a priority-ordered chain):
+ *  - `demo.ticket.subject` prio 5  : strip a leading "[draft] " marker (runs first)
+ *  - `demo.ticket.subject` prio 10 : trim + collapse internal whitespace
+ *  - `demo.ui.page`        prio 10 : stamp meta onto the emitted page-contract array
+ *
  * Action:
  *  - `demo.ticket.created` prio 10 : when a `high`/`urgent` ticket lands, ENQUEUE
  *    an {@see EscalateSlaCommand}. The SendersLocator routes it async, so this
@@ -35,6 +40,35 @@ final class TicketHooks
         MessageBusInterface $bus,
         LoggerInterface $logger,
     ): void {
+        // Subject filter chain (applied by CreateTicketCommandHandler): prio 5
+        // strips a "[draft] " marker, prio 10 trims + collapses whitespace.
+        $hooks->addFilter(
+            'demo.ticket.subject',
+            static fn (string $subject): string => (string) preg_replace('/^\s*\[draft\]\s*/i', '', $subject),
+            5,
+            1,
+        );
+        $hooks->addFilter(
+            'demo.ticket.subject',
+            static fn (string $subject): string => (string) preg_replace('/\s+/', ' ', trim($subject)),
+            10,
+            1,
+        );
+
+        // Page-props filter: a host can transform the emitted contract before it
+        // hits the wire (UiController::page applies this on /ui/page).
+        $hooks->addFilter(
+            'demo.ui.page',
+            static function (array $page): array {
+                $page['meta'] ??= [];
+                $page['meta']['generatedBy'] = 'demo.ui.page filter hook';
+
+                return $page;
+            },
+            10,
+            1,
+        );
+
         $hooks->addAction(
             'demo.ticket.created',
             static function (int $id, string $priority) use ($bus, $logger): void {

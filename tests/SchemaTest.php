@@ -38,9 +38,9 @@ final class SchemaTest extends DemoTestCase
         $runner->setInstalledVersion(DemoMigrationRunner::VERSION);
 
         self::assertSame(DemoMigrationRunner::VERSION, $runner->getInstalledVersion());
-        self::assertTrue($adapter->tableExists('demo_tasks'));
-        self::assertTrue($adapter->columnExists('demo_tasks', 'priority'));
-        self::assertFalse($adapter->columnExists('demo_tasks', 'nonexistent_column'));
+        self::assertTrue($adapter->tableExists('demo_tickets'));
+        self::assertTrue($adapter->columnExists('demo_tickets', 'priority'));
+        self::assertFalse($adapter->columnExists('demo_tickets', 'nonexistent_column'));
     }
 
     #[Test]
@@ -48,11 +48,11 @@ final class SchemaTest extends DemoTestCase
     {
         $builder = $this->container->get(SchemaBuilder::class);
 
-        self::assertContains('demo_tasks', $builder->tables());
-        $columns = array_column($builder->columns('demo_tasks'), 'name');
-        self::assertContains('title', $columns);
+        self::assertContains('demo_tickets', $builder->tables());
+        $columns = array_column($builder->columns('demo_tickets'), 'name');
+        self::assertContains('subject', $columns);
         self::assertContains('status', $columns);
-        self::assertContains('due_on', $columns);
+        self::assertContains('due_at', $columns);
     }
 
     #[Test]

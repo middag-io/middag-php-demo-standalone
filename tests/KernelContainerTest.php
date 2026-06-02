@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Middag\Demo\Standalone\Tests;
 
 use Middag\Demo\Standalone\Bootstrap\DemoBootstrap;
-use Middag\Demo\Standalone\Command\CreateTaskCommandHandler;
-use Middag\Demo\Standalone\Domain\Doctrine\TaskRepository;
-use Middag\Demo\Standalone\Http\TaskController;
+use Middag\Demo\Standalone\Command\CreateTicketCommandHandler;
+use Middag\Demo\Standalone\Domain\Doctrine\CustomerRepository;
+use Middag\Demo\Standalone\Http\TicketController;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Bus\Contract\MessageBusInterface;
 use Middag\Framework\Database\Contract\ConnectionAdapterInterface;
@@ -43,9 +43,9 @@ final class KernelContainerTest extends DemoTestCase
     #[Test]
     public function serviceProviderAutoDiscoveredDemoServices(): void
     {
-        self::assertTrue($this->container->has(CreateTaskCommandHandler::class), 'command handler auto-discovered');
-        self::assertTrue($this->container->has(TaskController::class), 'controller auto-discovered');
-        self::assertTrue($this->container->has(TaskRepository::class), 'Doctrine repository auto-discovered');
+        self::assertTrue($this->container->has(CreateTicketCommandHandler::class), 'command handler auto-discovered');
+        self::assertTrue($this->container->has(TicketController::class), 'controller auto-discovered');
+        self::assertTrue($this->container->has(CustomerRepository::class), 'Doctrine repository auto-discovered');
     }
 
     #[Test]

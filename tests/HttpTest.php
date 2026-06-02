@@ -4,26 +4,31 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Tests;
 
-use Middag\Demo\Standalone\Command\CreateTaskCommand;
+use Middag\Demo\Standalone\Command\CreateTicketCommand;
+use Middag\Demo\Standalone\Domain\Doctrine\Customer;
+use Middag\Demo\Standalone\Domain\Doctrine\CustomerRepository;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Bus\Contract\MessageBusInterface;
+use Middag\Framework\Database\Contract\ConnectionAdapterInterface;
 use Middag\Framework\Http\Contract\AuthenticatorInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
 
 /**
- * PSR-15 HTTP boundary: Inertia (first-visit HTML shell vs X-Inertia JSON), the
- * exception->status mapping (404), the enforced #[Auth] gate (authenticated), the
- * AbstractApiController envelope, validated form-request injection (201/422),
- * the SyncResult JSON endpoint, and the entity-source endpoint.
+ * PSR-15 HTTP boundary against the help-desk surface: Inertia (first-visit HTML
+ * shell vs X-Inertia JSON), the exception->status mapping (404), the enforced
+ * #[Auth] gate (authenticated 200 / unauthenticated 401), the AbstractApiController
+ * envelope, validated form-request injection (201/422), the entity-source endpoint,
+ * the prefilled edit form, and the web PRG redirect.
  *
  * @internal
  */
 final class HttpTest extends DemoTestCase
 {
-    private function createTask(string $title): int
+    private function createTicket(string $subject): int
     {
-        $envelope = $this->container->get(MessageBusInterface::class)->dispatch(new CreateTaskCommand($title));
+        $envelope = $this->container->get(MessageBusInterface::class)
+            ->dispatch(new CreateTicketCommand(subject: $subject, customerId: 1));
 
         return (int) $envelope->last(HandledStamp::class)?->getResult();
     }
@@ -47,8 +52,6 @@ final class HttpTest extends DemoTestCase
         self::assertSame('true', $response->headers->get('X-Inertia'));
 
         $payload = $this->json($response);
-        // Contract-driven now: the page is a ui PageContract folded into props.contract
-        // (see FrontendContractTest for the full shape).
         self::assertSame('Page', $payload['component']);
         self::assertArrayHasKey('contract', $payload['props']);
     }
@@ -56,23 +59,23 @@ final class HttpTest extends DemoTestCase
     #[Test]
     public function showUnknownIdMapsNotFoundExceptionTo404(): void
     {
-        self::assertSame(404, $this->handle('GET', '/tasks/999999')->getStatusCode());
+        self::assertSame(404, $this->handle('GET', '/tickets/999999')->getStatusCode());
     }
 
     #[Test]
     public function showExistingIdSucceedsWhenAuthenticated(): void
     {
-        $id = $this->createTask('Authed task');
+        $id = $this->createTicket('Authed ticket');
 
-        // TaskController is class-level #[Auth(login: true)]; the kernel gate lets
+        // TicketController is class-level #[Auth(login: true)]; the kernel gate lets
         // the request land because DemoTestCase logs the demo user in (H3).
-        self::assertSame(200, $this->handle('GET', '/tasks/' . $id, [], ['HTTP_X_INERTIA' => 'true'])->getStatusCode());
+        self::assertSame(200, $this->handle('GET', '/tickets/' . $id, [], ['HTTP_X_INERTIA' => 'true'])->getStatusCode());
     }
 
     #[Test]
     public function apiStoreValidatesAndReturns201(): void
     {
-        $response = $this->handle('POST', '/api/tasks', ['title' => 'Via API', 'priority' => 'high']);
+        $response = $this->handle('POST', '/api/tickets', ['subject' => 'Via API', 'priority' => 'normal', 'channel' => 'web', 'customer_id' => 1]);
 
         self::assertSame(201, $response->getStatusCode());
         $payload = $this->json($response);
@@ -84,11 +87,11 @@ final class HttpTest extends DemoTestCase
     #[Test]
     public function apiRejectsUnauthenticatedWith401(): void
     {
-        // Class-level #[Auth(login: true)] on TaskApiController: the kernel gate
+        // Class-level #[Auth(login: true)] on TicketApiController: the kernel gate
         // answers an unauthenticated JSON request with 401 (H3).
         $this->container->get(AuthenticatorInterface::class)->logout();
 
-        $response = $this->handle('POST', '/api/tasks', ['title' => 'x', 'priority' => 'normal'], ['HTTP_ACCEPT' => 'application/json']);
+        $response = $this->handle('POST', '/api/tickets', ['subject' => 'x', 'priority' => 'normal', 'customer_id' => 1], ['HTTP_ACCEPT' => 'application/json']);
 
         self::assertSame(401, $response->getStatusCode());
     }
@@ -96,86 +99,32 @@ final class HttpTest extends DemoTestCase
     #[Test]
     public function apiStoreRejectsInvalidWith422(): void
     {
-        // Missing required title -> MiddagValidationException. The JSON API client
-        // declares Accept: application/json, so the kernel returns the 422 error
-        // map (a browser request would instead be flashed + redirected back — H2).
-        self::assertSame(422, $this->handle('POST', '/api/tasks', ['priority' => 'high'], ['HTTP_ACCEPT' => 'application/json'])->getStatusCode());
-    }
-
-    #[Test]
-    public function apiImportReturnsSyncResultJson(): void
-    {
-        $response = $this->handle('POST', '/api/tasks/import', [
-            'rows' => [['title' => 'a'], ['title' => ''], ['title' => 'c']],
-        ]);
-
-        self::assertSame(200, $response->getStatusCode());
-        $payload = $this->json($response);
-        self::assertSame(2, $payload['ok']);
-        self::assertSame(1, $payload['failed']);
-        self::assertFalse($payload['fullSuccess']);
+        // Missing required subject -> MiddagValidationException. The JSON API client
+        // declares Accept: application/json, so the kernel returns the 422 error map.
+        self::assertSame(422, $this->handle('POST', '/api/tickets', ['priority' => 'high'], ['HTTP_ACCEPT' => 'application/json'])->getStatusCode());
     }
 
     #[Test]
     public function entitiesEndpointServesEntitySource(): void
     {
-        $this->createTask('Pickable');
+        // Seed a customer so the source returns a non-empty option list.
+        (new CustomerRepository($this->container->get(ConnectionAdapterInterface::class)))
+            ->save(new Customer(null, 'Pickable Co', 'pick@acme.example', null, 'Acme', time()));
 
         // The option list rides under `data` so the @middag-io/react entity_picker
         // (unwrap chain `json.items ?? json.data ?? json`) maps over an array.
-        $payload = $this->json($this->handle('GET', '/api/entities/tasks'));
+        $payload = $this->json($this->handle('GET', '/api/entities/customers'));
         self::assertNotEmpty($payload['data']);
         self::assertArrayHasKey('value', $payload['data'][0]);
         self::assertArrayHasKey('label', $payload['data'][0]);
     }
 
     #[Test]
-    public function apiUpdateModifiesTask(): void
-    {
-        $id = $this->createTask('Before');
-
-        $response = $this->handle('PUT', '/api/tasks/' . $id, ['title' => 'After', 'priority' => 'high', 'status' => 'open']);
-
-        self::assertSame(200, $response->getStatusCode());
-        self::assertTrue($this->json($response)['updated']);
-
-        // Active Record confirms the row changed (same connection, in-memory SQLite).
-        self::assertSame('After', (string) \Middag\Demo\Standalone\Domain\Eloquent\Task::find($id)?->title);
-    }
-
-    #[Test]
-    public function apiDeleteRemovesTask(): void
-    {
-        $id = $this->createTask('Doomed');
-
-        $response = $this->handle('DELETE', '/api/tasks/' . $id);
-
-        self::assertSame(200, $response->getStatusCode());
-        self::assertTrue($this->json($response)['deleted']);
-        self::assertSame(404, $this->handle('GET', '/tasks/' . $id, [], ['HTTP_X_INERTIA' => 'true'])->getStatusCode());
-    }
-
-    #[Test]
-    public function apiDeleteUnknownMapsTo404(): void
-    {
-        self::assertSame(404, $this->handle('DELETE', '/api/tasks/999999')->getStatusCode());
-    }
-
-    #[Test]
-    public function webUpdateAndDestroyRedirectSeeOther(): void
-    {
-        $id = $this->createTask('Web target');
-
-        self::assertSame(303, $this->handle('PUT', '/tasks/' . $id, ['title' => 'Web updated', 'priority' => 'normal', 'status' => 'open'])->getStatusCode());
-        self::assertSame(303, $this->handle('DELETE', '/tasks/' . $id)->getStatusCode());
-    }
-
-    #[Test]
     public function editPageEmitsPrefilledFormPanel(): void
     {
-        $id = $this->createTask('Editable');
+        $id = $this->createTicket('Editable');
 
-        $payload = $this->json($this->handle('GET', '/tasks/' . $id . '/edit', [], ['HTTP_X_INERTIA' => 'true']));
+        $payload = $this->json($this->handle('GET', '/tickets/' . $id . '/edit', [], ['HTTP_X_INERTIA' => 'true']));
         $blocks = $payload['props']['contract']['layout']['regions']['content'] ?? [];
 
         $form = null;
@@ -187,6 +136,21 @@ final class HttpTest extends DemoTestCase
         }
 
         self::assertNotNull($form, 'edit page must contain a form_panel block');
-        self::assertSame('Editable', $form['data']['values']['title'] ?? null);
+        self::assertSame('Editable', $form['data']['values']['subject'] ?? null);
+    }
+
+    #[Test]
+    public function webUpdateRedirectsSeeOther(): void
+    {
+        $id = $this->createTicket('Web target');
+
+        $response = $this->handle('PUT', '/tickets/' . $id, [
+            'subject' => 'Web updated',
+            'priority' => 'normal',
+            'channel' => 'web',
+            'customer_id' => 1,
+        ]);
+
+        self::assertSame(303, $response->getStatusCode());
     }
 }
