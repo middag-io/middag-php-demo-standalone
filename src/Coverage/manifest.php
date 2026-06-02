@@ -25,10 +25,11 @@ return [
         'shell:basic' => ['kind' => 'shell', 'route' => '/', 'note' => 'login + every help-desk page'],
         'shell:immersive' => ['kind' => 'shell', 'route' => '/help', 'note' => 'help + coverage pages'],
 
-        // Layouts (3/4 free — wizard is a catalogued gap).
+        // Layouts (4/4 free).
         'layout:dashboard' => ['kind' => 'layout', 'route' => '/', 'note' => 'metrics + chart grid'],
         'layout:sidebar' => ['kind' => 'layout', 'route' => '/agents', 'note' => 'list + aside'],
         'layout:stack' => ['kind' => 'layout', 'route' => '/customers', 'note' => 'default single column'],
+        'layout:wizard' => ['kind' => 'layout', 'route' => '/tickets/new', 'note' => 'guided two-step ticket create — server-driven stepping, partial in session'],
 
         // Blocks (13 free + 1 custom).
         'block:metric_card' => ['kind' => 'block', 'route' => '/', 'note' => 'queue metrics'],
@@ -76,7 +77,6 @@ return [
     ],
 
     'gaps' => [
-        'layout:wizard' => ['reason' => 'ticket create uses a single-step form_panel; the FormStep wizard layout is not built', 'filed' => 'demo: wizard ticket create'],
         'block:pro' => ['reason' => 'PRO blocks (chart_panel, kanban_board, flow_editor, form_builder, condition_tree, sentence_builder) + the product shell ship in @middag-io/react-pro, out of the free OSS surface', 'filed' => 'n/a (by design)'],
         'field:duration' => ['reason' => 'emittable via FieldDefinition::duration() but no free React field renderer (would hit "Unknown field component")', 'filed' => 'react: duration renderer'],
         'field:otp_slider_native_select_tags' => ['reason' => 'React-renderable but no FieldDefinition factory method', 'filed' => 'framework: field factories'],

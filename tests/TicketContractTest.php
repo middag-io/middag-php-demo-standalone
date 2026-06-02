@@ -173,6 +173,69 @@ final class TicketContractTest extends DemoTestCase
     }
 
     #[Test]
+    public function newTicketRendersTheWizardLayoutWithSteps(): void
+    {
+        $payload = $this->json($this->handle('GET', '/tickets/new', [], ['HTTP_X_INERTIA' => 'true']));
+        $contract = $payload['props']['contract'];
+
+        self::assertSame('wizard', $contract['layout']['template'] ?? null, 'create uses the wizard layout');
+        $steps = $contract['layout']['meta']['steps'] ?? [];
+        self::assertCount(2, $steps, 'the wizard has two steps');
+        self::assertSame('active', $steps[0]['status'] ?? null, 'step 1 is active');
+        self::assertSame('pending', $steps[1]['status'] ?? null, 'step 2 is pending');
+
+        // Step 1 carries the required core and posts to the validating wizardStore.
+        $form = $this->blockByKey($this->contentBlocks('/tickets/new'), 'ticket_form');
+        self::assertNotNull($form);
+        self::assertSame('/tickets/new', $form['data']['action'] ?? null);
+        $keys = array_column($form['data']['schema'], 'key');
+        self::assertContains('subject', $keys);
+        self::assertContains('customer_id', $keys);
+        self::assertNotContains('sla_policy_id', $keys, 'the schedule fields belong to step 2');
+    }
+
+    #[Test]
+    public function wizardAdvancesThroughStepsAndCreatesWithMergedData(): void
+    {
+        // Step 1: post the required core. CreateTicketRequest validates it and the
+        // controller stashes the validated core in the session, then 303s to step 2.
+        $step1 = $this->handle('POST', '/tickets/new', [
+            'subject' => 'Wizard ticket',
+            'body' => 'opened via the wizard',
+            'channel' => 'web',
+            'priority' => 'normal',
+            'customer_id' => 1,
+        ]);
+        self::assertSame(303, $step1->getStatusCode());
+
+        // Step 2 GET: step 1 now completed, step 2 active; the form posts to confirm
+        // and shows only the schedule fields.
+        $contract = $this->json($this->handle('GET', '/tickets/new?step=2', [], ['HTTP_X_INERTIA' => 'true']))['props']['contract'];
+        $steps = $contract['layout']['meta']['steps'] ?? [];
+        self::assertSame('completed', $steps[0]['status'] ?? null);
+        self::assertSame('active', $steps[1]['status'] ?? null);
+
+        $form = $this->blockByKey($contract['layout']['regions']['content'] ?? [], 'ticket_form');
+        self::assertNotNull($form);
+        self::assertSame('/tickets/new/confirm', $form['data']['action'] ?? null);
+        $keys = array_column($form['data']['schema'], 'key');
+        self::assertContains('tags', $keys);
+        self::assertNotContains('subject', $keys, 'step 2 shows only the schedule fields');
+
+        // Step 2 submit: the optional fields merge onto the session core and create.
+        $confirm = $this->handle('POST', '/tickets/new/confirm', [
+            'tags' => 'wizard,demo',
+            'sla_policy_id' => '',
+            'due_at' => '',
+        ]);
+        self::assertSame(303, $confirm->getStatusCode());
+
+        $created = Ticket::query()->where('subject', 'Wizard ticket')->get();
+        self::assertCount(1, $created, 'the wizard created exactly one ticket');
+        self::assertSame('wizard,demo', (string) $created[0]->tags, 'step-2 tags merged onto the step-1 core');
+    }
+
+    #[Test]
     public function storeCreatesTicketAndRedirects(): void
     {
         $response = $this->handle('POST', '/tickets', [

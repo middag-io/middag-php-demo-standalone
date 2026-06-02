@@ -18,6 +18,7 @@ use Middag\Demo\Standalone\Http\Request\CreateTicketRequest;
 use Middag\Framework\Bus\Contract\MessageBusInterface;
 use Middag\Framework\Form\Renderer\RendererRegistry;
 use Middag\Framework\Http\Attribute\Auth;
+use Middag\Framework\Http\Contract\SessionInterface;
 use Middag\Framework\Http\Controller\AbstractController;
 use Middag\Ui\Action\ActionTarget;
 use Middag\Ui\Block\BlockBuilder;
@@ -45,6 +46,18 @@ use Symfony\Component\HttpFoundation\Response;
 final class TicketController extends AbstractController
 {
     use RendersPages;
+
+    /**
+     * The guided ticket-create wizard. The React wizard is layout-only (StepIndicator
+     * chrome + footer; no client step state machine), so the partial is held in the
+     * session and the controller drives each step. Step 1 carries the required core
+     * (validated by CreateTicketRequest); step 2 the optional schedule fields.
+     */
+    private const WIZARD_STEPS = [
+        1 => ['label' => 'Ticket', 'fields' => ['subject', 'body', 'channel', 'priority', 'customer_id', 'agent_id']],
+        2 => ['label' => 'Schedule', 'fields' => ['sla_policy_id', 'tags', 'due_at']],
+    ];
+    private const WIZARD_SESSION = 'ticket_wizard';
 
     public function __construct(
         private readonly MessageBusInterface $bus,
@@ -260,29 +273,106 @@ final class TicketController extends AbstractController
             . "- **Resolved:** {$resolved}";
     }
 
+    /**
+     * Ticket create — a guided wizard (the `wizard` layout). Renders one step at a
+     * time (?step), driven server-side: StepIndicator chrome comes from layout.meta,
+     * the current step's fields are a filtered form_panel, and the partial is carried
+     * in the session between steps. Step 1 POSTs to wizardStore (validated + advance);
+     * step 2 POSTs to wizardConfirm (merge + create).
+     */
     public function newTicket(): Response
     {
+        $session = $this->getService(SessionInterface::class);
+        $step = $this->currentStep();
+
+        // Guard: reaching step 2 without a saved step-1 partial restarts the wizard.
+        if ($step === 2 && !$session->has(self::WIZARD_SESSION)) {
+            return $this->redirect('/tickets/new?step=1', Response::HTTP_SEE_OTHER);
+        }
+
         $form = $this->formProps();
+        $values = array_merge($form['values'] ?? [], (array) ($session->get(self::WIZARD_SESSION) ?? []));
+        $schema = self::fieldsFor($form['schema'] ?? [], self::WIZARD_STEPS[$step]['fields']);
+
+        // Step 1 → wizardStore (validates + advances); step 2 → wizardConfirm (creates).
+        $action = $step === 1 ? '/tickets/new' : '/tickets/new/confirm';
+        // Footer (right-aligned): Back to the prior step, or Cancel out on step 1.
+        $footer = $step > 1
+            ? [PageBuilder::action('back', 'Back', ActionTarget::link('/tickets/new?step=' . ($step - 1)), ActionIntent::SECONDARY, 'arrow-left')]
+            : [PageBuilder::action('cancel', 'Cancel', ActionTarget::link('/tickets'), ActionIntent::SECONDARY, 'x')];
 
         $contract = PageBuilder::page('demo.tickets.create')
             ->shell('basic')
+            ->layout('wizard')
             ->title('New ticket')
-            ->subtitle('Open a ticket — form_panel from the framework form pipeline (entity-picker customer/assignee, conditional assignee)')
-            ->actions([
-                PageBuilder::action('back', 'All tickets', ActionTarget::link('/tickets'), ActionIntent::SECONDARY, 'arrow-left'),
+            ->subtitle('Guided create — the wizard layout (StepIndicator + footer); server-driven stepping with the partial held in session')
+            ->meta([
+                'steps' => self::stepIndicator($step),
+                'actions' => $footer,
             ])
-            ->region('content', function (RegionBuilder $region) use ($form): void {
-                $region->formPanel('ticket_form', '/tickets', 'POST', $form['schema'] ?? [], $form['values'] ?? []);
+            ->region('content', function (RegionBuilder $region) use ($action, $schema, $values): void {
+                $region->formPanel('ticket_form', $action, 'POST', $schema, $values);
             })
             ->build();
 
         return $this->page($contract);
     }
 
+    /** Direct (single-shot) create — POST /tickets. Still used by the API/tests. */
     public function store(CreateTicketRequest $request): Response
     {
-        $data = $request->validated();
+        $this->dispatchCreate($request->validated());
+        $this->flash('success', 'Ticket created.');
 
+        return $this->redirectToRoute('tickets.index');
+    }
+
+    /**
+     * Wizard step 1 → validated by CreateTicketRequest (the required core; the
+     * nullable schedule fields are simply absent from this step's POST). Stash the
+     * validated core in the session and advance to step 2.
+     */
+    public function wizardStore(CreateTicketRequest $request): Response
+    {
+        $this->getService(SessionInterface::class)->set(self::WIZARD_SESSION, $request->validated());
+
+        return $this->redirect('/tickets/new?step=2', Response::HTTP_SEE_OTHER);
+    }
+
+    /**
+     * Wizard step 2 (final) → merge the optional schedule fields onto the
+     * session-held core, then create. No re-validation: the required core was
+     * validated at step 1 and the schedule fields are all nullable.
+     */
+    public function wizardConfirm(): Response
+    {
+        $session = $this->getService(SessionInterface::class);
+        $core = (array) ($session->get(self::WIZARD_SESSION) ?? []);
+        if ($core === []) {
+            return $this->redirect('/tickets/new?step=1', Response::HTTP_SEE_OTHER);
+        }
+
+        $payload = $this->request?->getPayload()->all() ?? [];
+        $this->dispatchCreate(array_merge($core, [
+            'sla_policy_id' => $payload['sla_policy_id'] ?? null,
+            'tags' => $payload['tags'] ?? null,
+            'due_at' => $payload['due_at'] ?? null,
+        ]));
+
+        $session->remove(self::WIZARD_SESSION);
+        $this->flash('success', 'Ticket created.');
+
+        return $this->redirectToRoute('tickets.index');
+    }
+
+    /**
+     * Dispatch a CreateTicketCommand from a validated/merged data bag — shared by the
+     * direct store() and the wizard's final step.
+     *
+     * @param array<string, mixed> $data
+     */
+    private function dispatchCreate(array $data): void
+    {
         $this->bus->dispatch(new CreateTicketCommand(
             subject: (string) $data['subject'],
             body: isset($data['body']) && $data['body'] !== '' ? (string) $data['body'] : null,
@@ -294,10 +384,47 @@ final class TicketController extends AbstractController
             tags: isset($data['tags']) && $data['tags'] !== '' ? (string) $data['tags'] : null,
             dueAt: isset($data['due_at']) && $data['due_at'] !== '' ? (strtotime((string) $data['due_at']) ?: null) : null,
         ));
+    }
 
-        $this->flash('success', 'Ticket created.');
+    /** Current wizard step from ?step, clamped to a defined step (default 1). */
+    private function currentStep(): int
+    {
+        $step = (int) ($this->request?->query->get('step') ?? 1);
 
-        return $this->redirectToRoute('tickets.index');
+        return isset(self::WIZARD_STEPS[$step]) ? $step : 1;
+    }
+
+    /**
+     * StepIndicator items for layout.meta.steps — exactly one 'active'.
+     *
+     * @return list<array{label: string, status: string}>
+     */
+    private static function stepIndicator(int $current): array
+    {
+        $items = [];
+        foreach (self::WIZARD_STEPS as $n => $def) {
+            $items[] = [
+                'label' => $def['label'],
+                'status' => $n < $current ? 'completed' : ($n === $current ? 'active' : 'pending'),
+            ];
+        }
+
+        return $items;
+    }
+
+    /**
+     * Keep only the rendered form schema nodes for a step (filtered by node `key`).
+     *
+     * @param list<array<string, mixed>> $schema
+     * @param list<string> $names
+     * @return list<array<string, mixed>>
+     */
+    private static function fieldsFor(array $schema, array $names): array
+    {
+        return array_values(array_filter(
+            $schema,
+            static fn (array $node): bool => in_array($node['key'] ?? null, $names, true),
+        ));
     }
 
     public function edit(int $id): Response

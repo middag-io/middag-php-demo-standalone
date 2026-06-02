@@ -470,6 +470,11 @@ final class DemoBootstrap implements BootstrapInterface
         // Help-desk ticket UI (contract-driven, dual-ORM reads + form pipeline).
         $routes->add('tickets.index', new Route('/tickets', ['_controller' => TicketController::class . '::index'], [], [], '', [], ['GET']));
         $routes->add('tickets.new', new Route('/tickets/new', ['_controller' => TicketController::class . '::newTicket'], [], [], '', [], ['GET']));
+        // The create wizard: step 1 POSTs to wizardStore (validate + advance), the
+        // final step to wizardConfirm (merge the session partial + create). Direct
+        // single-shot store stays (API/tests).
+        $routes->add('tickets.wizard.store', new Route('/tickets/new', ['_controller' => TicketController::class . '::wizardStore'], [], [], '', [], ['POST']));
+        $routes->add('tickets.wizard.confirm', new Route('/tickets/new/confirm', ['_controller' => TicketController::class . '::wizardConfirm'], [], [], '', [], ['POST']));
         $routes->add('tickets.store', new Route('/tickets', ['_controller' => TicketController::class . '::store'], [], [], '', [], ['POST']));
         $routes->add('tickets.show', new Route('/tickets/{id}', ['_controller' => TicketController::class . '::show'], [], ['id' => '\d+'], '', [], ['GET']));
         $routes->add('tickets.edit', new Route('/tickets/{id}/edit', ['_controller' => TicketController::class . '::edit'], [], ['id' => '\d+'], '', [], ['GET']));

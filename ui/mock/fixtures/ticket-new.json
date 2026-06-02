@@ -69,7 +69,9 @@
         "theme": {
             "appearance": "light"
         },
-        "flash": [],
+        "flash": {
+            "success": "Welcome, Demo User."
+        },
         "errors": [],
         "csrf_token": "dev-csrf-token",
         "contract": {
@@ -78,29 +80,17 @@
             "page": {
                 "key": "demo.tickets.create",
                 "title": "New ticket",
-                "subtitle": "Open a ticket — form_panel from the framework form pipeline (entity-picker customer/assignee, conditional assignee)",
-                "actions": [
-                    {
-                        "id": "back",
-                        "label": "All tickets",
-                        "target": {
-                            "kind": "link",
-                            "href": "/tickets"
-                        },
-                        "intent": "secondary",
-                        "icon": "arrow-left"
-                    }
-                ]
+                "subtitle": "Guided create — the wizard layout (StepIndicator + footer); server-driven stepping with the partial held in session"
             },
             "layout": {
-                "template": "stack",
+                "template": "wizard",
                 "regions": {
                     "content": [
                         {
                             "type": "form_panel",
                             "key": "ticket_form",
                             "data": {
-                                "action": "/tickets",
+                                "action": "/tickets/new",
                                 "method": "post",
                                 "schema": [
                                     {
@@ -208,59 +198,6 @@
                                             "entityDisplayField": "label",
                                             "autocompleteHref": "/api/entities/agents"
                                         }
-                                    },
-                                    {
-                                        "kind": "field",
-                                        "key": "sla_policy_id",
-                                        "component": "select",
-                                        "props": {
-                                            "label": "SLA policy",
-                                            "required": false,
-                                            "options": [
-                                                {
-                                                    "value": "",
-                                                    "label": "— none —"
-                                                },
-                                                {
-                                                    "value": "1",
-                                                    "label": "Urgent SLA (urgent)"
-                                                },
-                                                {
-                                                    "value": "2",
-                                                    "label": "High SLA (high)"
-                                                },
-                                                {
-                                                    "value": "3",
-                                                    "label": "Standard SLA (normal)"
-                                                },
-                                                {
-                                                    "value": "4",
-                                                    "label": "Low SLA (low)"
-                                                }
-                                            ]
-                                        }
-                                    },
-                                    {
-                                        "kind": "field",
-                                        "key": "tags",
-                                        "component": "text",
-                                        "props": {
-                                            "label": "Tags",
-                                            "required": false,
-                                            "placeholder": "comma,separated",
-                                            "validation": {
-                                                "maxLength": 200
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "kind": "field",
-                                        "key": "due_at",
-                                        "component": "date",
-                                        "props": {
-                                            "label": "Due date",
-                                            "required": false
-                                        }
                                     }
                                 ],
                                 "values": {
@@ -272,6 +209,30 @@
                                     "validation": "both"
                                 }
                             }
+                        }
+                    ]
+                },
+                "meta": {
+                    "steps": [
+                        {
+                            "label": "Ticket",
+                            "status": "active"
+                        },
+                        {
+                            "label": "Schedule",
+                            "status": "pending"
+                        }
+                    ],
+                    "actions": [
+                        {
+                            "id": "cancel",
+                            "label": "Cancel",
+                            "target": {
+                                "kind": "link",
+                                "href": "/tickets"
+                            },
+                            "intent": "secondary",
+                            "icon": "x"
                         }
                     ]
                 }
