@@ -17,6 +17,7 @@ use Middag\Demo\Standalone\Hook\TicketHooks;
 use Middag\Demo\Standalone\Http\AuthController;
 use Middag\Demo\Standalone\Http\TaskApiController;
 use Middag\Demo\Standalone\Http\TaskController;
+use Middag\Demo\Standalone\Http\TicketController;
 use Middag\Demo\Standalone\Http\UiController;
 use Middag\Demo\Standalone\Logging\CleanLogsHandler;
 use Middag\Framework\Bus\Command\CommandWorker;
@@ -457,6 +458,10 @@ final class DemoBootstrap implements BootstrapInterface
         $routes->add('tasks.edit', new Route('/tasks/{id}/edit', ['_controller' => TaskController::class . '::edit'], [], ['id' => '\d+'], '', [], ['GET']));
         $routes->add('tasks.update', new Route('/tasks/{id}', ['_controller' => TaskController::class . '::update'], [], ['id' => '\d+'], '', [], ['PUT', 'PATCH']));
         $routes->add('tasks.destroy', new Route('/tasks/{id}', ['_controller' => TaskController::class . '::destroy'], [], ['id' => '\d+'], '', [], ['DELETE']));
+
+        // Help-desk ticket UI (contract-driven, dual-ORM reads).
+        $routes->add('tickets.index', new Route('/tickets', ['_controller' => TicketController::class . '::index'], [], [], '', [], ['GET']));
+        $routes->add('tickets.show', new Route('/tickets/{id}', ['_controller' => TicketController::class . '::show'], [], ['id' => '\d+'], '', [], ['GET']));
 
         // JSON API.
         $routes->add('api.tasks.store', new Route('/api/tasks', ['_controller' => TaskApiController::class . '::store'], [], [], '', [], ['POST']));
