@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Middag\Demo\Standalone\Tests;
 
 use Middag\Demo\Standalone\Command\CreateTicketCommand;
+use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Bus\Contract\MessageBusInterface;
 use PHPUnit\Framework\Attributes\Test;
@@ -91,5 +92,67 @@ final class TicketContractTest extends DemoTestCase
         self::assertSame('new', $fields['Status'] ?? null);
 
         self::assertNotNull($this->blockByKey($blocks, 'activity'), 'activity feed table present');
+    }
+
+    #[Test]
+    public function newTicketRendersFormPanelWithEntityPickersAndConditionalAssignee(): void
+    {
+        $blocks = $this->contentBlocks('/tickets/new');
+
+        $form = $this->blockByKey($blocks, 'ticket_form');
+        self::assertNotNull($form, 'create page must contain the ticket form_panel');
+        self::assertSame('form_panel', $form['type']);
+
+        $components = [];
+        $conditions = [];
+        foreach ($form['data']['schema'] ?? [] as $field) {
+            $components[$field['key'] ?? ''] = $field['component'] ?? null;
+            if (isset($field['props']['required_when'])) {
+                $conditions[(string) $field['key']] = $field['props']['required_when'];
+            }
+        }
+
+        self::assertSame('entity_picker', $components['customer_id'] ?? null);
+        self::assertSame('entity_picker', $components['agent_id'] ?? null);
+        self::assertSame('select', $components['priority'] ?? null);
+        // Assignee required_when priority is high/urgent (IN operator condition).
+        self::assertSame('priority', $conditions['agent_id']['field'] ?? null);
+    }
+
+    #[Test]
+    public function storeCreatesTicketAndRedirects(): void
+    {
+        $response = $this->handle('POST', '/tickets', [
+            'subject' => 'Printer offline',
+            'body' => 'The 3rd floor printer is unreachable.',
+            'priority' => 'normal',
+            'channel' => 'web',
+            'customer_id' => 1,
+        ]);
+
+        self::assertSame(303, $response->getStatusCode());
+        self::assertCount(1, Ticket::query()->where('subject', 'Printer offline')->get());
+    }
+
+    #[Test]
+    public function editPrefillsFormPanelFromStoredTicket(): void
+    {
+        $id = $this->createTicket('Disk full');
+
+        $form = $this->blockByKey($this->contentBlocks('/tickets/' . $id . '/edit'), 'ticket_form');
+        self::assertNotNull($form);
+        self::assertSame('Disk full', $form['data']['values']['subject'] ?? null);
+    }
+
+    #[Test]
+    public function entityEndpointsServeCustomerAndAgentSources(): void
+    {
+        // Tables are empty in the test DB (only the demo user is seeded); the
+        // endpoints must still answer with a `data` array the picker can map.
+        foreach (['/api/entities/customers', '/api/entities/agents'] as $url) {
+            $payload = $this->json($this->handle('GET', $url));
+            self::assertArrayHasKey('data', $payload);
+            self::assertIsArray($payload['data']);
+        }
     }
 }

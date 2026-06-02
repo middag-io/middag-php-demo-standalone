@@ -11,12 +11,14 @@ use Middag\Demo\Standalone\Domain\Eloquent\Task;
 use Middag\Demo\Standalone\Form\TaskEntitySource;
 use Middag\Demo\Standalone\Form\LoginForm;
 use Middag\Demo\Standalone\Form\TaskForm;
+use Middag\Demo\Standalone\Form\TicketForm;
 use Middag\Demo\Standalone\Framework\DebugCollector;
 use Middag\Demo\Standalone\Hook\TaskHooks;
 use Middag\Demo\Standalone\Hook\TicketHooks;
 use Middag\Demo\Standalone\Http\AuthController;
 use Middag\Demo\Standalone\Http\TaskApiController;
 use Middag\Demo\Standalone\Http\TaskController;
+use Middag\Demo\Standalone\Http\TicketApiController;
 use Middag\Demo\Standalone\Http\TicketController;
 use Middag\Demo\Standalone\Http\UiController;
 use Middag\Demo\Standalone\Logging\CleanLogsHandler;
@@ -199,6 +201,10 @@ final class DemoBootstrap implements BootstrapInterface
             ->setShared(false)
             ->setPublic(true);
         $c->register(LoginForm::class, LoginForm::class)
+            ->setAutowired(true)
+            ->setShared(false)
+            ->setPublic(true);
+        $c->register(TicketForm::class, TicketForm::class)
             ->setAutowired(true)
             ->setShared(false)
             ->setPublic(true);
@@ -459,14 +465,21 @@ final class DemoBootstrap implements BootstrapInterface
         $routes->add('tasks.update', new Route('/tasks/{id}', ['_controller' => TaskController::class . '::update'], [], ['id' => '\d+'], '', [], ['PUT', 'PATCH']));
         $routes->add('tasks.destroy', new Route('/tasks/{id}', ['_controller' => TaskController::class . '::destroy'], [], ['id' => '\d+'], '', [], ['DELETE']));
 
-        // Help-desk ticket UI (contract-driven, dual-ORM reads).
+        // Help-desk ticket UI (contract-driven, dual-ORM reads + form pipeline).
         $routes->add('tickets.index', new Route('/tickets', ['_controller' => TicketController::class . '::index'], [], [], '', [], ['GET']));
+        $routes->add('tickets.new', new Route('/tickets/new', ['_controller' => TicketController::class . '::newTicket'], [], [], '', [], ['GET']));
+        $routes->add('tickets.store', new Route('/tickets', ['_controller' => TicketController::class . '::store'], [], [], '', [], ['POST']));
         $routes->add('tickets.show', new Route('/tickets/{id}', ['_controller' => TicketController::class . '::show'], [], ['id' => '\d+'], '', [], ['GET']));
+        $routes->add('tickets.edit', new Route('/tickets/{id}/edit', ['_controller' => TicketController::class . '::edit'], [], ['id' => '\d+'], '', [], ['GET']));
+        $routes->add('tickets.update', new Route('/tickets/{id}', ['_controller' => TicketController::class . '::update'], [], ['id' => '\d+'], '', [], ['PUT', 'PATCH']));
 
         // JSON API.
         $routes->add('api.tasks.store', new Route('/api/tasks', ['_controller' => TaskApiController::class . '::store'], [], [], '', [], ['POST']));
         $routes->add('api.tasks.import', new Route('/api/tasks/import', ['_controller' => TaskApiController::class . '::import'], [], [], '', [], ['POST']));
         $routes->add('api.entities.tasks', new Route('/api/entities/tasks', ['_controller' => TaskApiController::class . '::entities'], [], [], '', [], ['GET']));
+        $routes->add('api.entities.customers', new Route('/api/entities/customers', ['_controller' => TicketApiController::class . '::customers'], [], [], '', [], ['GET']));
+        $routes->add('api.entities.agents', new Route('/api/entities/agents', ['_controller' => TicketApiController::class . '::agents'], [], [], '', [], ['GET']));
+        $routes->add('api.tickets.store', new Route('/api/tickets', ['_controller' => TicketApiController::class . '::store'], [], [], '', [], ['POST']));
         $routes->add('api.tasks.update', new Route('/api/tasks/{id}', ['_controller' => TaskApiController::class . '::update'], [], ['id' => '\d+'], '', [], ['PUT', 'PATCH']));
         $routes->add('api.tasks.destroy', new Route('/api/tasks/{id}', ['_controller' => TaskApiController::class . '::destroy'], [], ['id' => '\d+'], '', [], ['DELETE']));
 
