@@ -101,7 +101,7 @@ final class AgentController extends AbstractController
                 $region->metricCard('supervisors', $supervisors, 'Supervisors', icon: 'shield');
             })
             ->region('content', function (RegionBuilder $region) use ($columns, $rows): void {
-                $region->denseTable('agents', $columns, $rows, ['rowHref' => '/agents/{id}']);
+                $region->denseTable('agents', $columns, $rows, ['rowHref' => '/agents/{id}'], ['clientSide' => true]);
             })
             ->build();
 

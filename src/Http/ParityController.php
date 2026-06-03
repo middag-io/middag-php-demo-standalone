@@ -78,13 +78,13 @@ final class ParityController extends AbstractController
                         BlockBuilder::denseTable('dm', [
                             ['key' => 'status', 'label' => 'Status', 'variant' => 'status'],
                             ['key' => 'count', 'label' => 'Tickets'],
-                        ], $dmRows),
+                        ], $dmRows, [], ['clientSide' => true]),
                     ]),
                     new Tab('active_record', 'Active-record', [
                         BlockBuilder::denseTable('ar', [
                             ['key' => 'status', 'label' => 'Status', 'variant' => 'status'],
                             ['key' => 'count', 'label' => 'Tickets'],
-                        ], $arRows),
+                        ], $arRows, [], ['clientSide' => true]),
                     ]),
                 ]);
 
@@ -93,7 +93,7 @@ final class ParityController extends AbstractController
                     ['key' => 'data_mapper', 'label' => 'Data-mapper'],
                     ['key' => 'active_record', 'label' => 'Active-record'],
                     ['key' => 'match', 'label' => 'Match', 'variant' => 'boolean'],
-                ], $parityRows);
+                ], $parityRows, [], ['clientSide' => true]);
 
                 $region->markdownPanel('query_sources', self::querySourcesMarkdown());
             })

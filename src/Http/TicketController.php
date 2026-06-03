@@ -145,6 +145,14 @@ final class TicketController extends AbstractController
                     ['key' => 'created', 'label' => 'Created', 'variant' => 'timestamp', 'timestampFormat' => 'date'],
                 ], $rows, [
                     'rowHref' => '/tickets/{id}',
+                ], [
+                    // Client-side search/sort/pagination over the full row set the
+                    // server already sends (the queue is small). Without this the
+                    // table is server-driven: its ?search/?sort/?page params trigger
+                    // an Inertia partial reload scoped to `only:[tickets]`, but the
+                    // demo nests data under the single `contract` prop, so the reload
+                    // returns `props:[]` and the table never updates — dead search.
+                    'clientSide' => true,
                 ]);
             })
             ->build();

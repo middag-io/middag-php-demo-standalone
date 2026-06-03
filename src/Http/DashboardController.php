@@ -123,7 +123,7 @@ final class DashboardController extends AbstractController
                     ['key' => 'customer', 'label' => 'Customer'],
                     ['key' => 'agent', 'label' => 'Assignee'],
                     ['key' => 'created', 'label' => 'Created', 'variant' => 'timestamp'],
-                ], $rows, ['rowHref' => '/tickets/{id}']);
+                ], $rows, ['rowHref' => '/tickets/{id}'], ['clientSide' => true]);
             })
             ->build();
 

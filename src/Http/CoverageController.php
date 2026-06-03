@@ -71,13 +71,13 @@ final class CoverageController extends AbstractController
                     ['key' => 'kind', 'label' => 'Kind', 'variant' => 'status'],
                     ['key' => 'route', 'label' => 'Proof route'],
                     ['key' => 'note', 'label' => 'Note'],
-                ], $coveredRows);
+                ], $coveredRows, [], ['clientSide' => true]);
 
                 $region->denseTable('gaps', [
                     ['key' => 'symbol', 'label' => 'Gap'],
                     ['key' => 'reason', 'label' => 'Why'],
                     ['key' => 'filed', 'label' => 'Filed'],
-                ], $gapRows);
+                ], $gapRows, [], ['clientSide' => true]);
             })
             ->build();
 
