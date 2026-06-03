@@ -461,6 +461,32 @@ final class TicketController extends AbstractController
         $ticket = Ticket::findOrFail($id);
         $form = $this->formProps();
 
+        // Inject the selected entity labels so the async entity_picker renders the
+        // current customer/assignee on load. The picker only carries the id, and
+        // its option list is empty until the user searches → the field would show
+        // blank on edit. initialOption seeds the displayed label (the React field
+        // splices it into the option list until live results arrive).
+        $customerNames = $this->idLabelMap($this->customers->latest());
+        $agentNames = $this->idLabelMap($this->agents->latest());
+        $schema = array_map(
+            function (array $node) use ($ticket, $customerNames, $agentNames): array {
+                if (($node['key'] ?? null) === 'customer_id') {
+                    $node['props']['initialOption'] = [
+                        'value' => (string) $ticket->customer_id,
+                        'label' => $customerNames[(int) $ticket->customer_id] ?? ('#' . $ticket->customer_id),
+                    ];
+                } elseif (($node['key'] ?? null) === 'agent_id' && $ticket->agent_id !== null) {
+                    $node['props']['initialOption'] = [
+                        'value' => (string) $ticket->agent_id,
+                        'label' => $agentNames[(int) $ticket->agent_id] ?? ('#' . $ticket->agent_id),
+                    ];
+                }
+
+                return $node;
+            },
+            $form['schema'] ?? [],
+        );
+
         // Seed schema defaults, then override with the ticket's stored fields
         // (entity_picker values are the related id as a string; '' when unset).
         $values = array_merge($form['values'] ?? [], [
@@ -482,8 +508,8 @@ final class TicketController extends AbstractController
             ->actions([
                 PageBuilder::action('back', 'All tickets', ActionTarget::link('/tickets'), ActionIntent::SECONDARY, 'arrow-left'),
             ])
-            ->region('content', function (RegionBuilder $region) use ($form, $values, $id): void {
-                $region->formPanel('ticket_form', '/tickets/' . $id, 'PUT', $form['schema'] ?? [], $values);
+            ->region('content', function (RegionBuilder $region) use ($schema, $values, $id): void {
+                $region->formPanel('ticket_form', '/tickets/' . $id, 'PUT', $schema, $values);
             })
             ->build();
 
