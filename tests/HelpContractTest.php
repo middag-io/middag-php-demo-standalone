@@ -50,5 +50,14 @@ final class HelpContractTest extends DemoTestCase
         self::assertSame('action_grid', $actions['type']);
         self::assertNotEmpty($actions['data']['items'] ?? []);
         self::assertSame('link', $actions['data']['items'][0]['target']['kind'] ?? null);
+
+        // Quick-link hrefs must hit real routes. The dashboard lives at '/', not
+        // '/dashboard' (no such route → 404); guard against re-introducing it.
+        $hrefs = array_map(
+            static fn (array $i): ?string => $i['target']['href'] ?? null,
+            $actions['data']['items'],
+        );
+        self::assertContains('/', $hrefs, 'the dashboard quick-link targets the real route /');
+        self::assertNotContains('/dashboard', $hrefs, '/dashboard is not a route (would 404)');
     }
 }

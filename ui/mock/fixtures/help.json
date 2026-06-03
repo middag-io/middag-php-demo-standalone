@@ -69,7 +69,9 @@
         "theme": {
             "appearance": "light"
         },
-        "flash": [],
+        "flash": {
+            "success": "Welcome, Demo User."
+        },
         "errors": [],
         "csrf_token": "dev-csrf-token",
         "contract": {
@@ -118,7 +120,7 @@
                                         "intent": "primary",
                                         "target": {
                                             "kind": "link",
-                                            "href": "/dashboard"
+                                            "href": "/"
                                         }
                                     },
                                     {

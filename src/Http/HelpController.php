@@ -44,7 +44,7 @@ final class HelpController extends AbstractController
                 ]);
 
                 $region->actionGrid('links', [
-                    self::link('go-dashboard', 'Dashboard', 'SLA health, metrics and the ticket trend chart.', 'Open dashboard', 'layout-dashboard', '/dashboard', 'primary'),
+                    self::link('go-dashboard', 'Dashboard', 'SLA health, metrics and the ticket trend chart.', 'Open dashboard', 'layout-dashboard', '/', 'primary'),
                     self::link('go-tickets', 'Tickets', 'The queue: hand-built cell renderers + the form pipeline.', 'Open tickets', 'inbox', '/tickets', 'secondary'),
                     self::link('go-parity', 'Dual-ORM parity', 'The same dataset read the data-mapper and active-record ways.', 'Open parity', 'columns', '/parity', 'secondary'),
                     self::link('go-coverage', 'Coverage', 'The CI-enforced surface manifest + the catalogued gaps.', 'Open coverage', 'shield-check', '/coverage', 'secondary'),
