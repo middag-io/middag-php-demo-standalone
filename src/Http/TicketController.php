@@ -80,7 +80,7 @@ final class TicketController extends AbstractController
         // selects the React cell, so the row VALUES are shaped per cell — a plain
         // string for `status`, the {label,appearance,icon} object for `rich_status`,
         // an {text,sublabel} object for `annotated`, a [{label,href}] list for
-        // `link_group`, and a unix int for `timestamp`.
+        // the custom `tag_chips` cell, and a unix int for `timestamp`.
         $rows = array_map(
             static function (Ticket $t) use ($customerNames, $agentNames): array {
                 $tags = $t->tags !== null && $t->tags !== '' ? explode(',', (string) $t->tags) : [];
@@ -100,8 +100,8 @@ final class TicketController extends AbstractController
                         'text' => $t->agent_id !== null ? ($agentNames[(int) $t->agent_id] ?? '—') : 'Unassigned',
                         'sublabel' => $t->agent_id !== null ? 'assigned' : 'unassigned',
                     ],
-                    // link_group filters items with a null href, so each tag chip
-                    // links to the list filtered by that tag (renders + is clickable).
+                    // the custom tag_chips cell renders each {label, href} as a
+                    // labelled pill that links to the list filtered by that tag.
                     'tags' => array_map(
                         static fn (string $tag): array => [
                             'label' => trim($tag),
@@ -133,7 +133,7 @@ final class TicketController extends AbstractController
             ->region('content', function (RegionBuilder $region) use ($rows): void {
                 // Hand-built columns keyed by `variant` — the cell renderer the React
                 // DenseTableBlock selects per column. Exercises status, rich_status,
-                // annotated, link_group and timestamp cells in one table.
+                // annotated, the custom tag_chips and timestamp cells in one table.
                 $region->denseTable('tickets', [
                     ['key' => 'subject', 'label' => 'Subject'],
                     ['key' => 'status', 'label' => 'Status', 'variant' => 'status'],
@@ -141,7 +141,7 @@ final class TicketController extends AbstractController
                     ['key' => 'channel', 'label' => 'Channel'],
                     ['key' => 'customer', 'label' => 'Customer'],
                     ['key' => 'assignee', 'label' => 'Assignee', 'variant' => 'annotated'],
-                    ['key' => 'tags', 'label' => 'Tags', 'variant' => 'link_group'],
+                    ['key' => 'tags', 'label' => 'Tags', 'variant' => 'tag_chips'],
                     ['key' => 'created', 'label' => 'Created', 'variant' => 'timestamp', 'timestampFormat' => 'date'],
                 ], $rows, [
                     'rowHref' => '/tickets/{id}',

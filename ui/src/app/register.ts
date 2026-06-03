@@ -48,6 +48,7 @@ import {
 import { ChartBlock } from "../blocks/chart-block";
 import { TabsAliasBlock } from "../blocks/tabs-alias";
 import { SparklineCell } from "../cells/sparkline-cell";
+import { TagChipsCell } from "../cells/tag-chips-cell";
 import { AuthShell } from "../shells/auth-shell";
 
 let registered = false;
@@ -100,6 +101,9 @@ export function registerDefaults(): void {
   // block. A dense_table column with variant "sparkline" resolves here (P5).
   // Register AFTER the defaults.
   registerCellRenderer("sparkline", SparklineCell);
+  // Custom `tag_chips` cell — readable labelled pills for the ticket tags
+  // (the free `link_group` cell renders icon-only links, not text chips).
+  registerCellRenderer("tag_chips", TagChipsCell);
 
   // Form field components (text, select, switch, entity_picker, etc.)
   registerDefaultFields();

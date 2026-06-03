@@ -47,11 +47,12 @@ return [
         'block:tabbed_panel' => ['kind' => 'block', 'route' => '/tickets/{id}', 'note' => 'emitted as wire type "tabs"; host aliases tabs->tabbed_panel + id->key'],
         'block:activity_timeline' => ['kind' => 'block', 'route' => '/tickets/{id}', 'note' => 'comment feed, nested in the tabbed_panel'],
 
-        // dense_table cell renderers (9 of 9 free exercised + 1 custom sparkline).
+        // dense_table cell renderers (8 of 9 free exercised + 2 custom: sparkline,
+        // tag_chips). link_group is intentionally a gap — see below.
         'cell:status' => ['kind' => 'cell', 'route' => '/tickets', 'note' => 'ticket status'],
         'cell:rich_status' => ['kind' => 'cell', 'route' => '/tickets', 'note' => 'priority {label,appearance,icon}'],
         'cell:annotated' => ['kind' => 'cell', 'route' => '/tickets', 'note' => 'assignee {text,sublabel}'],
-        'cell:link_group' => ['kind' => 'cell', 'route' => '/tickets', 'note' => 'tags as chips'],
+        'cell:tag_chips' => ['kind' => 'cell', 'route' => '/tickets', 'note' => 'custom registerCellRenderer — ticket tags as labelled pill links'],
         'cell:timestamp' => ['kind' => 'cell', 'route' => '/tickets', 'note' => 'created date'],
         'cell:boolean' => ['kind' => 'cell', 'route' => '/parity', 'note' => 'parity match flag'],
         'cell:progress' => ['kind' => 'cell', 'route' => '/agents', 'note' => 'agent workload (supervisor view)'],
@@ -78,6 +79,7 @@ return [
 
     'gaps' => [
         'block:pro' => ['reason' => 'PRO blocks (chart_panel, kanban_board, flow_editor, form_builder, condition_tree, sentence_builder) + the product shell ship in @middag-io/react-pro, out of the free OSS surface', 'filed' => 'n/a (by design)'],
+        'cell:link_group' => ['reason' => 'the free link_group cell renders icon-only ghost-button links (the label is only a tooltip), not readable text chips; the help-desk domain has no natural icon-link-group column, and ticket tags read far better as the custom tag_chips cell', 'filed' => 'n/a (custom tag_chips cell preferred over a contrived icon-link column)'],
         'field:duration' => ['reason' => 'emittable via FieldDefinition::duration() but no free React field renderer (would hit "Unknown field component")', 'filed' => 'react: duration renderer'],
         'field:otp_slider_native_select_tags' => ['reason' => 'React-renderable but no FieldDefinition factory method', 'filed' => 'framework: field factories'],
         'field:currency_rating_slug_color_phone_document' => ['reason' => 'React-renderable but absent from the PHP FieldType enum entirely', 'filed' => 'framework: field types'],

@@ -94,7 +94,7 @@ final class TicketContractTest extends DemoTestCase
         self::assertSame('status', $variants['status'] ?? null);
         self::assertSame('rich_status', $variants['priority'] ?? null);
         self::assertSame('annotated', $variants['assignee'] ?? null);
-        self::assertSame('link_group', $variants['tags'] ?? null);
+        self::assertSame('tag_chips', $variants['tags'] ?? null);
         self::assertSame('timestamp', $variants['created'] ?? null);
         self::assertSame('/tickets/{id}', $table['data']['rowHref'] ?? null);
 
