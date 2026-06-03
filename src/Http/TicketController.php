@@ -123,6 +123,11 @@ final class TicketController extends AbstractController
             ->layout('dashboard')
             ->title('Tickets')
             ->subtitle('Help-desk queue — active-record tickets, data-mapper customer/agent names')
+            // The create wizard had no UI entry point (only reachable by typing
+            // /tickets/new). Now that BasicShell renders page.actions, surface it.
+            ->actions([
+                PageBuilder::action('new', 'New ticket', ActionTarget::link('/tickets/new'), ActionIntent::PRIMARY, 'plus'),
+            ])
             // metrics region → StatRow grid (dashboard layout); keeps the cards out of
             // `content` so they are not double-wrapped in a per-block Card.
             ->region('metrics', function (RegionBuilder $region) use ($rows, $open, $urgent): void {
@@ -135,14 +140,14 @@ final class TicketController extends AbstractController
                 // DenseTableBlock selects per column. Exercises status, rich_status,
                 // annotated, the custom tag_chips and timestamp cells in one table.
                 $region->denseTable('tickets', [
-                    ['key' => 'subject', 'label' => 'Subject'],
-                    ['key' => 'status', 'label' => 'Status', 'variant' => 'status'],
+                    ['key' => 'subject', 'label' => 'Subject', 'sortable' => true],
+                    ['key' => 'status', 'label' => 'Status', 'variant' => 'status', 'sortable' => true],
                     ['key' => 'priority', 'label' => 'Priority', 'variant' => 'rich_status'],
-                    ['key' => 'channel', 'label' => 'Channel'],
-                    ['key' => 'customer', 'label' => 'Customer'],
+                    ['key' => 'channel', 'label' => 'Channel', 'sortable' => true],
+                    ['key' => 'customer', 'label' => 'Customer', 'sortable' => true],
                     ['key' => 'assignee', 'label' => 'Assignee', 'variant' => 'annotated'],
                     ['key' => 'tags', 'label' => 'Tags', 'variant' => 'tag_chips'],
-                    ['key' => 'created', 'label' => 'Created', 'variant' => 'timestamp', 'timestampFormat' => 'date'],
+                    ['key' => 'created', 'label' => 'Created', 'variant' => 'timestamp', 'timestampFormat' => 'date', 'sortable' => true],
                 ], $rows, [
                     'rowHref' => '/tickets/{id}',
                 ], [
@@ -195,7 +200,7 @@ final class TicketController extends AbstractController
                 ['key' => 'channel', 'label' => 'Channel', 'value' => (string) $ticket->channel],
                 ['key' => 'customer', 'label' => 'Reporter', 'value' => $customer],
                 ['key' => 'agent', 'label' => 'Assignee', 'value' => $assignee],
-                ['key' => 'tags', 'label' => 'Tags', 'value' => $ticket->tags !== null ? (string) $ticket->tags : null],
+                ['key' => 'tags', 'label' => 'Tags', 'value' => $ticket->tags !== null && $ticket->tags !== '' ? implode(', ', array_map('trim', explode(',', (string) $ticket->tags))) : null],
                 ['key' => 'created', 'label' => 'Created', 'value' => $ticket->created_at ? date('Y-m-d H:i', (int) $ticket->created_at) : null],
                 ['key' => 'resolved', 'label' => 'Resolved', 'value' => $ticket->resolved_at ? date('Y-m-d H:i', (int) $ticket->resolved_at) : null],
                 ['key' => 'satisfaction', 'label' => 'CSAT', 'value' => $ticket->satisfaction !== null ? (int) $ticket->satisfaction : null],
