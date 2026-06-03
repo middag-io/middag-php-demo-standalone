@@ -58,9 +58,30 @@ export const ChartBlock: ComponentType<BlockProps<ChartBlockData>> = ({ block })
         style={{ display: "block", maxWidth: "100%" }}
       >
         {/* baseline + max gridline */}
-        <line x1={padL} y1={padT + innerH} x2={W - padR} y2={padT + innerH} stroke="currentColor" strokeOpacity={0.2} />
-        <line x1={padL} y1={padT} x2={W - padR} y2={padT} stroke="currentColor" strokeOpacity={0.08} />
-        <text x={padL - 6} y={padT + 4} textAnchor="end" fontSize={10} fill="currentColor" fillOpacity={0.5}>
+        <line
+          x1={padL}
+          y1={padT + innerH}
+          x2={W - padR}
+          y2={padT + innerH}
+          stroke="currentColor"
+          strokeOpacity={0.2}
+        />
+        <line
+          x1={padL}
+          y1={padT}
+          x2={W - padR}
+          y2={padT}
+          stroke="currentColor"
+          strokeOpacity={0.08}
+        />
+        <text
+          x={padL - 6}
+          y={padT + 4}
+          textAnchor="end"
+          fontSize={10}
+          fill="currentColor"
+          fillOpacity={0.5}
+        >
           {max}
         </text>
 
@@ -103,17 +124,40 @@ export const ChartBlock: ComponentType<BlockProps<ChartBlockData>> = ({ block })
 
         {categories.map((c, i) =>
           i % Math.ceil(count / 12) === 0 ? (
-            <text key={i} x={kind === "bar" ? xBand(i) : x(i)} y={H - 8} textAnchor="middle" fontSize={9} fill="currentColor" fillOpacity={0.55}>
+            <text
+              key={i}
+              x={kind === "bar" ? xBand(i) : x(i)}
+              y={H - 8}
+              textAnchor="middle"
+              fontSize={9}
+              fill="currentColor"
+              fillOpacity={0.55}
+            >
               {String(c)}
             </text>
           ) : null,
         )}
       </svg>
       {series.length > 0 && (
-        <figcaption style={{ display: "flex", gap: "1rem", fontSize: "0.75rem", opacity: 0.7, marginTop: "0.25rem" }}>
+        <figcaption
+          style={{
+            display: "flex",
+            gap: "1rem",
+            fontSize: "0.75rem",
+            opacity: 0.7,
+            marginTop: "0.25rem",
+          }}
+        >
           {series.map((s, si) => (
             <span key={si} style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}>
-              <span style={{ width: 10, height: 10, borderRadius: 2, background: PALETTE[si % PALETTE.length] }} />
+              <span
+                style={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: 2,
+                  background: PALETTE[si % PALETTE.length],
+                }}
+              />
               {s.name}
             </span>
           ))}

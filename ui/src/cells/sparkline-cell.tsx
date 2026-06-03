@@ -16,7 +16,9 @@ const H = 22;
 const PAD = 2;
 
 export function SparklineCell({ value }: CellRendererProps) {
-  const data = Array.isArray(value) ? (value as unknown[]).map(Number).filter((n) => !Number.isNaN(n)) : [];
+  const data = Array.isArray(value)
+    ? (value as unknown[]).map(Number).filter((n) => !Number.isNaN(n))
+    : [];
   if (data.length === 0) {
     return <span className="text-muted-foreground">—</span>;
   }
@@ -27,7 +29,8 @@ export function SparklineCell({ value }: CellRendererProps) {
   const innerW = W - PAD * 2;
   const innerH = H - PAD * 2;
 
-  const x = (i: number): number => (data.length <= 1 ? PAD + innerW / 2 : PAD + (i / (data.length - 1)) * innerW);
+  const x = (i: number): number =>
+    data.length <= 1 ? PAD + innerW / 2 : PAD + (i / (data.length - 1)) * innerW;
   const y = (v: number): number => PAD + innerH - ((v - min) / span) * innerH;
 
   const points = data.map((v, i) => `${x(i)},${y(v)}`).join(" ");
