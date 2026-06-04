@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  packages: read # @middag-io/react is published to GitHub Packages
 
 # Full-stack Playwright E2E: build the React bundle into public/build, then let
 # Playwright boot a freshly seeded PHP server (composer install:db + serve) and
@@ -34,9 +35,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          registry-url: https://npm.pkg.github.com
+          scope: '@middag-io'
 
       - name: Build the React bundle into public/build
         working-directory: ui
+        env:
+          # @middag-io/react lives on GitHub Packages; GITHUB_TOKEN + packages:read
+          # authenticates for org-accessible packages. If this 401s, supply a PAT
+          # secret with read:packages instead.
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           npm ci
           npm run build:host
