@@ -66,8 +66,10 @@ final class KernelContainerTest extends DemoTestCase
         $translator = $this->container->get(TranslatorInterface::class);
 
         self::assertSame('hello world', $translator->get('hello world'));
-        self::assertSame('hi bob', $translator->get('hi {name}', '', ['name' => 'bob']));
-        self::assertTrue($translator->has('anything'));
+        self::assertSame('hi bob', $translator->get('hi %name%', '', ['%name%' => 'bob']));
+        // FallbackTranslator has no catalogue, so has() is honestly false even
+        // though get() still echoes the key back.
+        self::assertFalse($translator->has('anything'));
     }
 
     #[Test]

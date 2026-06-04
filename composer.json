@@ -3,18 +3,12 @@
   "description": "Standalone harness proving the middag-io/framework OSS surface + middag-io/ui contracts — no Moodle/WordPress host, no proprietary core. Boots a real PSR-15 HTTP app (contract-driven Inertia, session auth + #[Auth] gate, middleware pipeline, CSRF, flash/PRG) + Symfony Console command worker over SQLite (Active Record + Data Mapper, converged Symfony Messenger bus, hooks, forms, schema migrations, logging).",
   "type": "project",
   "license": "Apache-2.0",
-  "repositories": [
-    {
-      "type": "composer",
-      "url": "https://privatesatis.middag.com.br"
-    }
-  ],
   "require": {
     "php": "^8.2",
     "ext-pdo": "*",
     "ext-pdo_sqlite": "*",
-    "middag-io/framework": "^0.8.0",
-    "middag-io/ui": "^0.8.2",
+    "middag-io/framework": "^0.10.0",
+    "middag-io/ui": "^1.0",
     "symfony/dotenv": "^7.0 || ^8.0"
   },
   "require-dev": {

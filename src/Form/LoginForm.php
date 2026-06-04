@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Middag\Demo\Standalone\Form;
 
 use Middag\Framework\Form\AbstractForm;
-use Middag\Framework\Form\FieldDefinition;
+use Middag\Framework\Form\FieldFactory;
 
 /**
  * Login form — two fields declared with the Field DSL and rendered through the
@@ -23,8 +23,8 @@ final class LoginForm extends AbstractForm
     public function schema(): array
     {
         return [
-            FieldDefinition::email('email')->label('Email')->required(),
-            FieldDefinition::password('password')->label('Password')->required(),
+            FieldFactory::email('email')->label('Email')->required(),
+            FieldFactory::password('password')->label('Password')->required(),
         ];
     }
 }
