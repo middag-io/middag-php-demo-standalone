@@ -107,7 +107,6 @@ __pycache__/
 .phpunit.cache/
 .phpunit.result.cache
 .phpstan-cache/
-phpstan-baseline.neon
 .deptrac.cache
 .rector/
 
