@@ -2,17 +2,27 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Command;
 
+use Middag\Demo\Standalone\Hook\TicketHooks;
 use Middag\Framework\Bus\Command\AbstractCommand;
+use Middag\Framework\Bus\Command\CommandWorker;
 
 /**
  * Async command: escalate a ticket whose priority breaches its SLA.
  *
- * Enqueued (not handled inline) by {@see \Middag\Demo\Standalone\Hook\TicketHooks}
+ * Enqueued (not handled inline) by {@see TicketHooks}
  * when a `high`/`urgent` ticket is created: the SendersLocator wired in
  * DemoBootstrap::createMessageBus() routes it to the in-memory transport, so the
- * dispatch QUEUES it; {@see \Middag\Framework\Bus\Command\CommandWorker}::drain()
+ * dispatch QUEUES it; {@see CommandWorker}::drain()
  * (the `worker:consume` command) processes it later through the same bus, off the
  * request's critical path.
  *

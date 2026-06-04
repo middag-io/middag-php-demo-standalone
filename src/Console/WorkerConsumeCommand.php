@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Console;
 
 use Middag\Demo\Standalone\Command\EscalateSlaCommand;
@@ -55,7 +63,7 @@ final class WorkerConsumeCommand extends Command
             if ($seed > 0) {
                 /** @var MessageBusInterface $bus */
                 $bus = $this->container->get(MessageBusInterface::class);
-                for ($i = 1; $i <= $seed; $i++) {
+                for ($i = 1; $i <= $seed; ++$i) {
                     $bus->dispatch(new EscalateSlaCommand($i, 'high'));
                 }
                 $output->writeln(sprintf('<info>seeded %d async command(s)</info>', $seed));

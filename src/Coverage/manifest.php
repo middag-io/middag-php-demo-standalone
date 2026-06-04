@@ -3,6 +3,14 @@
 declare(strict_types=1);
 
 /**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
+/*
  * Coverage manifest — the single source of truth for what free middag-io surface
  * this demo exercises, and where.
  *
@@ -18,7 +26,6 @@ declare(strict_types=1);
  *
  * @return array{covered: array<string, array{kind: string, route: ?string, note: string}>, gaps: array<string, array{reason: string, filed: string}>}
  */
-
 return [
     'covered' => [
         // Shells (2/2 free).

@@ -2,9 +2,20 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Console;
 
+use Middag\Demo\Standalone\Domain\Eloquent\User;
 use Middag\Demo\Standalone\Schema\DemoMigrationRunner;
+use Middag\Demo\Standalone\Schema\HelpdeskSeeder;
+use Middag\Framework\Database\Contract\ConnectionAdapterInterface;
 use Middag\Framework\Database\Contract\ConnectionInterface;
 use Middag\Framework\Database\Contract\SchemaBuilderAdapterInterface;
 use Middag\Framework\Database\Schema\MysqlVersionTracker;
@@ -39,8 +50,10 @@ final class InstallCommand extends Command
     {
         /** @var SchemaBuilder $builder */
         $builder = $this->container->get(SchemaBuilder::class);
+
         /** @var SchemaBuilderAdapterInterface $adapter */
         $adapter = $this->container->get(SchemaBuilderAdapterInterface::class);
+
         /** @var ConnectionInterface $connection */
         $connection = $this->container->get(ConnectionInterface::class);
 
@@ -55,18 +68,18 @@ final class InstallCommand extends Command
         $output->writeln(sprintf('<info>version:</info> %d -> %d', $old, DemoMigrationRunner::VERSION));
 
         // Seed the demo login user (app-owned user store; auth session is framework-side).
-        \Middag\Demo\Standalone\Domain\Eloquent\User::seedDemo();
+        User::seedDemo();
         $output->writeln(sprintf(
             '<info>demo user:</info> %s / %s',
-            \Middag\Demo\Standalone\Domain\Eloquent\User::DEMO_EMAIL,
-            \Middag\Demo\Standalone\Domain\Eloquent\User::DEMO_PASSWORD,
+            User::DEMO_EMAIL,
+            User::DEMO_PASSWORD,
         ));
 
         // Seed the help-desk dataset: agents/customers/SLA (data-mapper) +
         // tickets/comments (active-record). Idempotent.
-        /** @var \Middag\Framework\Database\Contract\ConnectionAdapterInterface $connAdapter */
-        $connAdapter = $this->container->get(\Middag\Framework\Database\Contract\ConnectionAdapterInterface::class);
-        \Middag\Demo\Standalone\Schema\HelpdeskSeeder::seed($connAdapter);
+        /** @var ConnectionAdapterInterface $connAdapter */
+        $connAdapter = $this->container->get(ConnectionAdapterInterface::class);
+        HelpdeskSeeder::seed($connAdapter);
         $output->writeln('<info>help-desk:</info> agents + customers + SLA + tickets + comments seeded');
 
         return Command::SUCCESS;

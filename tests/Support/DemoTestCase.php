@@ -2,9 +2,18 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Tests\Support;
 
 use Middag\Demo\Standalone\Bootstrap\DemoKernel;
+use Middag\Demo\Standalone\Domain\Eloquent\User;
 use Middag\Framework\Database\Contract\SchemaBuilderAdapterInterface;
 use Middag\Framework\Database\Schema\SchemaBuilder;
 use Middag\Framework\Http\Contract\AuthenticatorInterface;
@@ -39,6 +48,7 @@ abstract class DemoTestCase extends TestCase
         // Install the schema on the shared in-memory connection.
         /** @var SchemaBuilder $builder */
         $builder = $this->container->get(SchemaBuilder::class);
+
         /** @var SchemaBuilderAdapterInterface $adapter */
         $adapter = $this->container->get(SchemaBuilderAdapterInterface::class);
         foreach ($builder->all() as $name => $descriptor) {
@@ -51,7 +61,7 @@ abstract class DemoTestCase extends TestCase
         // default to an authenticated session (via the framework authenticator) so
         // guarded routes are reachable. AuthTest logs out / back in to exercise the
         // gate, login verification, and logout.
-        \Middag\Demo\Standalone\Domain\Eloquent\User::seedDemo();
+        User::seedDemo();
         $this->container->get(AuthenticatorInterface::class)->login(1, [
             'name' => 'Test User',
             'email' => 'test@demo.local',

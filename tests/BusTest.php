@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Tests;
 
 use Middag\Demo\Standalone\Command\CreateTicketCommand;
@@ -14,6 +22,7 @@ use Middag\Framework\Bus\Command\CommandWorker;
 use Middag\Framework\Bus\Contract\MessageBusInterface;
 use Middag\Framework\Bus\Transport\InMemoryTransport;
 use Middag\Framework\Logging\CleanLogsCommand;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Test;
 use ReflectionClass;
 use Symfony\Component\Messenger\Envelope;
@@ -24,17 +33,13 @@ use Symfony\Component\Messenger\Stamp\HandledStamp;
  * the {Command}Handler convention, async routing to the in-memory transport +
  * CommandWorker drain, command serialization round-trip, and the declarative
  * #[Schedule] attribute. (The ticket created -> escalation async side effect is
- * proved end-to-end in EscalationTest.)
+ * proved end-to-end in EscalationTest.).
  *
  * @internal
  */
+#[CoversNothing]
 final class BusTest extends DemoTestCase
 {
-    private function bus(): MessageBusInterface
-    {
-        return $this->container->get(MessageBusInterface::class);
-    }
-
     #[Test]
     public function syncDispatchPersistsTicketAndReturnsIdViaHandledStamp(): void
     {
@@ -92,5 +97,10 @@ final class BusTest extends DemoTestCase
         $schedule = $attributes[0]->newInstance();
         self::assertSame('0', $schedule->minute);
         self::assertSame('4', $schedule->hour);
+    }
+
+    private function bus(): MessageBusInterface
+    {
+        return $this->container->get(MessageBusInterface::class);
     }
 }

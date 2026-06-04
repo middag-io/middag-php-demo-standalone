@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Tests;
 
 use Middag\Demo\Standalone\Domain\Doctrine\Agent;
@@ -9,6 +17,7 @@ use Middag\Demo\Standalone\Domain\Doctrine\AgentRepository;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Database\Contract\ConnectionAdapterInterface;
 use Middag\Framework\Http\Contract\AuthenticatorInterface;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
@@ -18,46 +27,9 @@ use PHPUnit\Framework\Attributes\Test;
  *
  * @internal
  */
+#[CoversNothing]
 final class AgentContractTest extends DemoTestCase
 {
-    private function seedAgent(string $name = 'Ana Test', string $role = 'supervisor'): int
-    {
-        $repo = new AgentRepository($this->container->get(ConnectionAdapterInterface::class));
-        $repo->save(new Agent(null, $name, strtolower(str_replace(' ', '.', $name)) . '@test.local', $role, true, time()));
-
-        return (int) $repo->latest()[0]->getId();
-    }
-
-    /** @param list<array<string, mixed>> $blocks */
-    private function blockByKey(array $blocks, string $key): ?array
-    {
-        foreach ($blocks as $block) {
-            if (($block['key'] ?? '') === $key) {
-                return $block;
-            }
-        }
-
-        return null;
-    }
-
-    /** @return array<string, mixed> */
-    private function contract(string $path): array
-    {
-        $payload = $this->json($this->handle('GET', $path, [], ['HTTP_X_INERTIA' => 'true']));
-        self::assertSame('Page', $payload['component']);
-
-        return $payload['props']['contract'];
-    }
-
-    private function loginWithCapabilities(string ...$caps): void
-    {
-        $this->container->get(AuthenticatorInterface::class)->login(1, [
-            'name' => 'Test User',
-            'email' => 'test@demo.local',
-            'capabilities' => array_values($caps),
-        ]);
-    }
-
     #[Test]
     public function listRendersRosterAndGatesSupervisorColumnsByDefault(): void
     {
@@ -151,5 +123,43 @@ final class AgentContractTest extends DemoTestCase
     {
         $response = $this->handle('GET', '/agents/999999', [], ['HTTP_X_INERTIA' => 'true']);
         self::assertSame(404, $response->getStatusCode());
+    }
+
+    private function seedAgent(string $name = 'Ana Test', string $role = 'supervisor'): int
+    {
+        $repo = new AgentRepository($this->container->get(ConnectionAdapterInterface::class));
+        $repo->save(new Agent(null, $name, strtolower(str_replace(' ', '.', $name)) . '@test.local', $role, true, time()));
+
+        return (int) $repo->latest()[0]->getId();
+    }
+
+    /** @param list<array<string, mixed>> $blocks */
+    private function blockByKey(array $blocks, string $key): ?array
+    {
+        foreach ($blocks as $block) {
+            if (($block['key'] ?? '') === $key) {
+                return $block;
+            }
+        }
+
+        return null;
+    }
+
+    /** @return array<string, mixed> */
+    private function contract(string $path): array
+    {
+        $payload = $this->json($this->handle('GET', $path, [], ['HTTP_X_INERTIA' => 'true']));
+        self::assertSame('Page', $payload['component']);
+
+        return $payload['props']['contract'];
+    }
+
+    private function loginWithCapabilities(string ...$caps): void
+    {
+        $this->container->get(AuthenticatorInterface::class)->login(1, [
+            'name' => 'Test User',
+            'email' => 'test@demo.local',
+            'capabilities' => array_values($caps),
+        ]);
     }
 }

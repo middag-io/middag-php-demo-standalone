@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Tests;
 
 use Middag\Demo\Standalone\Form\TicketForm;
@@ -9,6 +17,7 @@ use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Form\Renderer\InertiaFieldMapper;
 use Middag\Framework\Form\Renderer\InertiaRenderer;
 use Middag\Ui\Shared\Enum\RenderTarget;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
@@ -22,13 +31,9 @@ use PHPUnit\Framework\Attributes\Test;
  *
  * @internal
  */
+#[CoversNothing]
 final class FormTest extends DemoTestCase
 {
-    private function form(): TicketForm
-    {
-        return $this->container->get(TicketForm::class);
-    }
-
     #[Test]
     public function validatesValidSubmission(): void
     {
@@ -125,5 +130,10 @@ final class FormTest extends DemoTestCase
         // Field defaults seed the initial values the client form binds to.
         self::assertSame('normal', $props['values']['priority']);
         self::assertSame('web', $props['values']['channel']);
+    }
+
+    private function form(): TicketForm
+    {
+        return $this->container->get(TicketForm::class);
     }
 }

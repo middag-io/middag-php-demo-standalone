@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Tests;
 
 use Middag\Demo\Standalone\Domain\Doctrine\Customer;
@@ -12,6 +20,7 @@ use Middag\Framework\Database\Contract\ConnectionAdapterInterface;
 use Middag\Framework\Persistence\Query\Page;
 use Middag\Framework\Persistence\Query\QueryBuilder;
 use Middag\Framework\Shared\Enum\Operator;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
@@ -23,13 +32,9 @@ use PHPUnit\Framework\Attributes\Test;
  *
  * @internal
  */
+#[CoversNothing]
 final class PersistenceTest extends DemoTestCase
 {
-    private function repository(): CustomerRepository
-    {
-        return $this->container->get(CustomerRepository::class);
-    }
-
     #[Test]
     public function activeRecordCrud(): void
     {
@@ -88,8 +93,8 @@ final class PersistenceTest extends DemoTestCase
     public function dataMapperQueryBuilderPaginatesIntoPage(): void
     {
         $repo = $this->repository();
-        for ($i = 1; $i <= 5; $i++) {
-            $repo->save(new Customer(null, "c{$i}", "c{$i}@x.example", null, null, time()));
+        for ($i = 1; $i <= 5; ++$i) {
+            $repo->save(new Customer(null, 'c' . $i, sprintf('c%d@x.example', $i), null, null, time()));
         }
 
         $page = $repo->paginate(1, 2);
@@ -108,6 +113,7 @@ final class PersistenceTest extends DemoTestCase
         // Write the ticket the active-record way...
         $ticket = new Ticket(['subject' => 'parity', 'status' => 'open', 'priority' => 'high', 'channel' => 'web', 'customer_id' => 1, 'created_at' => time()]);
         $ticket->save();
+
         $id = (int) $ticket->getKey();
 
         // ...read it back through the data-mapper QueryBuilder over the same table.
@@ -118,5 +124,10 @@ final class PersistenceTest extends DemoTestCase
         self::assertNotNull($row);
         self::assertSame('parity', (string) $row['subject']);
         self::assertSame('high', (string) $row['priority']);
+    }
+
+    private function repository(): CustomerRepository
+    {
+        return $this->container->get(CustomerRepository::class);
     }
 }

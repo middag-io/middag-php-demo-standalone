@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Http;
 
 use Middag\Demo\Standalone\Http\Concern\RendersPages;
@@ -33,7 +41,7 @@ final class HelpController extends AbstractController
             ->title('Help & walkthrough')
             ->subtitle('What this demo proves, and where to look')
             ->region('content', function (RegionBuilder $region): void {
-                $region->markdownPanel('readme', self::walkthroughMarkdown());
+                $region->markdownPanel('readme', $this->walkthroughMarkdown());
 
                 // empty_state via generic block() → object-shaped cta {label, href}.
                 $region->block('empty_state', 'getting_started', [
@@ -44,10 +52,10 @@ final class HelpController extends AbstractController
                 ]);
 
                 $region->actionGrid('links', [
-                    self::link('go-dashboard', 'Dashboard', 'SLA health, metrics and the ticket trend chart.', 'Open dashboard', 'layout-dashboard', '/', 'primary'),
-                    self::link('go-tickets', 'Tickets', 'The queue: hand-built cell renderers + the form pipeline.', 'Open tickets', 'inbox', '/tickets', 'secondary'),
-                    self::link('go-parity', 'Dual-ORM parity', 'The same dataset read the data-mapper and active-record ways.', 'Open parity', 'columns', '/parity', 'secondary'),
-                    self::link('go-coverage', 'Coverage', 'The CI-enforced surface manifest + the catalogued gaps.', 'Open coverage', 'shield-check', '/coverage', 'secondary'),
+                    $this->link('go-dashboard', 'Dashboard', 'SLA health, metrics and the ticket trend chart.', 'Open dashboard', 'layout-dashboard', '/', 'primary'),
+                    $this->link('go-tickets', 'Tickets', 'The queue: hand-built cell renderers + the form pipeline.', 'Open tickets', 'inbox', '/tickets', 'secondary'),
+                    $this->link('go-parity', 'Dual-ORM parity', 'The same dataset read the data-mapper and active-record ways.', 'Open parity', 'columns', '/parity', 'secondary'),
+                    $this->link('go-coverage', 'Coverage', 'The CI-enforced surface manifest + the catalogued gaps.', 'Open coverage', 'shield-check', '/coverage', 'secondary'),
                 ]);
             })
             ->build();
@@ -60,7 +68,7 @@ final class HelpController extends AbstractController
      *
      * @return array<string, mixed>
      */
-    private static function link(string $id, string $title, string $description, string $label, string $icon, string $href, string $intent): array
+    private function link(string $id, string $title, string $description, string $label, string $icon, string $href, string $intent): array
     {
         return [
             'id' => $id,
@@ -73,10 +81,10 @@ final class HelpController extends AbstractController
         ];
     }
 
-    private static function walkthroughMarkdown(): string
+    private function walkthroughMarkdown(): string
     {
         return "## Help-desk reference demo\n\n"
-            . "A support desk built to prove the **free** middag-io surface end-to-end, "
+            . 'A support desk built to prove the **free** middag-io surface end-to-end, '
             . "so the Moodle and WordPress adapters inherit a de-risked contract.\n\n"
             . "### What each page proves\n\n"
             . "- **Dashboard** — `dashboard` layout, metric cards, a status_strip and the custom `chart` block.\n"
@@ -87,6 +95,6 @@ final class HelpController extends AbstractController
             . "- **Coverage** — the CI-enforced manifest mapping every covered symbol to its proof route, plus the catalogued gaps.\n\n"
             . "### Run it\n\n"
             . "```\nphp -S localhost:8090 -t public public/index.php\ncd ui && npm run build:host\n```\n\n"
-            . "Login: `demo@middag.io` / `middag`.";
+            . 'Login: `demo@middag.io` / `middag`.';
     }
 }

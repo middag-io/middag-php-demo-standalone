@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Domain\Doctrine;
 
 use Middag\Framework\Persistence\Contract\MapperInterface;
@@ -15,17 +23,6 @@ use Middag\Framework\Shared\Enum\Operator;
  */
 final class SlaPolicyRepository extends AbstractRepository
 {
-    protected function table(): string
-    {
-        return 'demo_sla_policies';
-    }
-
-    /** @return MapperInterface<SlaPolicy> */
-    protected function mapper(): MapperInterface
-    {
-        return new SlaPolicyMapper();
-    }
-
     /** @return list<SlaPolicy> */
     public function latest(): array
     {
@@ -41,8 +38,20 @@ final class SlaPolicyRepository extends AbstractRepository
         return $rows[0] ?? null;
     }
 
+    protected function table(): string
+    {
+        return 'demo_sla_policies';
+    }
+
+    /** @return MapperInterface<SlaPolicy> */
+    protected function mapper(): MapperInterface
+    {
+        return new SlaPolicyMapper();
+    }
+
     /**
-     * @param  list<array<string, mixed>> $rows
+     * @param list<array<string, mixed>> $rows
+     *
      * @return list<SlaPolicy>
      */
     private function hydrate(array $rows): array

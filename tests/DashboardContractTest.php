@@ -2,11 +2,20 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Tests;
 
 use Middag\Demo\Standalone\Command\CreateTicketCommand;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Bus\Contract\MessageBusInterface;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
 
@@ -17,39 +26,9 @@ use Symfony\Component\Messenger\Stamp\HandledStamp;
  *
  * @internal
  */
+#[CoversNothing]
 final class DashboardContractTest extends DemoTestCase
 {
-    private function createTicket(string $subject, string $priority = 'normal'): int
-    {
-        $envelope = $this->container->get(MessageBusInterface::class)
-            ->dispatch(new CreateTicketCommand(subject: $subject, priority: $priority, customerId: 1));
-
-        return (int) $envelope->last(HandledStamp::class)?->getResult();
-    }
-
-    /** @return array<string, mixed> */
-    private function contract(string $path): array
-    {
-        $payload = $this->json($this->handle('GET', $path, [], ['HTTP_X_INERTIA' => 'true']));
-        self::assertSame('Page', $payload['component']);
-
-        return $payload['props']['contract'];
-    }
-
-    /**
-     * @param list<array<string, mixed>> $blocks
-     */
-    private function blockByKey(array $blocks, string $key): ?array
-    {
-        foreach ($blocks as $block) {
-            if (($block['key'] ?? '') === $key) {
-                return $block;
-            }
-        }
-
-        return null;
-    }
-
     #[Test]
     public function dashboardRendersMetricsStatusStripChartAndOpenQueue(): void
     {
@@ -86,5 +65,36 @@ final class DashboardContractTest extends DemoTestCase
         $variants = array_column($table['data']['columns'], 'variant', 'key');
         self::assertSame('status', $variants['status'] ?? null);
         self::assertSame('/tickets/{id}', $table['data']['rowHref'] ?? null);
+    }
+
+    private function createTicket(string $subject, string $priority = 'normal'): int
+    {
+        $envelope = $this->container->get(MessageBusInterface::class)
+            ->dispatch(new CreateTicketCommand(subject: $subject, priority: $priority, customerId: 1));
+
+        return (int) $envelope->last(HandledStamp::class)?->getResult();
+    }
+
+    /** @return array<string, mixed> */
+    private function contract(string $path): array
+    {
+        $payload = $this->json($this->handle('GET', $path, [], ['HTTP_X_INERTIA' => 'true']));
+        self::assertSame('Page', $payload['component']);
+
+        return $payload['props']['contract'];
+    }
+
+    /**
+     * @param list<array<string, mixed>> $blocks
+     */
+    private function blockByKey(array $blocks, string $key): ?array
+    {
+        foreach ($blocks as $block) {
+            if (($block['key'] ?? '') === $key) {
+                return $block;
+            }
+        }
+
+        return null;
     }
 }

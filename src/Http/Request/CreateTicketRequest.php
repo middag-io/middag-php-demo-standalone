@@ -2,9 +2,18 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Http\Request;
 
 use Middag\Framework\Http\Request\AbstractFormRequest;
+use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -19,7 +28,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 final class CreateTicketRequest extends AbstractFormRequest
 {
-    /** @return array<string, array<\Symfony\Component\Validator\Constraint>|\Symfony\Component\Validator\Constraint> */
+    /** @return array<string, array<Constraint>|Constraint> */
     public function rules(): array
     {
         return [

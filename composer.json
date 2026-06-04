@@ -14,7 +14,10 @@
   "require-dev": {
     "doctrine/dbal": "^4.0",
     "filp/whoops": "^2.18",
+    "friendsofphp/php-cs-fixer": "^3.0",
+    "phpstan/phpstan": "^2.0",
     "phpunit/phpunit": "^11.0",
+    "rector/rector": "^2.0",
     "symfony/console": "^7.0 || ^8.0",
     "symfony/event-dispatcher": "^7.0 || ^8.0",
     "symfony/filesystem": "^7.0 || ^8.0",
@@ -45,6 +48,27 @@
     "worker:consume": "@php bin/console worker:consume",
     "logs:clean": "@php bin/console logs:clean",
     "migrate:discover": "@php bin/console migrate:discover",
-    "test": "phpunit"
+    "test": "phpunit",
+    "post-install-cmd": "git config core.hooksPath .githooks 2>/dev/null || true",
+    "post-update-cmd": "git config core.hooksPath .githooks 2>/dev/null || true",
+    "check": [
+      "@check:style",
+      "@check:rector",
+      "@check:stan"
+    ],
+    "check:stan": "phpstan analyse --configuration=.phpstan.neon",
+    "check:style": "php-cs-fixer fix --dry-run --verbose --config=.php-cs-fixer.dist.php",
+    "check:rector": "rector process --dry-run --config=.php-rector.php",
+    "fix": [
+      "@fix:style",
+      "@fix:rector"
+    ],
+    "fix:all": [
+      "@fix:style",
+      "@fix:rector",
+      "@fix:style"
+    ],
+    "fix:style": "php-cs-fixer fix --verbose --show-progress=none --config=.php-cs-fixer.dist.php",
+    "fix:rector": "rector process --config=.php-rector.php --no-progress-bar"
   }
 }

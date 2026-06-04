@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Tests;
 
 use Middag\Demo\Standalone\Command\CreateTicketCommand;
@@ -12,6 +20,7 @@ use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Bus\Contract\MessageBusInterface;
 use Middag\Framework\Database\Contract\ConnectionAdapterInterface;
 use Middag\Framework\Http\Contract\AuthenticatorInterface;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
 
@@ -23,6 +32,7 @@ use Symfony\Component\Messenger\Stamp\HandledStamp;
  *
  * @internal
  */
+#[CoversNothing]
 final class CoverageManifestTest extends DemoTestCase
 {
     /** PRO block types that must NEVER appear in the free demo. */
@@ -32,6 +42,7 @@ final class CoverageManifestTest extends DemoTestCase
     private array $contractCache = [];
 
     private int $ticketId = 0;
+
     private int $agentId = 0;
 
     protected function setUp(): void
@@ -52,109 +63,20 @@ final class CoverageManifestTest extends DemoTestCase
 
         $repo = new AgentRepository($this->container->get(ConnectionAdapterInterface::class));
         $repo->save(new Agent(null, 'Coverage Agent', 'cov@test.local', 'supervisor', true, time()));
+
         $this->agentId = (int) $repo->latest()[0]->getId();
-    }
-
-    /** @return array{covered: array<string, array<string, mixed>>, gaps: array<string, array<string, mixed>>} */
-    private function manifest(): array
-    {
-        return require CoverageController::MANIFEST;
-    }
-
-    /** @return array<string, mixed> the decoded page contract for a route (cached). */
-    private function contractFor(string $route): array
-    {
-        $path = str_replace(
-            ['{id}'],
-            [str_starts_with($route, '/agents/') ? (string) $this->agentId : (string) $this->ticketId],
-            $route,
-        );
-
-        if (!isset($this->contractCache[$path])) {
-            $payload = $this->json($this->handle('GET', $path, [], ['HTTP_X_INERTIA' => 'true']));
-            self::assertSame('Page', $payload['component'] ?? null, "route {$path} renders a Page contract");
-            $this->contractCache[$path] = $payload['props']['contract'];
-        }
-
-        return $this->contractCache[$path];
-    }
-
-    /**
-     * Every block type on a contract, recursing into tabbed_panel ("tabs") children.
-     *
-     * @param array<string, mixed> $contract
-     * @return list<string>
-     */
-    private function blockTypes(array $contract): array
-    {
-        $types = [];
-        foreach ($contract['layout']['regions'] ?? [] as $blocks) {
-            $this->walkBlocks($blocks, $types);
-        }
-
-        return $types;
-    }
-
-    /**
-     * @param list<array<string, mixed>> $blocks
-     * @param list<string> $types
-     */
-    private function walkBlocks(array $blocks, array &$types): void
-    {
-        foreach ($blocks as $block) {
-            $types[] = (string) ($block['type'] ?? '');
-            if (($block['type'] ?? '') === 'tabs') {
-                foreach ($block['data']['tabs'] ?? [] as $tab) {
-                    $this->walkBlocks($tab['blocks'] ?? [], $types);
-                }
-            }
-        }
-    }
-
-    /**
-     * Every dense_table column variant on a contract (recursing into tabs).
-     *
-     * @param array<string, mixed> $contract
-     * @return list<string>
-     */
-    private function columnVariants(array $contract): array
-    {
-        $variants = [];
-        foreach ($contract['layout']['regions'] ?? [] as $blocks) {
-            $this->walkVariants($blocks, $variants);
-        }
-
-        return $variants;
-    }
-
-    /**
-     * @param list<array<string, mixed>> $blocks
-     * @param list<string> $variants
-     */
-    private function walkVariants(array $blocks, array &$variants): void
-    {
-        foreach ($blocks as $block) {
-            foreach ($block['data']['columns'] ?? [] as $col) {
-                if (isset($col['variant'])) {
-                    $variants[] = (string) $col['variant'];
-                }
-            }
-            if (($block['type'] ?? '') === 'tabs') {
-                foreach ($block['data']['tabs'] ?? [] as $tab) {
-                    $this->walkVariants($tab['blocks'] ?? [], $variants);
-                }
-            }
-        }
     }
 
     #[Test]
     public function everyCoveredBlockSymbolIsEmittedByItsRoute(): void
     {
         foreach ($this->manifest()['covered'] as $symbol => $entry) {
-            if ($entry['kind'] !== 'block' || $entry['route'] === null) {
+            if ($entry['kind'] !== 'block') {
                 continue;
             }
-
+            if ($entry['route'] === null) {
+                continue;
+            }
             $wireType = explode(':', $symbol, 2)[1];
             // The tabbed_panel surface is emitted under the PHP wire type "tabs".
             if ($wireType === 'tabbed_panel') {
@@ -162,7 +84,7 @@ final class CoverageManifestTest extends DemoTestCase
             }
 
             $types = $this->blockTypes($this->contractFor($entry['route']));
-            self::assertContains($wireType, $types, "covered {$symbol} must be emitted by {$entry['route']}");
+            self::assertContains($wireType, $types, sprintf('covered %s must be emitted by %s', $symbol, $entry['route']));
         }
     }
 
@@ -170,13 +92,15 @@ final class CoverageManifestTest extends DemoTestCase
     public function everyCoveredCellSymbolIsEmittedByItsRoute(): void
     {
         foreach ($this->manifest()['covered'] as $symbol => $entry) {
-            if ($entry['kind'] !== 'cell' || $entry['route'] === null) {
+            if ($entry['kind'] !== 'cell') {
                 continue;
             }
-
+            if ($entry['route'] === null) {
+                continue;
+            }
             $variant = explode(':', $symbol, 2)[1];
             $variants = $this->columnVariants($this->contractFor($entry['route']));
-            self::assertContains($variant, $variants, "covered {$symbol} must be emitted by {$entry['route']}");
+            self::assertContains($variant, $variants, sprintf('covered %s must be emitted by %s', $symbol, $entry['route']));
         }
     }
 
@@ -193,7 +117,7 @@ final class CoverageManifestTest extends DemoTestCase
         foreach (array_keys($routes) as $route) {
             $types = $this->blockTypes($this->contractFor($route));
             foreach (self::PRO_BLOCKS as $pro) {
-                self::assertNotContains($pro, $types, "PRO block {$pro} must not leak on {$route}");
+                self::assertNotContains($pro, $types, sprintf('PRO block %s must not leak on %s', $pro, $route));
             }
         }
     }
@@ -214,7 +138,7 @@ final class CoverageManifestTest extends DemoTestCase
 
         $variants = $this->columnVariants($this->contractFor('/tickets'));
         foreach ($gapCells as $gapCell) {
-            self::assertNotContains($gapCell, $variants, "gap cell {$gapCell} must not be emitted on /tickets");
+            self::assertNotContains($gapCell, $variants, sprintf('gap cell %s must not be emitted on /tickets', $gapCell));
         }
     }
 
@@ -238,5 +162,99 @@ final class CoverageManifestTest extends DemoTestCase
         }
         self::assertSame($coveredCount, $rowCounts['covered'] ?? -1, 'the covered table mirrors the manifest');
         self::assertGreaterThan(0, $rowCounts['gaps'] ?? 0, 'gaps are rendered too');
+    }
+
+    /** @return array{covered: array<string, array<string, mixed>>, gaps: array<string, array<string, mixed>>} */
+    private function manifest(): array
+    {
+        return require CoverageController::MANIFEST;
+    }
+
+    /** @return array<string, mixed> the decoded page contract for a route (cached). */
+    private function contractFor(string $route): array
+    {
+        $path = str_replace(
+            ['{id}'],
+            [str_starts_with($route, '/agents/') ? (string) $this->agentId : (string) $this->ticketId],
+            $route,
+        );
+
+        if (!isset($this->contractCache[$path])) {
+            $payload = $this->json($this->handle('GET', $path, [], ['HTTP_X_INERTIA' => 'true']));
+            self::assertSame('Page', $payload['component'] ?? null, sprintf('route %s renders a Page contract', $path));
+            $this->contractCache[$path] = $payload['props']['contract'];
+        }
+
+        return $this->contractCache[$path];
+    }
+
+    /**
+     * Every block type on a contract, recursing into tabbed_panel ("tabs") children.
+     *
+     * @param array<string, mixed> $contract
+     *
+     * @return list<string>
+     */
+    private function blockTypes(array $contract): array
+    {
+        $types = [];
+        foreach ($contract['layout']['regions'] ?? [] as $blocks) {
+            $this->walkBlocks($blocks, $types);
+        }
+
+        return $types;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $blocks
+     * @param list<string>               $types
+     */
+    private function walkBlocks(array $blocks, array &$types): void
+    {
+        foreach ($blocks as $block) {
+            $types[] = (string) ($block['type'] ?? '');
+            if (($block['type'] ?? '') === 'tabs') {
+                foreach ($block['data']['tabs'] ?? [] as $tab) {
+                    $this->walkBlocks($tab['blocks'] ?? [], $types);
+                }
+            }
+        }
+    }
+
+    /**
+     * Every dense_table column variant on a contract (recursing into tabs).
+     *
+     * @param array<string, mixed> $contract
+     *
+     * @return list<string>
+     */
+    private function columnVariants(array $contract): array
+    {
+        $variants = [];
+        foreach ($contract['layout']['regions'] ?? [] as $blocks) {
+            $this->walkVariants($blocks, $variants);
+        }
+
+        return $variants;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $blocks
+     * @param list<string>               $variants
+     */
+    private function walkVariants(array $blocks, array &$variants): void
+    {
+        foreach ($blocks as $block) {
+            foreach ($block['data']['columns'] ?? [] as $col) {
+                if (isset($col['variant'])) {
+                    $variants[] = (string) $col['variant'];
+                }
+            }
+            if (($block['type'] ?? '') === 'tabs') {
+                foreach ($block['data']['tabs'] ?? [] as $tab) {
+                    $this->walkVariants($tab['blocks'] ?? [], $variants);
+                }
+            }
+        }
     }
 }

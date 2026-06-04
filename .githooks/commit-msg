@@ -1,0 +1,37 @@
+#!/bin/sh
+# commit-msg — enforce Conventional Commits on the subject line.
+#
+# Why this exists: it keeps the history consistent with the rest of the MIDDAG OSS
+# stack (framework / ui), where release-please derives versions and CHANGELOGs from
+# the commit history. The demo follows the same convention for a clean log.
+#
+# Rules enforced (subject / first line only — the body and footers are free):
+#   * one of the known types,
+#   * an OPTIONAL single, lowercase scope in parentheses (one scope per commit —
+#     no comma-separated multi-scope, by project convention),
+#   * an OPTIONAL "!" breaking-change marker before the colon,
+#   * ": " then a description of at least 3 chars.
+#
+# Breaking changes: mark them with "!" (e.g. feat!: / feat(http)!:) OR a
+# "BREAKING CHANGE:" footer in the body.
+
+MSG=$(head -1 "$1")
+
+# type(scope)!: desc | type!: desc | type(scope): desc | type: desc
+PATTERN="^(feat|fix|chore|docs|style|refactor|perf|test|build|ci|revert)(\([a-z0-9_-]+\))?!?: .{3,}"
+
+if ! echo "$MSG" | grep -qE "$PATTERN"; then
+    echo "[commit-msg] BLOCKED: Message must follow Conventional Commits."
+    echo ""
+    echo "  Format: type(scope): description     (scope optional, single + lowercase)"
+    echo "  Types:  feat, fix, chore, docs, style, refactor, perf, test, build, ci, revert"
+    echo "  Breaking: add '!' before the colon, or a 'BREAKING CHANGE:' footer."
+    echo ""
+    echo "  Examples:"
+    echo "    feat(http): add a typed-DTO endpoint"
+    echo "    fix: seed the SLA policy before the ticket"
+    echo "    chore: bump middag-io/framework"
+    echo ""
+    echo "  Got: $MSG"
+    exit 1
+fi

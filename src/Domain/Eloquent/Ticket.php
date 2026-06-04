@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Domain\Eloquent;
 
 use Middag\Framework\Persistence\Model;
@@ -14,19 +22,19 @@ use Middag\Framework\Persistence\Model;
  * reporter (customer_id). Mirrors the data-mapper reference entities
  * (Agent/Customer/SlaPolicy) to prove paradigm parity on one SQLite engine.
  *
- * @property int|null    $id
+ * @property null|int    $id
  * @property string      $subject
- * @property string|null $body
+ * @property null|string $body
  * @property string      $status        new|open|pending|resolved|closed
  * @property string      $priority      low|normal|high|urgent
  * @property string      $channel       email|web|phone
  * @property int         $customer_id   demo_customers.id (reporter)
- * @property int|null    $agent_id      demo_agents.id (assignee)
- * @property int|null    $sla_policy_id demo_sla_policies.id
- * @property string|null $tags          comma-separated labels
- * @property int|null    $satisfaction  1..5 CSAT, set on close
- * @property int|null    $due_at        unix timestamp (SLA due)
- * @property int|null    $resolved_at   unix timestamp
+ * @property null|int    $agent_id      demo_agents.id (assignee)
+ * @property null|int    $sla_policy_id demo_sla_policies.id
+ * @property null|string $tags          comma-separated labels
+ * @property null|int    $satisfaction  1..5 CSAT, set on close
+ * @property null|int    $due_at        unix timestamp (SLA due)
+ * @property null|int    $resolved_at   unix timestamp
  * @property int         $created_at    unix timestamp
  */
 final class Ticket extends Model

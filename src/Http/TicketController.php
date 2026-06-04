@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Http;
 
 use Middag\Demo\Standalone\Command\CreateTicketCommand;
@@ -27,10 +35,12 @@ use Middag\Ui\Page\Tab;
 use Middag\Ui\Region\RegionBuilder;
 use Middag\Ui\Shared\Enum\ActionIntent;
 use Middag\Ui\Shared\Enum\RenderTarget;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Help-desk ticket UI — contract-driven via middag-io/ui, rendered by
+ * Help-desk ticket UI — contract-driven via middag-io/ui, rendered by.
+ *
  * @middag-io/react from `props.contract` (see {@see RendersPages}).
  *
  * Proves dual-ORM reads in ONE request: tickets come from the active-record
@@ -57,6 +67,7 @@ final class TicketController extends AbstractController
         1 => ['label' => 'Ticket', 'fields' => ['subject', 'body', 'channel', 'priority', 'customer_id', 'agent_id']],
         2 => ['label' => 'Schedule', 'fields' => ['sla_policy_id', 'tags', 'due_at']],
     ];
+
     private const WIZARD_SESSION = 'ticket_wizard';
 
     public function __construct(
@@ -213,7 +224,7 @@ final class TicketController extends AbstractController
             static fn (Comment $c): array => [
                 'id' => (string) $c->id,
                 'actor' => (string) $c->author,
-                'action' => ($c->is_internal ? '🔒 ' : '') . (string) $c->body,
+                'action' => ($c->is_internal ? '🔒 ' : '') . $c->body,
                 'icon' => $c->is_internal ? 'lock' : 'message-circle',
                 'color' => $c->is_internal ? 'warning' : 'info',
                 'timestamp' => (int) $c->created_at,
@@ -226,7 +237,7 @@ final class TicketController extends AbstractController
         $contract = PageBuilder::page('demo.tickets.show')
             ->shell('basic')
             ->layout('sidebar')
-            ->title('#' . $id . ' · ' . (string) $ticket->subject)
+            ->title('#' . $id . ' · ' . $ticket->subject)
             ->subtitle('Ticket detail — workflow state + tabbed detail/activity/SLA')
             ->actions([
                 PageBuilder::action('edit', 'Edit', ActionTarget::link('/tickets/' . $id . '/edit'), ActionIntent::PRIMARY, 'pencil'),
@@ -254,7 +265,7 @@ final class TicketController extends AbstractController
                         ]),
                     ]),
                     new Tab('sla', 'SLA', [
-                        BlockBuilder::markdownPanel('sla', self::slaMarkdown($ticket, $sla)),
+                        BlockBuilder::markdownPanel('sla', $this->slaMarkdown($ticket, $sla)),
                     ]),
                 ]);
             })
@@ -265,29 +276,6 @@ final class TicketController extends AbstractController
             ->build();
 
         return $this->page($contract);
-    }
-
-    /**
-     * SLA tab markdown — the policy reached the data-mapper way (SlaPolicyRepository),
-     * rendered alongside the ticket's own due/resolved timestamps.
-     */
-    private static function slaMarkdown(Ticket $ticket, ?SlaPolicy $sla): string
-    {
-        $due = $ticket->due_at ? date('Y-m-d H:i', (int) $ticket->due_at) : '—';
-        $resolved = $ticket->resolved_at ? date('Y-m-d H:i', (int) $ticket->resolved_at) : 'not yet';
-
-        if ($sla === null) {
-            return "### SLA\n\nNo SLA policy assigned.\n\n- **Due:** {$due}\n- **Resolved:** {$resolved}";
-        }
-
-        $p = $sla->toArray();
-
-        return "### {$p['name']}\n\n"
-            . "- **Priority tier:** {$p['priority']}\n"
-            . "- **Response target:** {$p['response_minutes']} min\n"
-            . "- **Resolution target:** {$p['resolution_minutes']} min\n"
-            . "- **Due:** {$due}\n"
-            . "- **Resolved:** {$resolved}";
     }
 
     /**
@@ -307,9 +295,9 @@ final class TicketController extends AbstractController
             return $this->redirect('/tickets/new?step=1', Response::HTTP_SEE_OTHER);
         }
 
-        $form = $this->formProps();
+        $form = $this->renderers->get(RenderTarget::PROPS)->render($this->form)->props;
         $values = array_merge($form['values'] ?? [], (array) ($session->get(self::WIZARD_SESSION) ?? []));
-        $schema = self::fieldsFor($form['schema'] ?? [], self::WIZARD_STEPS[$step]['fields']);
+        $schema = $this->fieldsFor($form['schema'] ?? [], self::WIZARD_STEPS[$step]['fields']);
 
         // Step 1 → wizardStore (validates + advances); step 2 → wizardConfirm (creates).
         $action = $step === 1 ? '/tickets/new' : '/tickets/new/confirm';
@@ -334,7 +322,7 @@ final class TicketController extends AbstractController
             ->title('New ticket')
             ->subtitle('Guided create — the wizard layout (StepIndicator + footer); server-driven stepping with the partial held in session')
             ->meta([
-                'steps' => self::stepIndicator($step),
+                'steps' => $this->stepIndicator($step),
                 'actions' => $footer,
             ])
             ->region('content', function (RegionBuilder $region) use ($action, $schema, $values, $submitLabel, $validation): void {
@@ -348,7 +336,7 @@ final class TicketController extends AbstractController
     }
 
     /** Direct (single-shot) create — POST /tickets. Still used by the API/tests. */
-    public function store(CreateTicketRequest $request): Response
+    public function store(CreateTicketRequest $request): RedirectResponse
     {
         $this->dispatchCreate($request->validated());
         $this->flash('success', 'Ticket created.');
@@ -361,7 +349,7 @@ final class TicketController extends AbstractController
      * nullable schedule fields are simply absent from this step's POST). Stash the
      * validated core in the session and advance to step 2.
      */
-    public function wizardStore(CreateTicketRequest $request): Response
+    public function wizardStore(CreateTicketRequest $request): RedirectResponse
     {
         $this->getService(SessionInterface::class)->set(self::WIZARD_SESSION, $request->validated());
 
@@ -373,7 +361,7 @@ final class TicketController extends AbstractController
      * session-held core, then create. No re-validation: the required core was
      * validated at step 1 and the schedule fields are all nullable.
      */
-    public function wizardConfirm(): Response
+    public function wizardConfirm(): RedirectResponse
     {
         $session = $this->getService(SessionInterface::class);
         $core = (array) ($session->get(self::WIZARD_SESSION) ?? []);
@@ -394,72 +382,10 @@ final class TicketController extends AbstractController
         return $this->redirectToRoute('tickets.index');
     }
 
-    /**
-     * Dispatch a CreateTicketCommand from a validated/merged data bag — shared by the
-     * direct store() and the wizard's final step.
-     *
-     * @param array<string, mixed> $data
-     */
-    private function dispatchCreate(array $data): void
-    {
-        $this->bus->dispatch(new CreateTicketCommand(
-            subject: (string) $data['subject'],
-            body: isset($data['body']) && $data['body'] !== '' ? (string) $data['body'] : null,
-            priority: (string) ($data['priority'] ?? 'normal'),
-            channel: (string) ($data['channel'] ?? 'web'),
-            customerId: (int) ($data['customer_id'] ?? 0),
-            agentId: isset($data['agent_id']) && $data['agent_id'] !== '' ? (int) $data['agent_id'] : null,
-            slaPolicyId: isset($data['sla_policy_id']) && $data['sla_policy_id'] !== '' ? (int) $data['sla_policy_id'] : null,
-            tags: isset($data['tags']) && $data['tags'] !== '' ? (string) $data['tags'] : null,
-            dueAt: isset($data['due_at']) && $data['due_at'] !== '' ? (strtotime((string) $data['due_at']) ?: null) : null,
-        ));
-    }
-
-    /** Current wizard step from ?step, clamped to a defined step (default 1). */
-    private function currentStep(): int
-    {
-        $step = (int) ($this->request?->query->get('step') ?? 1);
-
-        return isset(self::WIZARD_STEPS[$step]) ? $step : 1;
-    }
-
-    /**
-     * StepIndicator items for layout.meta.steps — exactly one 'active'.
-     *
-     * @return list<array{label: string, status: string}>
-     */
-    private static function stepIndicator(int $current): array
-    {
-        $items = [];
-        foreach (self::WIZARD_STEPS as $n => $def) {
-            $items[] = [
-                'label' => $def['label'],
-                'status' => $n < $current ? 'completed' : ($n === $current ? 'active' : 'pending'),
-            ];
-        }
-
-        return $items;
-    }
-
-    /**
-     * Keep only the rendered form schema nodes for a step (filtered by node `key`).
-     *
-     * @param list<array<string, mixed>> $schema
-     * @param list<string> $names
-     * @return list<array<string, mixed>>
-     */
-    private static function fieldsFor(array $schema, array $names): array
-    {
-        return array_values(array_filter(
-            $schema,
-            static fn (array $node): bool => in_array($node['key'] ?? null, $names, true),
-        ));
-    }
-
     public function edit(int $id): Response
     {
         $ticket = Ticket::findOrFail($id);
-        $form = $this->formProps();
+        $form = $this->renderers->get(RenderTarget::PROPS)->render($this->form)->props;
 
         // Inject the selected entity labels so the async entity_picker renders the
         // current customer/assignee on load. The picker only carries the id, and
@@ -516,7 +442,7 @@ final class TicketController extends AbstractController
         return $this->page($contract);
     }
 
-    public function update(int $id, CreateTicketRequest $request): Response
+    public function update(int $id, CreateTicketRequest $request): RedirectResponse
     {
         $data = $request->validated();
 
@@ -536,6 +462,92 @@ final class TicketController extends AbstractController
         $this->flash('success', 'Ticket updated.');
 
         return $this->redirectToRoute('tickets.index');
+    }
+
+    /**
+     * SLA tab markdown — the policy reached the data-mapper way (SlaPolicyRepository),
+     * rendered alongside the ticket's own due/resolved timestamps.
+     */
+    private function slaMarkdown(Ticket $ticket, ?SlaPolicy $sla): string
+    {
+        $due = $ticket->due_at ? date('Y-m-d H:i', (int) $ticket->due_at) : '—';
+        $resolved = $ticket->resolved_at ? date('Y-m-d H:i', (int) $ticket->resolved_at) : 'not yet';
+
+        if (!$sla instanceof SlaPolicy) {
+            return "### SLA\n\nNo SLA policy assigned.\n\n- **Due:** {$due}\n- **Resolved:** {$resolved}";
+        }
+
+        $p = $sla->toArray();
+
+        return "### {$p['name']}\n\n"
+            . sprintf('- **Priority tier:** %s%s', $p['priority'], PHP_EOL)
+            . "- **Response target:** {$p['response_minutes']} min\n"
+            . "- **Resolution target:** {$p['resolution_minutes']} min\n"
+            . sprintf('- **Due:** %s%s', $due, PHP_EOL)
+            . ('- **Resolved:** ' . $resolved);
+    }
+
+    /**
+     * Dispatch a CreateTicketCommand from a validated/merged data bag — shared by the
+     * direct store() and the wizard's final step.
+     *
+     * @param array<string, mixed> $data
+     */
+    private function dispatchCreate(array $data): void
+    {
+        $this->bus->dispatch(new CreateTicketCommand(
+            subject: (string) $data['subject'],
+            body: isset($data['body']) && $data['body'] !== '' ? (string) $data['body'] : null,
+            priority: (string) ($data['priority'] ?? 'normal'),
+            channel: (string) ($data['channel'] ?? 'web'),
+            customerId: (int) ($data['customer_id'] ?? 0),
+            agentId: isset($data['agent_id']) && $data['agent_id'] !== '' ? (int) $data['agent_id'] : null,
+            slaPolicyId: isset($data['sla_policy_id']) && $data['sla_policy_id'] !== '' ? (int) $data['sla_policy_id'] : null,
+            tags: isset($data['tags']) && $data['tags'] !== '' ? (string) $data['tags'] : null,
+            dueAt: isset($data['due_at']) && $data['due_at'] !== '' ? (strtotime((string) $data['due_at']) ?: null) : null,
+        ));
+    }
+
+    /** Current wizard step from ?step, clamped to a defined step (default 1). */
+    private function currentStep(): int
+    {
+        $step = (int) ($this->request?->query->get('step') ?? 1);
+
+        return isset(self::WIZARD_STEPS[$step]) ? $step : 1;
+    }
+
+    /**
+     * StepIndicator items for layout.meta.steps — exactly one 'active'.
+     *
+     * @return list<array{label: string, status: string}>
+     */
+    private function stepIndicator(int $current): array
+    {
+        $items = [];
+        foreach (self::WIZARD_STEPS as $n => $def) {
+            $items[] = [
+                'label' => $def['label'],
+                'status' => $n < $current ? 'completed' : ($n === $current ? 'active' : 'pending'),
+            ];
+        }
+
+        return $items;
+    }
+
+    /**
+     * Keep only the rendered form schema nodes for a step (filtered by node `key`).
+     *
+     * @param list<array<string, mixed>> $schema
+     * @param list<string>               $names
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function fieldsFor(array $schema, array $names): array
+    {
+        return array_values(array_filter(
+            $schema,
+            static fn (array $node): bool => in_array($node['key'] ?? null, $names, true),
+        ));
     }
 
     /** rich_status appearance for a ticket priority (one of success/warning/danger/info/neutral). */
@@ -569,6 +581,7 @@ final class TicketController extends AbstractController
      * (each exposes getId() + toArray()['name']).
      *
      * @param list<object> $entities
+     *
      * @return array<int, string>
      */
     private function idLabelMap(array $entities): array

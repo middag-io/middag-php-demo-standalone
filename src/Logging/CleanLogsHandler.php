@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Logging;
 
 use Middag\Framework\Logging\CleanLogsCommand;
@@ -30,7 +38,7 @@ final readonly class CleanLogsHandler
         foreach (glob($this->logDir . '/*/*/*.log') ?: [] as $file) {
             if (is_file($file) && filemtime($file) < $cutoff) {
                 @unlink($file);
-                $deleted++;
+                ++$deleted;
             }
         }
 

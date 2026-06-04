@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Tests;
 
 use Middag\Demo\Standalone\Logging\CleanLogsHandler;
@@ -11,6 +19,7 @@ use Middag\Framework\Logging\CleanLogsCommand;
 use Middag\Framework\Logging\LoggerFactory;
 use Middag\Framework\Logging\NullActorResolver;
 use Middag\Framework\Logging\NullOriginResolver;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Test;
 use Psr\Log\NullLogger;
 use Symfony\Component\Filesystem\Filesystem;
@@ -23,6 +32,7 @@ use Symfony\Component\Messenger\Stamp\HandledStamp;
  *
  * @internal
  */
+#[CoversNothing]
 final class LoggingTest extends DemoTestCase
 {
     #[Test]

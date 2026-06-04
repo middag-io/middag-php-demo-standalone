@@ -2,12 +2,21 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Tests;
 
 use Middag\Demo\Standalone\Command\CreateTicketCommand;
 use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Bus\Contract\MessageBusInterface;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
 
@@ -18,65 +27,9 @@ use Symfony\Component\Messenger\Stamp\HandledStamp;
  *
  * @internal
  */
+#[CoversNothing]
 final class TicketContractTest extends DemoTestCase
 {
-    private function createTicket(string $subject, string $priority = 'normal'): int
-    {
-        $envelope = $this->container->get(MessageBusInterface::class)
-            ->dispatch(new CreateTicketCommand(subject: $subject, priority: $priority, customerId: 1));
-
-        return (int) $envelope->last(HandledStamp::class)?->getResult();
-    }
-
-    /**
-     * @return list<array<string, mixed>>
-     */
-    private function contentBlocks(string $path): array
-    {
-        $payload = $this->json($this->handle('GET', $path, [], ['HTTP_X_INERTIA' => 'true']));
-        self::assertSame('Page', $payload['component']);
-
-        // The list page uses dashboard (metric cards in `metrics`, table in
-        // `content`); create/edit use stack (`content`); the sidebar detail page
-        // uses `main`. Merge all three so callers find their blocks by key.
-        $regions = $payload['props']['contract']['layout']['regions'] ?? [];
-
-        return array_merge($regions['metrics'] ?? [], $regions['content'] ?? [], $regions['main'] ?? []);
-    }
-
-    /**
-     * @param list<array<string, mixed>> $blocks
-     * @return array<string, mixed>|null
-     */
-    private function blockByKey(array $blocks, string $key): ?array
-    {
-        foreach ($blocks as $block) {
-            if (($block['key'] ?? '') === $key) {
-                return $block;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Flatten the child blocks nested inside a `tabs` block's tabs[].blocks[].
-     *
-     * @param array<string, mixed>|null $tabsBlock
-     * @return list<array<string, mixed>>
-     */
-    private function tabsNestedBlocks(?array $tabsBlock): array
-    {
-        $out = [];
-        foreach ($tabsBlock['data']['tabs'] ?? [] as $tab) {
-            foreach ($tab['blocks'] ?? [] as $block) {
-                $out[] = $block;
-            }
-        }
-
-        return $out;
-    }
-
     #[Test]
     public function indexRendersDenseTableWithVariantColumnsAndMetricCards(): void
     {
@@ -271,5 +224,64 @@ final class TicketContractTest extends DemoTestCase
             self::assertArrayHasKey('data', $payload);
             self::assertIsArray($payload['data']);
         }
+    }
+
+    private function createTicket(string $subject, string $priority = 'normal'): int
+    {
+        $envelope = $this->container->get(MessageBusInterface::class)
+            ->dispatch(new CreateTicketCommand(subject: $subject, priority: $priority, customerId: 1));
+
+        return (int) $envelope->last(HandledStamp::class)?->getResult();
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function contentBlocks(string $path): array
+    {
+        $payload = $this->json($this->handle('GET', $path, [], ['HTTP_X_INERTIA' => 'true']));
+        self::assertSame('Page', $payload['component']);
+
+        // The list page uses dashboard (metric cards in `metrics`, table in
+        // `content`); create/edit use stack (`content`); the sidebar detail page
+        // uses `main`. Merge all three so callers find their blocks by key.
+        $regions = $payload['props']['contract']['layout']['regions'] ?? [];
+
+        return array_merge($regions['metrics'] ?? [], $regions['content'] ?? [], $regions['main'] ?? []);
+    }
+
+    /**
+     * @param list<array<string, mixed>> $blocks
+     *
+     * @return null|array<string, mixed>
+     */
+    private function blockByKey(array $blocks, string $key): ?array
+    {
+        foreach ($blocks as $block) {
+            if (($block['key'] ?? '') === $key) {
+                return $block;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Flatten the child blocks nested inside a `tabs` block's tabs[].blocks[].
+     *
+     * @param null|array<string, mixed> $tabsBlock
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function tabsNestedBlocks(?array $tabsBlock): array
+    {
+        $out = [];
+        foreach ($tabsBlock['data']['tabs'] ?? [] as $tab) {
+            foreach ($tab['blocks'] ?? [] as $block) {
+                $out[] = $block;
+            }
+        }
+
+        return $out;
     }
 }

@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Http;
 
 use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
@@ -95,14 +103,14 @@ final class ParityController extends AbstractController
                     ['key' => 'match', 'label' => 'Match', 'variant' => 'boolean'],
                 ], $parityRows, [], ['clientSide' => true]);
 
-                $region->markdownPanel('query_sources', self::querySourcesMarkdown());
+                $region->markdownPanel('query_sources', $this->querySourcesMarkdown());
             })
             ->build();
 
         return $this->page($contract);
     }
 
-    private static function querySourcesMarkdown(): string
+    private function querySourcesMarkdown(): string
     {
         return "### The two read paths\n\n"
             . "**Active-record** (`ModelQuery`, hydrates `Ticket` models):\n\n"
@@ -110,7 +118,7 @@ final class ParityController extends AbstractController
             . "**Data-mapper** (`QueryBuilder` repository seam, raw rows + aggregate):\n\n"
             . "```php\nQueryBuilder::on(\$connection, 'demo_tickets')\n"
             . "    ->where('status', Operator::EQ, \$status)\n    ->count();\n```\n\n"
-            . "Both hit the single `demo_tickets` SQLite table; the parity table above "
-            . "asserts every status count matches.";
+            . 'Both hit the single `demo_tickets` SQLite table; the parity table above '
+            . 'asserts every status count matches.';
     }
 }

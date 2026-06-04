@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Domain\Doctrine;
 
 use Middag\Framework\Persistence\Contract\MapperInterface;
@@ -15,17 +23,6 @@ use Middag\Framework\Persistence\Repository\AbstractRepository;
  */
 final class CustomerRepository extends AbstractRepository
 {
-    protected function table(): string
-    {
-        return 'demo_customers';
-    }
-
-    /** @return MapperInterface<Customer> */
-    protected function mapper(): MapperInterface
-    {
-        return new CustomerMapper();
-    }
-
     /** @return list<Customer> */
     public function latest(): array
     {
@@ -80,8 +77,20 @@ final class CustomerRepository extends AbstractRepository
         );
     }
 
+    protected function table(): string
+    {
+        return 'demo_customers';
+    }
+
+    /** @return MapperInterface<Customer> */
+    protected function mapper(): MapperInterface
+    {
+        return new CustomerMapper();
+    }
+
     /**
-     * @param  list<array<string, mixed>> $rows
+     * @param list<array<string, mixed>> $rows
+     *
      * @return list<Customer>
      */
     private function hydrate(array $rows): array

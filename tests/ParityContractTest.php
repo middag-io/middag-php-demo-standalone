@@ -2,11 +2,20 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Tests;
 
 use Middag\Demo\Standalone\Command\CreateTicketCommand;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Bus\Contract\MessageBusInterface;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
 
@@ -16,28 +25,9 @@ use Symfony\Component\Messenger\Stamp\HandledStamp;
  *
  * @internal
  */
+#[CoversNothing]
 final class ParityContractTest extends DemoTestCase
 {
-    private function createTicket(string $subject): int
-    {
-        $envelope = $this->container->get(MessageBusInterface::class)
-            ->dispatch(new CreateTicketCommand(subject: $subject, customerId: 1));
-
-        return (int) $envelope->last(HandledStamp::class)?->getResult();
-    }
-
-    /** @param list<array<string, mixed>> $blocks */
-    private function blockByKey(array $blocks, string $key): ?array
-    {
-        foreach ($blocks as $block) {
-            if (($block['key'] ?? '') === $key) {
-                return $block;
-            }
-        }
-
-        return null;
-    }
-
     #[Test]
     public function parityPageRendersBothReadPathsWithIdenticalCounts(): void
     {
@@ -72,13 +62,33 @@ final class ParityContractTest extends DemoTestCase
             self::assertSame(
                 $row['data_mapper'],
                 $row['active_record'],
-                "data-mapper and active-record counts must match for status {$status}",
+                'data-mapper and active-record counts must match for status ' . $status,
             );
-            self::assertTrue($row['match'], "match flag true for status {$status}");
+            self::assertTrue($row['match'], 'match flag true for status ' . $status);
         }
 
         // The two new tickets land in 'new' on both paths.
         self::assertSame(2, $rowsByStatus['new']['data_mapper'] ?? null);
         self::assertSame(2, $rowsByStatus['new']['active_record'] ?? null);
+    }
+
+    private function createTicket(string $subject): int
+    {
+        $envelope = $this->container->get(MessageBusInterface::class)
+            ->dispatch(new CreateTicketCommand(subject: $subject, customerId: 1));
+
+        return (int) $envelope->last(HandledStamp::class)?->getResult();
+    }
+
+    /** @param list<array<string, mixed>> $blocks */
+    private function blockByKey(array $blocks, string $key): ?array
+    {
+        foreach ($blocks as $block) {
+            if (($block['key'] ?? '') === $key) {
+                return $block;
+            }
+        }
+
+        return null;
     }
 }

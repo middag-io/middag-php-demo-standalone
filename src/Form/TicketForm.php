@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Form;
 
 use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicy;
@@ -9,6 +17,8 @@ use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicyRepository;
 use Middag\Framework\Form\AbstractForm;
 use Middag\Framework\Form\FieldFactory;
 use Middag\Framework\Form\FormValidator;
+use Middag\Ui\Block\LayoutElementInterface;
+use Middag\Ui\Form\FieldInterface;
 use Middag\Ui\Shared\Enum\ConditionOperator;
 
 /**
@@ -28,7 +38,7 @@ final class TicketForm extends AbstractForm
         parent::__construct($validator);
     }
 
-    /** @return array<int, \Middag\Ui\Form\FieldInterface|\Middag\Ui\Block\LayoutElementInterface> */
+    /** @return array<int, FieldInterface|LayoutElementInterface> */
     public function schema(): array
     {
         return [
