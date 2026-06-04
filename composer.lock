@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "middag-io/framework",
-            "version": "v0.10.4",
+            "version": "v0.10.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/middag-io/middag-php-framework.git",
-                "reference": "1881b60097d139965b5237b120f53fbb24f0dfc2"
+                "reference": "bb225d34937c697fa056b9b9644b311ced812239"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/middag-io/middag-php-framework/zipball/1881b60097d139965b5237b120f53fbb24f0dfc2",
-                "reference": "1881b60097d139965b5237b120f53fbb24f0dfc2",
+                "url": "https://api.github.com/repos/middag-io/middag-php-framework/zipball/bb225d34937c697fa056b9b9644b311ced812239",
+                "reference": "bb225d34937c697fa056b9b9644b311ced812239",
                 "shasum": ""
             },
             "require": {
@@ -118,7 +118,7 @@
                 "security": "https://github.com/middag-io/middag-php-framework/security/policy",
                 "source": "https://github.com/middag-io/middag-php-framework"
             },
-            "time": "2026-06-04T10:13:10+00:00"
+            "time": "2026-06-04T11:17:25+00:00"
         },
         {
             "name": "middag-io/ui",
