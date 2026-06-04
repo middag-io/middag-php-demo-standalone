@@ -1,0 +1,60 @@
+name: E2E
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+permissions:
+  contents: read
+
+# Full-stack Playwright E2E: build the React bundle into public/build, then let
+# Playwright boot a freshly seeded PHP server (composer install:db + serve) and
+# drive real auth + navigation + business flows in Chromium (desktop + mobile).
+jobs:
+  e2e:
+    name: Playwright E2E (full-stack, PHP 8.4)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: curl, intl, mbstring, pdo, pdo_sqlite, sqlite3
+          coverage: none
+          tools: composer:v2
+
+      - name: Install PHP dependencies (from lockfile)
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Create the runtime data dir (var/ is gitignored)
+        run: mkdir -p var
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build the React bundle into public/build
+        working-directory: ui
+        run: |
+          npm ci
+          npm run build:host
+
+      - name: Install E2E dependencies + Chromium
+        working-directory: e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run E2E (Playwright boots a freshly seeded full-stack server)
+        working-directory: e2e
+        run: npm test
+
+      - name: Upload Playwright HTML report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          retention-days: 7
