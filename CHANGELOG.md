@@ -7,6 +7,22 @@ release tag — manual entries below the unreleased section will be overwritten.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.2.0...v0.3.0) (2026-06-22)
+
+
+### Features
+
+* **bootstrap:** adopt host component context in standalone demo ([e2ca4d5](https://github.com/middag-io/middag-php-demo-standalone/commit/e2ca4d5fd195990e555f432f0ba2eb37171938f8))
+* **deps:** adopt framework 0.11.0 validation-error i18n contract ([2e98703](https://github.com/middag-io/middag-php-demo-standalone/commit/2e98703eecf6dafab00e2c7aee2f64b2e88e0a52))
+
+
+### Bug Fixes
+
+* **deps:** bump framework to 0.10.5 (blank input coerced to null) ([52c5dfe](https://github.com/middag-io/middag-php-demo-standalone/commit/52c5dfe0e1e14883b20d0b9c1dc8f19f841e8def))
+* **deps:** require framework 0.10.4 so a clean install boots ([1c68ddd](https://github.com/middag-io/middag-php-demo-standalone/commit/1c68ddd7e26e302a16fbf22e6856b7122cb8cfeb))
+* **deps:** upgrade to ui 1.0 and framework 0.10.3 ([1feb26b](https://github.com/middag-io/middag-php-demo-standalone/commit/1feb26b3bfcde984a084b4f1f5b9f857183178c8))
+* **qa:** track phpstan-baseline.neon so a clean checkout passes ([4260a93](https://github.com/middag-io/middag-php-demo-standalone/commit/4260a934bdbbf346aa339b2b6f34f46117c70017))
+
 ## [0.2.0](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.1.0...v0.2.0) (2026-06-03)
 
 
