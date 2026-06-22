@@ -45,7 +45,11 @@ return RectorConfig::configure()
         __DIR__ . '/tests',
     ])
     ->withRootFiles()
-    ->withImportNames()
+    // Rector 2.5 flipped withImportNames() $removeUnusedImports to default true,
+    // and its removal is not {@see}-docblock-aware: it strips imports referenced
+    // only from docblock {@see} tags (the bootstrap/docblocks lean on these).
+    // Keep it off (the pre-2.5 default) so docblock-only imports survive.
+    ->withImportNames(removeUnusedImports: false)
     ->withIndent()
     ->withSets([
         LevelSetList::UP_TO_PHP_84,
