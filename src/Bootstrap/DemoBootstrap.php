@@ -66,6 +66,7 @@ use Middag\Framework\Kernel\Bootstrap\EnvConfigResolver;
 use Middag\Framework\Kernel\Contract\BootstrapInterface;
 use Middag\Framework\Kernel\Contract\ConfigResolverInterface;
 use Middag\Framework\Kernel\Contract\HookManagerInterface;
+use Middag\Framework\Kernel\HostContext;
 use Middag\Framework\Kernel\Manager\HookManager;
 use Middag\Framework\Logging\Contract\ActorResolverInterface;
 use Middag\Framework\Logging\Contract\OriginResolverInterface;
@@ -328,8 +329,14 @@ final readonly class DemoBootstrap implements BootstrapInterface
         $c->get(EntitySourceRegistry::class)->register('demo_customers', $c->get(CustomerEntitySource::class));
         $c->get(EntitySourceRegistry::class)->register('demo_agents', $c->get(AgentEntitySource::class));
 
+        // Host context — the standalone composition root registers the demo's
+        // neutral runtime descriptor (component identity, asset version, base path)
+        // so framework adapters read it via HostContext::get() instead of host
+        // globals. Set before any Inertia wiring reads the version below.
+        HostContext::set(new DemoComponentContext());
+
         // Inertia — static-by-design seams, wired standalone (no host).
-        InertiaVersionManager::setVersion('demo-0.5');
+        InertiaVersionManager::setVersion(self::inertiaAssetVersion());
         InertiaFactory::setHtmlBootstrap(self::inertiaHtmlBootstrap());
         // M6: the real Symfony URL generator (name → path, fills `{id}`) instead of
         // a fake closure — resolves named routes for redirect()/location().
@@ -378,6 +385,17 @@ final readonly class DemoBootstrap implements BootstrapInterface
         // adapters with a different auth backend (Moodle, WP) set their own; the
         // demo points at its POST /logout route (AuthController::logout).
         InertiaManager::share('logoutUrl', '/logout');
+    }
+
+    /**
+     * Inertia asset version for cache-busting, sourced from the registered host
+     * context ({@see HostContext}) with the demo's own version as the standalone
+     * fallback. Extracted so the host-context sourcing is unit-testable without
+     * re-running the full runtime wiring.
+     */
+    public static function inertiaAssetVersion(): string
+    {
+        return HostContext::get()?->assetVersion() ?? DemoComponentContext::VERSION;
     }
 
     public static function pdoFactory(string $dsn): PDO
