@@ -9,8 +9,6 @@ services:
   app:
     build:
       context: .
-      secrets:
-        - composer_auth
     image: middag-demo-standalone:dev
     command: serve
     ports:
@@ -28,8 +26,6 @@ services:
   worker:
     build:
       context: .
-      secrets:
-        - composer_auth
     image: middag-demo-standalone:dev
     command: worker
     environment:
@@ -67,9 +63,3 @@ services:
       - .:/app
       - /app/ui/node_modules
       - ${NPMRC_FILE:-${HOME}/.npmrc}:/root/.npmrc:ro
-
-# Private Satis credentials (http-basic). Used only at build time (BuildKit secret),
-# never written to the image. Override the path via the COMPOSER_AUTH_FILE env var.
-secrets:
-  composer_auth:
-    file: ${COMPOSER_AUTH_FILE:-${HOME}/.composer/auth.json}

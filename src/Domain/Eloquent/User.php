@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Domain\Eloquent;
 
 use Middag\Framework\Persistence\Model;
@@ -14,15 +22,16 @@ use Middag\Framework\Shared\Enum\Operator;
  * Model::setConnection() (static on the base Model), so no extra wiring beyond
  * the Task connection is needed.
  *
- * @property int|null    $id
- * @property string      $email
- * @property string      $name
- * @property string      $password_hash
- * @property int         $created_at
+ * @property null|int $id
+ * @property string   $email
+ * @property string   $name
+ * @property string   $password_hash
+ * @property int      $created_at
  */
 final class User extends Model
 {
     public const DEMO_EMAIL = 'demo@middag.io';
+
     public const DEMO_PASSWORD = 'middag';
 
     protected string $table = 'demo_users';
@@ -51,7 +60,7 @@ final class User extends Model
      */
     public static function seedDemo(): void
     {
-        if (self::findByEmail(self::DEMO_EMAIL) !== null) {
+        if (self::findByEmail(self::DEMO_EMAIL) instanceof User) {
             return;
         }
 

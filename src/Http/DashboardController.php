@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Http;
 
 use Middag\Demo\Standalone\Domain\Doctrine\AgentRepository;
@@ -33,6 +41,7 @@ use Symfony\Component\HttpFoundation\Response;
 final class DashboardController extends AbstractController
 {
     use RendersPages;
+
     use MapsEntityLabels;
 
     public function __construct(
@@ -93,7 +102,7 @@ final class DashboardController extends AbstractController
             $open,
         );
 
-        [$categories, $series] = self::createdTrend($tickets, 14);
+        [$categories, $series] = $this->createdTrend($tickets, 14);
 
         $contract = PageBuilder::page('demo.dashboard')
             ->shell('basic')
@@ -134,14 +143,15 @@ final class DashboardController extends AbstractController
      * Tickets created per day over the last $days days.
      *
      * @param list<Ticket> $tickets
+     *
      * @return array{0: list<string>, 1: list<float>} [categories (m-d labels), counts]
      */
-    private static function createdTrend(array $tickets, int $days): array
+    private function createdTrend(array $tickets, int $days): array
     {
         $today = (int) (floor(time() / 86400) * 86400);
         $labels = [];
         $counts = [];
-        for ($i = $days - 1; $i >= 0; $i--) {
+        for ($i = $days - 1; $i >= 0; --$i) {
             $dayStart = $today - ($i * 86400);
             $labels[] = date('m-d', $dayStart);
             $counts[date('Y-m-d', $dayStart)] = 0;
@@ -150,7 +160,7 @@ final class DashboardController extends AbstractController
         foreach ($tickets as $t) {
             $day = date('Y-m-d', (int) $t->created_at);
             if (isset($counts[$day])) {
-                $counts[$day]++;
+                ++$counts[$day];
             }
         }
 

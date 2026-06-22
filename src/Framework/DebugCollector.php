@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Framework;
 
 use Middag\Framework\Observability\Contract\ProfileCollectorInterface;
@@ -82,7 +90,7 @@ final class DebugCollector
      */
     private static function categorySummary(string $category): string
     {
-        if (self::$profile === null) {
+        if (!self::$profile instanceof ProfileCollectorInterface) {
             return '(off)';
         }
 
@@ -105,7 +113,7 @@ final class DebugCollector
 
     private static function contractSummary(): string
     {
-        if (self::$contract === null) {
+        if (!self::$contract instanceof ContractEnvelopeInterface) {
             return '(none)';
         }
 

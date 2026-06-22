@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Http;
 
 use Middag\Demo\Standalone\Http\Concern\RendersPages;
@@ -22,9 +30,9 @@ use Symfony\Component\HttpFoundation\Response;
 #[Auth(login: true)]
 final class CoverageController extends AbstractController
 {
-    public const MANIFEST = __DIR__ . '/../Coverage/manifest.php';
-
     use RendersPages;
+
+    public const MANIFEST = __DIR__ . '/../Coverage/manifest.php';
 
     public function index(): Response
     {
@@ -64,7 +72,7 @@ final class CoverageController extends AbstractController
             ->title('Surface coverage')
             ->subtitle('The CI-enforced manifest: every covered symbol maps to a proof route; gaps are catalogued, not hidden')
             ->region('content', function (RegionBuilder $region) use ($covered, $gaps, $byKind, $coveredRows, $gapRows): void {
-                $region->markdownPanel('summary', self::summaryMarkdown(count($covered), count($gaps), $byKind));
+                $region->markdownPanel('summary', $this->summaryMarkdown(count($covered), count($gaps), $byKind));
 
                 $region->denseTable('covered', [
                     ['key' => 'symbol', 'label' => 'Symbol'],
@@ -87,18 +95,18 @@ final class CoverageController extends AbstractController
     /**
      * @param array<string, int> $byKind
      */
-    private static function summaryMarkdown(int $coveredCount, int $gapCount, array $byKind): string
+    private function summaryMarkdown(int $coveredCount, int $gapCount, array $byKind): string
     {
         $lines = '';
         foreach ($byKind as $kind => $count) {
-            $lines .= "- **{$kind}**: {$count}\n";
+            $lines .= sprintf('- **%s**: %d%s', $kind, $count, PHP_EOL);
         }
 
         return "### Surface coverage\n\n"
             . "Exercises **{$coveredCount}** documented free symbols; **{$gapCount}** catalogued gaps.\n\n"
             . "Covered by kind:\n\n{$lines}\n"
-            . "Each covered symbol below maps to the route that emits it; CoverageManifestTest "
-            . "boots those routes on every push and fails if a covered symbol stops emitting, a "
-            . "PRO symbol leaks, or a gap symbol is silently shipped.";
+            . 'Each covered symbol below maps to the route that emits it; CoverageManifestTest '
+            . 'boots those routes on every push and fails if a covered symbol stops emitting, a '
+            . 'PRO symbol leaks, or a gap symbol is silently shipped.';
     }
 }

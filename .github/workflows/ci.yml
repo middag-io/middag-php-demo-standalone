@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+permissions:
+  contents: read
+
+# The demo is an application with a committed composer.lock, so CI installs
+# FROM the lock (the deployed artifact) rather than re-resolving. This is the
+# clean-install guard: it catches a stale or broken lock — e.g. a lock pinning
+# a middag-io/framework version that lacks a class the demo uses — which would
+# otherwise only surface on a fresh clone. The lock currently resolves Symfony
+# 8.x (requires PHP 8.4), so CI runs on 8.4 to match the artifact.
+jobs:
+  ci:
+    name: Clean install + gates (PHP 8.4)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: curl, intl, mbstring, pdo, pdo_sqlite, sqlite3
+          coverage: none
+          tools: composer:v2
+
+      - name: Validate composer.json + lock are in sync
+        run: composer validate --strict
+
+      - name: Install from lockfile (clean-install guard)
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Static analysis & style (PHP-CS-Fixer + Rector + PHPStan)
+        run: composer check
+
+      - name: Tests
+        run: composer test

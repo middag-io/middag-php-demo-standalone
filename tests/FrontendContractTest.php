@@ -2,11 +2,20 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Tests;
 
 use Middag\Demo\Standalone\Command\CreateTicketCommand;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Bus\Contract\MessageBusInterface;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
 
@@ -20,6 +29,7 @@ use Symfony\Component\Messenger\Stamp\HandledStamp;
  *
  * @internal
  */
+#[CoversNothing]
 final class FrontendContractTest extends DemoTestCase
 {
     #[Test]
@@ -47,7 +57,7 @@ final class FrontendContractTest extends DemoTestCase
         $payload = $this->json($this->handle('GET', '/', [], ['HTTP_X_INERTIA' => 'true']));
 
         foreach (['auth', 'flash', 'errors', 'navigation', 'version'] as $key) {
-            self::assertArrayHasKey($key, $payload['props'], "SharedProp '{$key}' must be present");
+            self::assertArrayHasKey($key, $payload['props'], sprintf("SharedProp '%s' must be present", $key));
         }
     }
 

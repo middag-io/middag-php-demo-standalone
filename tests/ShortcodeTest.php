@@ -2,10 +2,19 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Tests;
 
 use Middag\Demo\Standalone\Shortcode\TicketSummary;
 use Middag\Framework\Shared\Attribute\TrustedOutput;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
@@ -16,6 +25,7 @@ use ReflectionMethod;
  *
  * @internal
  */
+#[CoversNothing]
 final class ShortcodeTest extends TestCase
 {
     #[Test]

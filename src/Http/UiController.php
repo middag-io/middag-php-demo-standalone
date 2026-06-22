@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Http;
 
 use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
@@ -17,7 +25,6 @@ use Middag\Ui\Table\Column;
 use Middag\Ui\Table\TableConfig;
 use Middag\Ui\Table\TableOptions;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Validates the middag-io/ui 0.6.0 contract end-to-end from a standalone host.
@@ -30,7 +37,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 final class UiController extends AbstractController
 {
-    public function page(): Response
+    public function page(): JsonResponse
     {
         $rows = array_map(
             static fn (Ticket $ticket): array => [
@@ -59,13 +66,14 @@ final class UiController extends AbstractController
         // FILTER hook transforms the emitted page props (stamps meta.generatedBy).
         /** @var array<string, mixed> $payload */
         $payload = (array) json_decode((string) json_encode($contract), true);
+
         /** @var array<string, mixed> $payload */
         $payload = HookFacade::applyFilters('demo.ui.page', $payload);
 
         return JsonResponse::fromJsonString((string) json_encode($payload));
     }
 
-    public function fragment(): Response
+    public function fragment(): JsonResponse
     {
         $table = new TableConfig(
             columns: [

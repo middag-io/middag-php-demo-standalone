@@ -2,8 +2,17 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Module;
 
+use Middag\Demo\Standalone\Bootstrap\DemoServiceProvider;
 use Middag\Framework\Kernel\Facade\HookFacade;
 use Middag\Framework\Kernel\Module\AbstractModule;
 
@@ -15,7 +24,7 @@ use Middag\Framework\Kernel\Module\AbstractModule;
  * the (already-wired) HookFacade. This demonstrates the module -> hook path
  * deterministically; the parent's reflection-based controller/Hooks
  * auto-discovery is intentionally not used here (the demo's controllers are
- * auto-discovered by {@see \Middag\Demo\Standalone\Bootstrap\DemoServiceProvider}
+ * auto-discovered by {@see DemoServiceProvider}
  * and its hooks registered in DemoBootstrap::wireRuntime).
  */
 final class DemoModule extends AbstractModule

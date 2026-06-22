@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Http;
 
 use Middag\Demo\Standalone\Domain\Doctrine\Agent;
@@ -12,6 +20,7 @@ use Middag\Framework\Exception\MiddagNotFoundException;
 use Middag\Framework\Http\Attribute\Auth;
 use Middag\Framework\Http\Contract\AuthenticatorInterface;
 use Middag\Framework\Http\Controller\AbstractController;
+use Middag\Framework\Persistence\Contract\EntityInterface;
 use Middag\Ui\Page\PageBuilder;
 use Middag\Ui\Region\RegionBuilder;
 use Symfony\Component\HttpFoundation\Response;
@@ -111,7 +120,7 @@ final class AgentController extends AbstractController
     public function show(int $id): Response
     {
         $agent = $this->agents->find($id);
-        if ($agent === null) {
+        if (!$agent instanceof EntityInterface) {
             throw new MiddagNotFoundException('Agent not found.');
         }
 
@@ -137,7 +146,7 @@ final class AgentController extends AbstractController
 
         $links = array_map(
             static fn (Ticket $t): array => [
-                'label' => '#' . (int) $t->id . ' ' . (string) $t->subject,
+                'label' => '#' . (int) $t->id . ' ' . $t->subject,
                 'href' => '/tickets/' . (int) $t->id,
                 'description' => ucfirst((string) $t->status) . ' · ' . ucfirst((string) $t->priority),
             ],
@@ -184,7 +193,10 @@ final class AgentController extends AbstractController
         $tickets = Ticket::query()->get();
         $counts = [];
         foreach ($tickets as $t) {
-            if ($t->agent_id === null || in_array((string) $t->status, ['resolved', 'closed'], true)) {
+            if ($t->agent_id === null) {
+                continue;
+            }
+            if (in_array((string) $t->status, ['resolved', 'closed'], true)) {
                 continue;
             }
             $counts[(int) $t->agent_id] = ($counts[(int) $t->agent_id] ?? 0) + 1;
@@ -237,7 +249,7 @@ final class AgentController extends AbstractController
             $dayStart = (int) (floor((int) $t->created_at / 86400) * 86400);
             $offset = (int) (($today - $dayStart) / 86400);
             if ($offset >= 0 && $offset < $days) {
-                $buckets[$aid][$days - 1 - $offset]++;
+                ++$buckets[$aid][$days - 1 - $offset];
             }
         }
 

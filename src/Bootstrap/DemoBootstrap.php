@@ -2,11 +2,21 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Bootstrap;
 
 use Closure;
 use Middag\Demo\Standalone\Command\EscalateSlaCommand;
 use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
+use Middag\Demo\Standalone\Form\AgentEntitySource;
+use Middag\Demo\Standalone\Form\CustomerEntitySource;
 use Middag\Demo\Standalone\Form\LoginForm;
 use Middag\Demo\Standalone\Form\TicketForm;
 use Middag\Demo\Standalone\Framework\DebugCollector;
@@ -56,6 +66,7 @@ use Middag\Framework\Kernel\Bootstrap\EnvConfigResolver;
 use Middag\Framework\Kernel\Contract\BootstrapInterface;
 use Middag\Framework\Kernel\Contract\ConfigResolverInterface;
 use Middag\Framework\Kernel\Contract\HookManagerInterface;
+use Middag\Framework\Kernel\HostContext;
 use Middag\Framework\Kernel\Manager\HookManager;
 use Middag\Framework\Logging\Contract\ActorResolverInterface;
 use Middag\Framework\Logging\Contract\OriginResolverInterface;
@@ -73,6 +84,7 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 use PDO;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
 use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -94,13 +106,13 @@ use Symfony\Component\Routing\RouteCollection;
  * bits that need live instances (Active-Record connection, hooks, Inertia, the
  * entity source). Every binding here is one framework capability the demo proves.
  */
-final class DemoBootstrap implements BootstrapInterface
+final readonly class DemoBootstrap implements BootstrapInterface
 {
     public const ASYNC_TRANSPORT = 'async';
 
     public function __construct(
-        private readonly string $projectRoot,
-        private readonly bool $debug = false,
+        private string $projectRoot,
+        private bool $debug = false,
     ) {}
 
     public function configure(ContainerBuilder $c): void
@@ -181,7 +193,7 @@ final class DemoBootstrap implements BootstrapInterface
             ->setPublic(true);
 
         // (7) Handler for the framework's CleanLogsCommand, under the convention id.
-        $c->register('Middag\\Framework\\Logging\\CleanLogsCommandHandler', CleanLogsHandler::class)
+        $c->register('Middag\Framework\Logging\CleanLogsCommandHandler', CleanLogsHandler::class)
             ->setArguments([$this->projectRoot . '/var/log', new Reference(LoggerInterface::class)])
             ->setPublic(true);
 
@@ -191,9 +203,9 @@ final class DemoBootstrap implements BootstrapInterface
         // names those @internal collaborators; TaskForm autowires the
         // FormValidator it inherits.
         $c->register(EntitySourceRegistry::class, EntitySourceRegistry::class)->setPublic(true);
-        $c->register(\Middag\Demo\Standalone\Form\CustomerEntitySource::class, \Middag\Demo\Standalone\Form\CustomerEntitySource::class)
+        $c->register(CustomerEntitySource::class, CustomerEntitySource::class)
             ->setAutowired(true)->setPublic(true);
-        $c->register(\Middag\Demo\Standalone\Form\AgentEntitySource::class, \Middag\Demo\Standalone\Form\AgentEntitySource::class)
+        $c->register(AgentEntitySource::class, AgentEntitySource::class)
             ->setAutowired(true)->setPublic(true);
         $c->register(LoginForm::class, LoginForm::class)
             ->setAutowired(true)
@@ -314,11 +326,17 @@ final class DemoBootstrap implements BootstrapInterface
         TicketHooks::register($hooks, $c->get(MessageBusInterface::class), $c->get(LoggerInterface::class));
 
         // Entity sources feeding the ticket form's entity-pickers.
-        $c->get(EntitySourceRegistry::class)->register('demo_customers', $c->get(\Middag\Demo\Standalone\Form\CustomerEntitySource::class));
-        $c->get(EntitySourceRegistry::class)->register('demo_agents', $c->get(\Middag\Demo\Standalone\Form\AgentEntitySource::class));
+        $c->get(EntitySourceRegistry::class)->register('demo_customers', $c->get(CustomerEntitySource::class));
+        $c->get(EntitySourceRegistry::class)->register('demo_agents', $c->get(AgentEntitySource::class));
+
+        // Host context — the standalone composition root registers the demo's
+        // neutral runtime descriptor (component identity, asset version, base path)
+        // so framework adapters read it via HostContext::get() instead of host
+        // globals. Set before any Inertia wiring reads the version below.
+        HostContext::set(new DemoComponentContext());
 
         // Inertia — static-by-design seams, wired standalone (no host).
-        InertiaVersionManager::setVersion('demo-0.5');
+        InertiaVersionManager::setVersion(self::inertiaAssetVersion());
         InertiaFactory::setHtmlBootstrap(self::inertiaHtmlBootstrap());
         // M6: the real Symfony URL generator (name → path, fills `{id}`) instead of
         // a fake closure — resolves named routes for redirect()/location().
@@ -370,42 +388,14 @@ final class DemoBootstrap implements BootstrapInterface
     }
 
     /**
-     * SharedProp `navigation` in the @middag-io/react NavigationTreePayload shape.
-     *
-     * @return array{tree: list<array<string, mixed>>, activeKey: string, footer: list<array<string, mixed>>}
+     * Inertia asset version for cache-busting, sourced from the registered host
+     * context ({@see HostContext}) with the demo's own version as the standalone
+     * fallback. Extracted so the host-context sourcing is unit-testable without
+     * re-running the full runtime wiring.
      */
-    private static function navigationProps(): array
+    public static function inertiaAssetVersion(): string
     {
-        $path = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/';
-        $segment = explode('/', trim($path, '/'))[0] ?? '';
-        $activeKey = match ($segment) {
-            '', 'dashboard' => 'dashboard',
-            'tickets' => 'tickets',
-            'agents' => 'agents',
-            'customers' => 'customers',
-            'parity' => 'parity',
-            'coverage' => 'coverage',
-            'help' => 'help',
-            default => 'dashboard',
-        };
-
-        return [
-            'tree' => [
-                // Dashboard lives at '/' (route dashboard.index); the nav must point
-                // there, not '/dashboard' (no such route → 404 in prod / blank in the
-                // react-router dev app).
-                ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'layout-dashboard', 'href' => '/', 'children' => []],
-                ['key' => 'tickets', 'label' => 'Tickets', 'icon' => 'inbox', 'href' => '/tickets', 'children' => []],
-                ['key' => 'agents', 'label' => 'Agents', 'icon' => 'users', 'href' => '/agents', 'children' => []],
-                ['key' => 'customers', 'label' => 'Customers', 'icon' => 'building', 'href' => '/customers', 'children' => []],
-                ['key' => 'parity', 'label' => 'Dual-ORM parity', 'icon' => 'columns', 'href' => '/parity', 'children' => []],
-                ['key' => 'coverage', 'label' => 'Coverage', 'icon' => 'shield-check', 'href' => '/coverage', 'children' => []],
-                ['key' => 'help', 'label' => 'Help', 'icon' => 'help-circle', 'href' => '/help', 'children' => []],
-            ],
-            'activeKey' => $activeKey,
-            // NavigationTreePayload.footer is a required (if empty) node list.
-            'footer' => [],
-        ];
+        return HostContext::get()?->assetVersion() ?? DemoComponentContext::VERSION;
     }
 
     public static function pdoFactory(string $dsn): PDO
@@ -442,7 +432,7 @@ final class DemoBootstrap implements BootstrapInterface
         $transport = $c->get(InMemoryTransport::class);
 
         $senderLocator = new class($transport) implements ContainerInterface {
-            public function __construct(private InMemoryTransport $transport) {}
+            public function __construct(private readonly InMemoryTransport $transport) {}
 
             public function has(string $id): bool
             {
@@ -455,7 +445,7 @@ final class DemoBootstrap implements BootstrapInterface
                     return $this->transport;
                 }
 
-                throw new \RuntimeException("Unknown transport: {$id}");
+                throw new RuntimeException('Unknown transport: ' . $id);
             }
         };
 
@@ -510,6 +500,7 @@ final class DemoBootstrap implements BootstrapInterface
         $routes->add('api.entities.customers', new Route('/api/entities/customers', ['_controller' => TicketApiController::class . '::customers'], [], [], '', [], ['GET']));
         $routes->add('api.entities.agents', new Route('/api/entities/agents', ['_controller' => TicketApiController::class . '::agents'], [], [], '', [], ['GET']));
         $routes->add('api.tickets.store', new Route('/api/tickets', ['_controller' => TicketApiController::class . '::store'], [], [], '', [], ['POST']));
+        $routes->add('api.tickets.store_dto', new Route('/api/tickets/dto', ['_controller' => TicketApiController::class . '::storeDto'], [], [], '', [], ['POST']));
 
         // ui 0.6.0 contract endpoints.
         $routes->add('ui.page', new Route('/ui/page', ['_controller' => UiController::class . '::page'], [], [], '', [], ['GET']));
@@ -522,6 +513,45 @@ final class DemoBootstrap implements BootstrapInterface
         $routes->add('logout', new Route('/logout', ['_controller' => AuthController::class . '::logout'], [], [], '', [], ['POST']));
 
         return $routes;
+    }
+
+    /**
+     * SharedProp `navigation` in the @middag-io/react NavigationTreePayload shape.
+     *
+     * @return array{tree: list<array<string, mixed>>, activeKey: string, footer: list<array<string, mixed>>}
+     */
+    private static function navigationProps(): array
+    {
+        $path = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/';
+        $segment = explode('/', trim($path, '/'))[0] ?? '';
+        $activeKey = match ($segment) {
+            '', 'dashboard' => 'dashboard',
+            'tickets' => 'tickets',
+            'agents' => 'agents',
+            'customers' => 'customers',
+            'parity' => 'parity',
+            'coverage' => 'coverage',
+            'help' => 'help',
+            default => 'dashboard',
+        };
+
+        return [
+            'tree' => [
+                // Dashboard lives at '/' (route dashboard.index); the nav must point
+                // there, not '/dashboard' (no such route → 404 in prod / blank in the
+                // react-router dev app).
+                ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'layout-dashboard', 'href' => '/', 'children' => []],
+                ['key' => 'tickets', 'label' => 'Tickets', 'icon' => 'inbox', 'href' => '/tickets', 'children' => []],
+                ['key' => 'agents', 'label' => 'Agents', 'icon' => 'users', 'href' => '/agents', 'children' => []],
+                ['key' => 'customers', 'label' => 'Customers', 'icon' => 'building', 'href' => '/customers', 'children' => []],
+                ['key' => 'parity', 'label' => 'Dual-ORM parity', 'icon' => 'columns', 'href' => '/parity', 'children' => []],
+                ['key' => 'coverage', 'label' => 'Coverage', 'icon' => 'shield-check', 'href' => '/coverage', 'children' => []],
+                ['key' => 'help', 'label' => 'Help', 'icon' => 'help-circle', 'href' => '/help', 'children' => []],
+            ],
+            'activeKey' => $activeKey,
+            // NavigationTreePayload.footer is a required (if empty) node list.
+            'footer' => [],
+        ];
     }
 
     /**
@@ -557,5 +587,4 @@ final class DemoBootstrap implements BootstrapInterface
             return new Response($html, 200, ['Content-Type' => 'text/html; charset=utf-8']);
         };
     }
-
 }

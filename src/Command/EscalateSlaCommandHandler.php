@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Command;
 
 use Middag\Demo\Standalone\Domain\Eloquent\Comment;
@@ -27,7 +35,7 @@ final readonly class EscalateSlaCommandHandler
     {
         $ticket = Ticket::find($command->ticketId);
 
-        if ($ticket === null) {
+        if (!$ticket instanceof Ticket) {
             $this->logger->warning('EscalateSlaCommand skipped — ticket missing', ['ticket' => $command->ticketId]);
 
             return 0;

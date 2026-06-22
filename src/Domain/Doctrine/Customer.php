@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Domain\Doctrine;
 
 use Middag\Framework\Persistence\Contract\EntityInterface;
@@ -15,7 +23,7 @@ use Middag\Framework\Persistence\Contract\EntityInterface;
 final class Customer implements EntityInterface
 {
     public function __construct(
-        private ?int $id,
+        private readonly ?int $id,
         public string $name,
         public string $email,
         public ?string $phone = null,

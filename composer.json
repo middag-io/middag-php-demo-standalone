@@ -3,24 +3,21 @@
   "description": "Standalone harness proving the middag-io/framework OSS surface + middag-io/ui contracts — no Moodle/WordPress host, no proprietary core. Boots a real PSR-15 HTTP app (contract-driven Inertia, session auth + #[Auth] gate, middleware pipeline, CSRF, flash/PRG) + Symfony Console command worker over SQLite (Active Record + Data Mapper, converged Symfony Messenger bus, hooks, forms, schema migrations, logging).",
   "type": "project",
   "license": "Apache-2.0",
-  "repositories": [
-    {
-      "type": "composer",
-      "url": "https://privatesatis.middag.com.br"
-    }
-  ],
   "require": {
     "php": "^8.2",
     "ext-pdo": "*",
     "ext-pdo_sqlite": "*",
-    "middag-io/framework": "^0.8.0",
-    "middag-io/ui": "^0.8.2",
+    "middag-io/framework": "^0.11.2",
+    "middag-io/ui": "^1.0",
     "symfony/dotenv": "^7.0 || ^8.0"
   },
   "require-dev": {
     "doctrine/dbal": "^4.0",
     "filp/whoops": "^2.18",
+    "friendsofphp/php-cs-fixer": "^3.0",
+    "phpstan/phpstan": "^2.0",
     "phpunit/phpunit": "^11.0",
+    "rector/rector": "^2.0",
     "symfony/console": "^7.0 || ^8.0",
     "symfony/event-dispatcher": "^7.0 || ^8.0",
     "symfony/filesystem": "^7.0 || ^8.0",
@@ -51,6 +48,27 @@
     "worker:consume": "@php bin/console worker:consume",
     "logs:clean": "@php bin/console logs:clean",
     "migrate:discover": "@php bin/console migrate:discover",
-    "test": "phpunit"
+    "test": "phpunit",
+    "post-install-cmd": "git config core.hooksPath .githooks 2>/dev/null || true",
+    "post-update-cmd": "git config core.hooksPath .githooks 2>/dev/null || true",
+    "check": [
+      "@check:style",
+      "@check:rector",
+      "@check:stan"
+    ],
+    "check:stan": "phpstan analyse --configuration=.phpstan.neon",
+    "check:style": "php-cs-fixer fix --dry-run --verbose --config=.php-cs-fixer.dist.php",
+    "check:rector": "rector process --dry-run --config=.php-rector.php",
+    "fix": [
+      "@fix:style",
+      "@fix:rector"
+    ],
+    "fix:all": [
+      "@fix:style",
+      "@fix:rector",
+      "@fix:style"
+    ],
+    "fix:style": "php-cs-fixer fix --verbose --show-progress=none --config=.php-cs-fixer.dist.php",
+    "fix:rector": "rector process --config=.php-rector.php --no-progress-bar"
   }
 }

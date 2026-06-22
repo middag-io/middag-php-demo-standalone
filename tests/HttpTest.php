@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Tests;
 
 use Middag\Demo\Standalone\Command\CreateTicketCommand;
@@ -11,6 +19,7 @@ use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Bus\Contract\MessageBusInterface;
 use Middag\Framework\Database\Contract\ConnectionAdapterInterface;
 use Middag\Framework\Http\Contract\AuthenticatorInterface;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
 
@@ -23,16 +32,9 @@ use Symfony\Component\Messenger\Stamp\HandledStamp;
  *
  * @internal
  */
+#[CoversNothing]
 final class HttpTest extends DemoTestCase
 {
-    private function createTicket(string $subject): int
-    {
-        $envelope = $this->container->get(MessageBusInterface::class)
-            ->dispatch(new CreateTicketCommand(subject: $subject, customerId: 1));
-
-        return (int) $envelope->last(HandledStamp::class)?->getResult();
-    }
-
     #[Test]
     public function indexFirstVisitRendersInertiaHtmlShell(): void
     {
@@ -105,6 +107,27 @@ final class HttpTest extends DemoTestCase
     }
 
     #[Test]
+    public function apiStoreDtoValidatesAndReturns201(): void
+    {
+        // The #[ValidatedDto] typed-DTO path (TicketDto) — same create flow as
+        // /api/tickets, validated through property #[Assert] attributes.
+        $response = $this->handle('POST', '/api/tickets/dto', ['subject' => 'Via DTO', 'priority' => 'normal', 'channel' => 'web', 'customer_id' => 1]);
+
+        self::assertSame(201, $response->getStatusCode());
+        $payload = $this->json($response);
+        self::assertTrue($payload['success']);
+        self::assertIsInt($payload['id']);
+    }
+
+    #[Test]
+    public function apiStoreDtoRejectsInvalidWith422(): void
+    {
+        // Missing subject + customer_id -> MiddagValidationException (422), the same
+        // error contract as the rules()-array path.
+        self::assertSame(422, $this->handle('POST', '/api/tickets/dto', ['priority' => 'high'], ['HTTP_ACCEPT' => 'application/json'])->getStatusCode());
+    }
+
+    #[Test]
     public function entitiesEndpointServesEntitySource(): void
     {
         // Seed a customer so the source returns a non-empty option list.
@@ -131,6 +154,7 @@ final class HttpTest extends DemoTestCase
         foreach ($blocks as $block) {
             if (($block['type'] ?? '') === 'form_panel') {
                 $form = $block;
+
                 break;
             }
         }
@@ -152,5 +176,13 @@ final class HttpTest extends DemoTestCase
         ]);
 
         self::assertSame(303, $response->getStatusCode());
+    }
+
+    private function createTicket(string $subject): int
+    {
+        $envelope = $this->container->get(MessageBusInterface::class)
+            ->dispatch(new CreateTicketCommand(subject: $subject, customerId: 1));
+
+        return (int) $envelope->last(HandledStamp::class)?->getResult();
     }
 }

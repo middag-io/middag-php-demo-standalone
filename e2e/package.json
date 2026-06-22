@@ -1,0 +1,20 @@
+{
+  "name": "middag-php-demo-standalone-e2e",
+  "private": true,
+  "type": "module",
+  "description": "End-to-end Playwright tests for the MIDDAG help-desk demo (full-stack: PHP + Inertia + React).",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:desktop": "playwright test --project=desktop --project=auth-flows",
+    "test:mobile": "playwright test --project=mobile",
+    "report": "playwright show-report",
+    "codegen": "playwright codegen http://localhost:8080"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0"
+  }
+}

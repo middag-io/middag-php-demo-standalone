@@ -25,13 +25,10 @@ WORKDIR /app
 # use symfony/console; the Doctrine domain uses doctrine/dbal; whoops is the dev
 # error handler. Hence a full install (no --no-dev).
 COPY composer.json composer.lock ./
-# middag-io/framework + middag-io/ui come from the private Satis (auth required).
-# auth.json is passed as a BuildKit secret (COMPOSER_AUTH) — never written to layers.
-#   build: docker compose build   (compose injects the secret)
-#   or:    docker build --secret id=composer_auth,src=$HOME/.composer/auth.json .
-RUN --mount=type=secret,id=composer_auth \
-    COMPOSER_AUTH="$(cat /run/secrets/composer_auth 2>/dev/null || echo '{}')" \
-    composer install --no-interaction --no-progress --no-scripts --prefer-dist
+# middag-io/framework + middag-io/ui are public on Packagist (Apache-2.0), so the
+# build needs no auth — composer resolves them from the committed lock.
+#   build: docker compose build   (or: docker build -t middag-demo-standalone:dev .)
+RUN composer install --no-interaction --no-progress --no-scripts --prefer-dist
 
 # App source.
 COPY . .

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: mailto:michael@middag.io
+    about: Please do not file public issues for security vulnerabilities. See SECURITY.md and email the maintainer privately instead.
+  - name: Questions & project info
+    url: https://middag.io
+    about: For general questions and project information, visit the project homepage.

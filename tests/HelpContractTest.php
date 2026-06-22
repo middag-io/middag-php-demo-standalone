@@ -2,9 +2,18 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Tests;
 
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
@@ -13,20 +22,9 @@ use PHPUnit\Framework\Attributes\Test;
  *
  * @internal
  */
+#[CoversNothing]
 final class HelpContractTest extends DemoTestCase
 {
-    /** @param list<array<string, mixed>> $blocks */
-    private function blockByKey(array $blocks, string $key): ?array
-    {
-        foreach ($blocks as $block) {
-            if (($block['key'] ?? '') === $key) {
-                return $block;
-            }
-        }
-
-        return null;
-    }
-
     #[Test]
     public function helpPageRendersImmersiveShellWithMarkdownEmptyStateAndActionGrid(): void
     {
@@ -59,5 +57,17 @@ final class HelpContractTest extends DemoTestCase
         );
         self::assertContains('/', $hrefs, 'the dashboard quick-link targets the real route /');
         self::assertNotContains('/dashboard', $hrefs, '/dashboard is not a route (would 404)');
+    }
+
+    /** @param list<array<string, mixed>> $blocks */
+    private function blockByKey(array $blocks, string $key): ?array
+    {
+        foreach ($blocks as $block) {
+            if (($block['key'] ?? '') === $key) {
+                return $block;
+            }
+        }
+
+        return null;
     }
 }

@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Domain\Eloquent;
 
 use Middag\Framework\Persistence\Model;
@@ -13,7 +21,7 @@ use Middag\Framework\Persistence\Model;
  * on the ticket detail page. `is_internal` separates agent-only notes from
  * customer-visible replies.
  *
- * @property int|null $id
+ * @property null|int $id
  * @property int      $ticket_id   demo_tickets.id
  * @property string   $author      display name of the author
  * @property string   $body

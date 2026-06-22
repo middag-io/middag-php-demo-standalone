@@ -19,8 +19,7 @@ install (guarded on the `var/demo.sqlite` file).
 ## Dockerfile only (no compose)
 
 ```bash
-docker build -t middag-demo-standalone:dev \
-  --secret id=composer_auth,src=$HOME/.composer/auth.json .
+docker build -t middag-demo-standalone:dev .
 docker run --rm -p 8080:8080 middag-demo-standalone:dev          # serve
 docker run --rm middag-demo-standalone:dev worker                # worker
 docker run --rm middag-demo-standalone:dev composer test         # phpunit
@@ -55,10 +54,10 @@ docker compose --profile ui up         # + Vite dev server on :5173 (FUTURE: ui/
 
 ## Notes
 
-- **Private Satis auth.** `middag-io/framework` + `middag-io/ui` come from
-  `privatesatis.middag.com.br` (auth required). The build reads `~/.composer/auth.json`
-  as a BuildKit secret (`COMPOSER_AUTH`) — never baked into image layers. Override
-  the path with `COMPOSER_AUTH_FILE=/path/to/auth.json docker compose build`.
+- **Public packages — no auth.** `middag-io/framework` + `middag-io/ui` are on
+  Packagist (Apache-2.0), so the build needs no credentials: composer resolves them
+  from the committed `composer.lock`. (Earlier builds pulled from a private Satis via
+  a BuildKit `COMPOSER_AUTH` secret — no longer required.)
 - **dev = bind mount.** `.:/app` in compose: editing code reflects immediately.
   `vendor` and `ui/node_modules` are anonymous volumes (so they don't shadow what
   the image installed).

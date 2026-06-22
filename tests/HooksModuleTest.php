@@ -2,12 +2,21 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Tests;
 
 use Middag\Demo\Standalone\Module\DemoModule;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
-use Middag\Framework\Kernel\Manager\HookManager;
 use Middag\Framework\Kernel\Contract\HookManagerInterface;
+use Middag\Framework\Kernel\Manager\HookManager;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
@@ -17,13 +26,9 @@ use PHPUnit\Framework\Attributes\Test;
  *
  * @internal
  */
+#[CoversNothing]
 final class HooksModuleTest extends DemoTestCase
 {
-    private function hooks(): HookManagerInterface
-    {
-        return $this->container->get(HookManagerInterface::class);
-    }
-
     #[Test]
     public function filterChainRespectsPriorityOrder(): void
     {
@@ -71,5 +76,10 @@ final class HooksModuleTest extends DemoTestCase
 
         self::assertSame('zA', $a->applyFilters('x', 'z'));
         self::assertSame('z', $b->applyFilters('x', 'z'));
+    }
+
+    private function hooks(): HookManagerInterface
+    {
+        return $this->container->get(HookManagerInterface::class);
     }
 }

@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
 namespace Middag\Demo\Standalone\Http;
 
 use Middag\Demo\Standalone\Domain\Eloquent\User;
@@ -13,6 +21,7 @@ use Middag\Framework\Http\Controller\AbstractController;
 use Middag\Ui\Page\PageBuilder;
 use Middag\Ui\Region\RegionBuilder;
 use Middag\Ui\Shared\Enum\RenderTarget;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -70,7 +79,7 @@ final class AuthController extends AbstractController
         return $this->page($contract);
     }
 
-    public function login(): Response
+    public function login(): RedirectResponse
     {
         $payload = $this->request->getPayload();
         $email = (string) $payload->get('email', '');
@@ -78,7 +87,7 @@ final class AuthController extends AbstractController
 
         $user = User::findByEmail($email);
 
-        if ($user === null || !$user->verifyPassword($password)) {
+        if (!$user instanceof User || !$user->verifyPassword($password)) {
             $this->flash('error', 'Invalid credentials.');
 
             return $this->redirectToRoute('login.form');
@@ -91,12 +100,12 @@ final class AuthController extends AbstractController
             'email' => (string) $user->email,
             'capabilities' => ['helpdesk:supervise'],
         ]);
-        $this->flash('success', 'Welcome, ' . (string) $user->name . '.');
+        $this->flash('success', 'Welcome, ' . $user->name . '.');
 
         return $this->redirectToRoute('dashboard.index');
     }
 
-    public function logout(): Response
+    public function logout(): RedirectResponse
     {
         $this->auth->logout();
         $this->flash('info', 'Signed out.');
