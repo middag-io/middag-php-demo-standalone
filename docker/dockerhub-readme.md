@@ -31,13 +31,13 @@ and a self-verifying coverage manifest.
 
 | Tag | Meaning |
 |-----|---------|
-| `0.2.0` | Pinned release |
+| `0.3.1` | Pinned release |
 | `latest` | Newest build |
 
 ## Quick start (backend + contracts)
 
 ```bash
-docker run --rm -p 8080:8080 middagtec/middag-demo-standalone:0.2.0
+docker run --rm -p 8080:8080 middagtec/middag-demo-standalone:0.3.1
 # → http://localhost:8080   (redirects to /login)
 ```
 
@@ -65,7 +65,7 @@ docker compose --profile ui up    # + Vite dev server (:5176) serving the React 
 ## Run the async worker
 
 ```bash
-docker run --rm middagtec/middag-demo-standalone:0.2.0 worker
+docker run --rm middagtec/middag-demo-standalone:0.3.1 worker
 ```
 
 ## Environment variables
