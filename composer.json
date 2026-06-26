@@ -7,7 +7,7 @@
     "php": "^8.2",
     "ext-pdo": "*",
     "ext-pdo_sqlite": "*",
-    "middag-io/framework": "^0.11.2",
+    "middag-io/framework": "^0.11.3",
     "middag-io/ui": "^1.0",
     "symfony/dotenv": "^7.0 || ^8.0"
   },
@@ -54,8 +54,10 @@
     "check": [
       "@check:style",
       "@check:rector",
-      "@check:stan"
+      "@check:stan",
+      "@check:vendor"
     ],
+    "check:vendor": "@php bin/check-vendor-ghosts.php",
     "check:stan": "phpstan analyse --configuration=.phpstan.neon",
     "check:style": "php-cs-fixer fix --dry-run --verbose --config=.php-cs-fixer.dist.php",
     "check:rector": "rector process --dry-run --config=.php-rector.php",

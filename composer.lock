@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "644be745b3e25916fe00aa625e128cd3",
+    "content-hash": "27aeb7f490dc199c9969a5129b119ea6",
     "packages": [
         {
             "name": "middag-io/framework",
-            "version": "v0.11.2",
+            "version": "v0.11.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/middag-io/middag-php-framework.git",
-                "reference": "f8a60e5420b897ade1160a5ff382c510db4ded84"
+                "reference": "416a627c876da0568ab1c161616eb77c8cde6501"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/middag-io/middag-php-framework/zipball/f8a60e5420b897ade1160a5ff382c510db4ded84",
-                "reference": "f8a60e5420b897ade1160a5ff382c510db4ded84",
+                "url": "https://api.github.com/repos/middag-io/middag-php-framework/zipball/416a627c876da0568ab1c161616eb77c8cde6501",
+                "reference": "416a627c876da0568ab1c161616eb77c8cde6501",
                 "shasum": ""
             },
             "require": {
@@ -118,7 +118,7 @@
                 "security": "https://github.com/middag-io/middag-php-framework/security/policy",
                 "source": "https://github.com/middag-io/middag-php-framework"
             },
-            "time": "2026-06-22T05:48:26+00:00"
+            "time": "2026-06-26T10:24:09+00:00"
         },
         {
             "name": "middag-io/ui",
