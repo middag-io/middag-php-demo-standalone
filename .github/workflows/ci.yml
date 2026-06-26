@@ -39,3 +39,43 @@ jobs:
 
       - name: Tests
         run: composer test
+
+  # Build the release image WITHOUT pushing, so the Dockerfile (incl. the UI
+  # build stage + GitHub Packages auth) is exercised on every PR — not only at
+  # release time. Single native arch for speed; the release job does the
+  # multi-arch push. Catches a broken Dockerfile before a release is cut.
+  docker-build:
+    name: Docker image build (no push)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read # UI stage pulls @middag-io/react from GitHub Packages
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: middag-demo-standalone:ci
+          secrets: |
+            github_token=${{ secrets.GITHUB_TOKEN }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke test (boot the baked image, assert UI assets are served)
+        run: |
+          docker run -d --name demo -p 8080:8080 middag-demo-standalone:ci
+          for i in $(seq 1 30); do
+            curl -sf -o /dev/null http://localhost:8080/login && break
+            sleep 1
+          done
+          echo "login page:";  curl -s -o /dev/null -w '  /login -> %{http_code}\n'           http://localhost:8080/login
+          echo "app.js:";      curl -s -o /dev/null -w '  /build/app.js -> %{http_code}\n'     http://localhost:8080/build/app.js
+          echo "style.css:";   curl -s -o /dev/null -w '  /build/style.css -> %{http_code}\n'  http://localhost:8080/build/style.css
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/build/app.js)" = "200"
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/build/style.css)" = "200"
+          docker rm -f demo
