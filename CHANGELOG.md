@@ -7,6 +7,14 @@ release tag — manual entries below the unreleased section will be overwritten.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.3.1...v0.4.0) (2026-06-26)
+
+
+### Features
+
+* **ci:** publish multi-arch docker image (amd64 + arm64) ([a87f832](https://github.com/middag-io/middag-php-demo-standalone/commit/a87f832289bcdc95c21c949642fa5ed2a1b7078d))
+* **ci:** publish multi-arch docker image (amd64 + arm64) ([11430f4](https://github.com/middag-io/middag-php-demo-standalone/commit/11430f4819f67891ca771738a7c906e7df385a27))
+
 ## [0.3.1](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.3.0...v0.3.1) (2026-06-26)
 
 
