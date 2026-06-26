@@ -7,6 +7,13 @@ release tag — manual entries below the unreleased section will be overwritten.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.3.0...v0.3.1) (2026-06-26)
+
+
+### Bug Fixes
+
+* **deps:** release middag-io/framework 0.11.3 bump ([1b5f7c6](https://github.com/middag-io/middag-php-demo-standalone/commit/1b5f7c620c82b1164842832d142ddf1ebab50146))
+
 ## [0.3.0](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.2.0...v0.3.0) (2026-06-22)
 
 
