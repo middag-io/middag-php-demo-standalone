@@ -7,6 +7,14 @@ release tag — manual entries below the unreleased section will be overwritten.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.4.0...v0.5.0) (2026-06-26)
+
+
+### Features
+
+* **docker:** bake React UI bundle into the image ([0673039](https://github.com/middag-io/middag-php-demo-standalone/commit/06730390068f8ebdb417922adc796448560f0542))
+* **docker:** bake React UI bundle into the image ([60da422](https://github.com/middag-io/middag-php-demo-standalone/commit/60da4225363e148415a201b9f508fa82602c246f))
+
 ## [0.4.0](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.3.1...v0.4.0) (2026-06-26)
 
 
