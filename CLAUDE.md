@@ -45,6 +45,10 @@ or the proprietary core: that boundary is the whole point of the harness.
 - **Branch base:** `develop`. **Commits:** Conventional Commits; **NEVER** `Co-Authored-By`;
   one lowercase scope (the `.githooks/commit-msg` hook enforces it — `composer install`
   wires `core.hooksPath`).
+- **Release-trigger types:** release-please cuts a release only on `feat:`/`fix:` (and `!`
+  breaking). A dependency bump meant to ship a release must be `fix(deps):` or `feat(deps):` —
+  **never** `build(deps):`/`chore(deps):`, which release-please treats as non-user-facing and
+  skips (the image then never publishes).
 - **PHP style:** `declare(strict_types=1)` in every file; PSR-12 + `@PhpCsFixer`; PSR-4
   `Middag\Demo\Standalone\` → `src/`. The Apache-2.0 header is applied by PHP-CS-Fixer.
 - **Gates (green before delivery):** `composer check` (PHP-CS-Fixer + Rector dry-run +
