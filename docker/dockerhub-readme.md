@@ -15,7 +15,7 @@ and a self-verifying coverage manifest.
 
 ## What's in this image
 
-- **PHP 8.4 CLI** + the demo app, dependencies resolved from the private Satis.
+- **PHP 8.4 CLI** + the demo app, dependencies resolved from public Packagist (Apache-2.0).
 - Two run modes via the entrypoint:
   - `serve` (default) — PHP built-in HTTP server on **port 8080**.
   - `worker` — Symfony Messenger consumer (async SLA escalation).

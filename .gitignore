@@ -96,7 +96,7 @@ __pycache__/
 #
 # Cada subdiretório é um repo Git próprio — não deve ser versionado no projeto
 # que o consome. Para promover uma lib de path-repo pra Composer-managed, basta
-# remover o symlink: o Composer cai pra próxima source (Satis/VCS).
+# remover o symlink: o Composer cai pra próxima source (VCS/releases públicos).
 /libs/
 
 # -----------------------------------------------------------------------------
@@ -179,7 +179,7 @@ docs-site/.vitepress/.temp/
 !/wp-content/mu-plugins/
 !/wp-content/object-cache.php
 
-# ZIPs premium/legados; novos pacotes devem vir de Private Satis ou releases.
+# ZIPs premium/legados; novos pacotes devem vir de releases públicos ou VCS.
 /plugins-zip/
 
 # -----------------------------------------------------------------------------

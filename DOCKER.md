@@ -56,8 +56,7 @@ docker compose --profile ui up         # + Vite dev server on :5173 (FUTURE: ui/
 
 - **Public packages — no auth.** `middag-io/framework` + `middag-io/ui` are on
   Packagist (Apache-2.0), so the build needs no credentials: composer resolves them
-  from the committed `composer.lock`. (Earlier builds pulled from a private Satis via
-  a BuildKit `COMPOSER_AUTH` secret — no longer required.)
+  from the committed `composer.lock`.
 - **dev = bind mount.** `.:/app` in compose: editing code reflects immediately.
   `vendor` and `ui/node_modules` are anonymous volumes (so they don't shadow what
   the image installed).

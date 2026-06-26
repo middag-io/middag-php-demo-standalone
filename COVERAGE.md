@@ -1,9 +1,9 @@
-# COVERAGE — `middag-io/framework` 0.4.0 OSS surface
+# COVERAGE — `middag-io/framework` 0.11.2 OSS surface
 
 This demo is the **living proof that the framework works standalone, batteries
 included** — no Moodle/WordPress host, no proprietary `middag-io/core`. Every row
 below maps one `@api` area to the demo artifact that exercises it **and** the test
-that proves the behavior. Run `composer test` (50 tests) to verify the whole matrix.
+that proves the behavior. Run `composer test` (89 tests) to verify the whole matrix.
 
 > Boundary rule: if a capability only works with a host adapter or core, it is
 > **not OSS** and is documented under [OSS ↔ core boundary](#oss--core-boundary)
@@ -95,7 +95,7 @@ that proves the behavior. Run `composer test` (50 tests) to verify the whole mat
 | `Shortcode\Attribute\TrustedOutput`                                      | `Shortcode\TaskSummary`             | `ShortcodeTest::trustedOutputAttributeMarksRenderMethod` |
 | `Exception\Middag*` hierarchy + HTTP status mapping                      | provoked across the demo            | `ExceptionsTest`                                         |
 
-## ui `middag-io/ui` 0.6.0 contracts
+## ui `middag-io/ui` 1.1.0 contracts
 
 | Capability                                                                                                     | Demo artifact                 | Proof                                                                                                           |
 |----------------------------------------------------------------------------------------------------------------|-------------------------------|-----------------------------------------------------------------------------------------------------------------|
@@ -108,7 +108,7 @@ that proves the behavior. Run `composer test` (50 tests) to verify the whole mat
 
 What the demo does **not** show, because it is not OSS-standalone:
 
-- **Domain signals** — `Bus\Signal\DispatcherInterface` has no OSS implementation in 0.4.0 (the Signal/Outbox tier moved to the proprietary `middag-io/core`). The demo re-models the "task created → side effect" flow with pure OSS primitives: a **hook action** (`demo.task.created`) + an **async command** (`NotifyTaskCreatedCommand`) drained by the `CommandWorker`.
+- **Domain signals** — `Bus\Signal\DispatcherInterface` has no OSS implementation in 0.11.2 (the Signal/Outbox tier moved to the proprietary `middag-io/core`). The demo re-models the "task created → side effect" flow with pure OSS primitives: a **hook action** (`demo.task.created`) + an **async command** (`NotifyTaskCreatedCommand`) drained by the `CommandWorker`.
 - **`#[Schedule]` execution** — the attribute is declarative metadata only; nothing in the framework runs it. A host adapter (Moodle `db/tasks.php`, WP `wp_schedule_event`) or OS cron / `symfony/scheduler` drives it. The demo declares/reads it; it does not run a bespoke scheduler.
 - **Auth enforcement** — `#[Auth]` + `apply_platform_auth` require a host. Standalone they are inert (proven a no-op, so they never block).
 - **Multi-tenant / org-scope / licensing** — proprietary core concerns, out of scope.
