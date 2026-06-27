@@ -42,7 +42,7 @@ OSS `@api` area — and proving each one with a test.
 ## Stack
 
 - PHP `^8.2` (tested on 8.4)
-- **`middag-io/framework`** `^0.10` — concern-first kernel (Bus / Database / Form /
+- **`middag-io/framework`** `^0.11.3` — concern-first kernel (Bus / Database / Form /
   Http / Kernel / Logging / Persistence), Symfony-backed behind host-agnostic contracts.
 - **`middag-io/ui`** `^1.0` — zero-dependency page/fragment contract builders.
 - SQLite via `ext-pdo_sqlite`.
