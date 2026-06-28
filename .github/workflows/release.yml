@@ -4,23 +4,15 @@ on:
   push:
     branches: [main]
 
-permissions:
-  contents: write
-  pull-requests: write
-
+# Thin wrapper over the org reusable workflows (middag-io/.github-private).
+# See ADR-003 (release strategy) and ADR-006 (reusable workflows).
 jobs:
   release-please:
-    runs-on: ubuntu-latest
-    outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
-    steps:
-      - id: release
-        uses: googleapis/release-please-action@v5
-        with:
-          release-type: simple
-          config-file: release-please-config.json
-          manifest-file: .release-please-manifest.json
+    uses: middag-io/.github-private/.github/workflows/release-please.yml@main
+    permissions:
+      contents: write
+      pull-requests: write
+    secrets: inherit
 
   # Builds + pushes the Docker Hub image only when release-please actually cuts a
   # release on this push (its release PR was merged). On the merge that opens the
@@ -73,3 +65,12 @@ jobs:
             github_token=${{ secrets.GITHUB_TOKEN }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  # Keep develop current with whatever release-please shipped onto main,
+  # so the GitFlow loop stays closed and develop never drifts behind.
+  sync-develop:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    uses: middag-io/.github-private/.github/workflows/sync-develop.yml@main
+    permissions:
+      contents: write
