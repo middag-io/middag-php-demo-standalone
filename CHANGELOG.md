@@ -7,6 +7,18 @@ release tag — manual entries below the unreleased section will be overwritten.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.5.0...v0.5.1) (2026-06-30)
+
+
+### Documentation
+
+* fix stale framework version and duplicate changelog entries ([68be0d6](https://github.com/middag-io/middag-php-demo-standalone/commit/68be0d654e5527733ff63141ad73784aefd275f5))
+
+
+### Miscellaneous
+
+* release 0.5.1 ([da68ca8](https://github.com/middag-io/middag-php-demo-standalone/commit/da68ca84816fb02d54ba5d4e75e51c45bdd1b3b6))
+
 ## [0.5.0](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.4.0...v0.5.0) (2026-06-26)
 
 
