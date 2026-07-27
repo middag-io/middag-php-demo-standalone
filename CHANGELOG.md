@@ -7,6 +7,13 @@ release tag — manual entries below the unreleased section will be overwritten.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.2](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.5.1...v0.5.2) (2026-07-27)
+
+
+### Miscellaneous
+
+* **deps:** phpstan 2.2.6 + rector 2.5.8 ([#24](https://github.com/middag-io/middag-php-demo-standalone/issues/24)) ([c606d73](https://github.com/middag-io/middag-php-demo-standalone/commit/c606d732359694797b61345876dd0f08650b5b25))
+
 ## [0.5.1](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.5.0...v0.5.1) (2026-06-30)
 
 
