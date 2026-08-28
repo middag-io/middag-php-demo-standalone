@@ -7,6 +7,24 @@ release tag — manual entries below the unreleased section will be overwritten.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.3](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.5.2...v0.5.3) (2026-08-28)
+
+
+### Features
+
+* **deps:** bump middag-io/framework to ^1.15 and ui to ^1.6 ([8ffbe6f](https://github.com/middag-io/middag-php-demo-standalone/commit/8ffbe6f92426bf91e76ad1899018d011a758097c))
+* **deps:** bump middag-io/framework to ^1.15 and ui to ^1.6 ([b15ede2](https://github.com/middag-io/middag-php-demo-standalone/commit/b15ede2af1fced39e0d31c8366c1a52803b17c02))
+
+
+### Documentation
+
+* canonical AGENTS.md, CLAUDE.md symlink (ADR-017) ([519380c](https://github.com/middag-io/middag-php-demo-standalone/commit/519380c3897b7315b60c81924b7f01f8ca26ca28))
+
+
+### Miscellaneous
+
+* simplify AI agent gitignore rules ([9c46b73](https://github.com/middag-io/middag-php-demo-standalone/commit/9c46b73fd07c2e013aa89b09a4396e20eed6a85c))
+
 ## [0.5.2](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.5.1...v0.5.2) (2026-07-27)
 
 
