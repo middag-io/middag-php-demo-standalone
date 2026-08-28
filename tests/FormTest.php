@@ -77,7 +77,7 @@ final class FormTest extends DemoTestCase
     {
         $output = (new InertiaRenderer(new InertiaFieldMapper()))->render($this->form());
 
-        self::assertSame(RenderTarget::PROPS, $output->target);
+        self::assertSame(RenderTarget::Props, $output->target);
         $props = $output->props;
         self::assertArrayHasKey('schema', $props);
         self::assertArrayHasKey('values', $props);

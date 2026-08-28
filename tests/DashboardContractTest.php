@@ -57,7 +57,8 @@ final class DashboardContractTest extends DemoTestCase
         self::assertSame('chart', $chart['type']);
         self::assertSame('bar', $chart['data']['chartType'] ?? null);
         self::assertNotEmpty($chart['data']['series'] ?? [], 'chart series populated');
-        self::assertNotEmpty($chart['data']['categories'] ?? [], 'chart categories populated');
+        self::assertSame('date', $chart['data']['categoryKey'] ?? null, 'chart categoryKey set');
+        self::assertNotEmpty($chart['data']['data'] ?? [], 'chart data rows populated');
 
         $table = $this->blockByKey($blocks, 'open_tickets');
         self::assertNotNull($table, 'open-queue dense_table present');

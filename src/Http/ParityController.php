@@ -59,7 +59,7 @@ final class ParityController extends AbstractController
         $dataMapper = [];
         foreach ($statuses as $status) {
             $dataMapper[$status] = QueryBuilder::on($this->connection, 'demo_tickets')
-                ->where('status', Operator::EQ, $status)
+                ->where('status', Operator::Eq, $status)
                 ->count();
         }
 
@@ -117,7 +117,7 @@ final class ParityController extends AbstractController
             . "```php\nTicket::query()->where('status', \$status)->get();\n```\n\n"
             . "**Data-mapper** (`QueryBuilder` repository seam, raw rows + aggregate):\n\n"
             . "```php\nQueryBuilder::on(\$connection, 'demo_tickets')\n"
-            . "    ->where('status', Operator::EQ, \$status)\n    ->count();\n```\n\n"
+            . "    ->where('status', Operator::Eq, \$status)\n    ->count();\n```\n\n"
             . 'Both hit the single `demo_tickets` SQLite table; the parity table above '
             . 'asserts every status count matches.';
     }

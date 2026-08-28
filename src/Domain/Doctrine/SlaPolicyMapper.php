@@ -14,7 +14,6 @@ namespace Middag\Demo\Standalone\Domain\Doctrine;
 
 use Middag\Framework\Persistence\Contract\EntityInterface;
 use Middag\Framework\Persistence\Mapper\AbstractMapper;
-use stdClass;
 
 /**
  * Row <-> {@see SlaPolicy} translator (Doctrine-style hydration).
@@ -23,20 +22,24 @@ use stdClass;
  */
 final class SlaPolicyMapper extends AbstractMapper
 {
-    /** @param array<string, mixed> $metadata */
-    public function dbToDomain(stdClass $record, array $metadata): SlaPolicy
+    /**
+     * @param array<string, mixed> $record
+     * @param array<string, mixed> $metadata
+     */
+    public function dbToDomain(array $record, array $metadata): SlaPolicy
     {
         return new SlaPolicy(
-            id: isset($record->id) ? (int) $record->id : null,
-            name: (string) ($record->name ?? ''),
-            priority: (string) ($record->priority ?? 'normal'),
-            responseMinutes: (int) ($record->response_minutes ?? 60),
-            resolutionMinutes: (int) ($record->resolution_minutes ?? 1440),
-            createdAt: (int) ($record->created_at ?? 0),
+            id: isset($record['id']) ? (int) $record['id'] : null,
+            name: (string) ($record['name'] ?? ''),
+            priority: (string) ($record['priority'] ?? 'normal'),
+            responseMinutes: (int) ($record['response_minutes'] ?? 60),
+            resolutionMinutes: (int) ($record['resolution_minutes'] ?? 1440),
+            createdAt: (int) ($record['created_at'] ?? 0),
         );
     }
 
-    public function domainToDb(EntityInterface $entity): stdClass
+    /** @return array<string, mixed> */
+    public function domainToDb(EntityInterface $entity): array
     {
         $data = $entity->toArray();
 
@@ -44,6 +47,6 @@ final class SlaPolicyMapper extends AbstractMapper
             unset($data['id']);
         }
 
-        return (object) $data;
+        return $data;
     }
 }

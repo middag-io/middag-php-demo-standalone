@@ -46,7 +46,7 @@ final class User extends Model
 
     public static function findByEmail(string $email): ?self
     {
-        return self::query()->where('email', Operator::EQ, $email)->first();
+        return self::query()->where('email', Operator::Eq, $email)->first();
     }
 
     public function verifyPassword(string $password): bool

@@ -63,7 +63,7 @@ final class TicketForm extends AbstractForm
                 ->source('demo_agents')->displayField('label')->valueField('value')
                 ->autocompleteHref('/api/entities/agents')
                 // High/urgent tickets must be assigned (IN operator condition).
-                ->requiredWhen('priority', ConditionOperator::IN, ['high', 'urgent']),
+                ->requiredWhen('priority', ConditionOperator::In, ['high', 'urgent']),
 
             FieldFactory::select('sla_policy_id')->label('SLA policy')
                 ->options($this->slaOptions()),

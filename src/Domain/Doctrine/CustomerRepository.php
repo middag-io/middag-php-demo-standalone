@@ -95,6 +95,6 @@ final class CustomerRepository extends AbstractRepository
      */
     private function hydrate(array $rows): array
     {
-        return array_map(fn (array $row): Customer => $this->mapper()->dbToDomain((object) $row, []), $rows);
+        return array_map(fn (array $row): Customer => $this->mapper()->dbToDomain($row, []), $rows);
     }
 }

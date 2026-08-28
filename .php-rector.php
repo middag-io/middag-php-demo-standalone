@@ -29,7 +29,6 @@ use Rector\Php55\Rector\FuncCall\GetCalledClassToStaticClassRector;
 use Rector\Php73\Rector\FuncCall\RegexDashEscapeRector;
 use Rector\Php81\Rector\Array_\ArrayToFirstClassCallableRector;
 use Rector\Php81\Rector\FuncCall\NullToStrictStringFuncCallArgRector;
-use Rector\PHPUnit\Set\PHPUnitSetList;
 use Rector\Set\ValueObject\LevelSetList;
 use Rector\Set\ValueObject\SetList;
 
@@ -61,8 +60,11 @@ return RectorConfig::configure()
         SetList::TYPE_DECLARATION,
         SetList::EARLY_RETURN,
         SetList::INSTANCEOF,
-        PHPUnitSetList::PHPUNIT_120,
     ])
+    // Versioned PHPUnit sets (PHPUNIT_120) were removed in rector 2.6 —
+    // composer-based detection replaces them and follows the installed
+    // phpunit version automatically.
+    ->withComposerBased(phpunit: true)
     ->withSkip([
         ArrayToFirstClassCallableRector::class,
         ArrowFunctionDelegatingCallToFirstClassCallableRector::class,

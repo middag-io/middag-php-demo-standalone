@@ -36,7 +36,7 @@ $logger = (new LoggerFactory(
     new NullOriginResolver(),
 ))->forChannel('demo', 'debug');
 
-Debug::setRuntime($logger, static fn (): int => DebugMode::FULL->value);
-Debug::trace('bin/debug.php ran', DebugMode::NORMAL);
+Debug::setRuntime($logger, static fn (): int => DebugMode::Full->value);
+Debug::trace('bin/debug.php ran', DebugMode::Normal);
 
 echo "Debug::trace emitted to var/log/demo/debug/*.log\n";

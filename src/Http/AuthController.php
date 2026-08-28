@@ -51,7 +51,7 @@ final class AuthController extends AbstractController
         // same AbstractForm → InertiaRenderer path the task form uses), not
         // hand-built: the renderer emits the canonical @middag-io/react
         // FormFieldNode shape, and middag-io/ui's RegionBuilder::formPanel wraps it.
-        $rendered = $this->renderers->get(RenderTarget::PROPS)->render($this->form)->props;
+        $rendered = $this->renderers->get(RenderTarget::Props)->render($this->form)->props;
 
         $contract = PageBuilder::page('demo.login')
             // Custom chromeless shell (registered host-side) — no app sidebar/nav
