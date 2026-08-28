@@ -137,7 +137,7 @@ final class TicketController extends AbstractController
             // The create wizard had no UI entry point (only reachable by typing
             // /tickets/new). Now that BasicShell renders page.actions, surface it.
             ->actions([
-                PageBuilder::action('new', 'New ticket', ActionTarget::link('/tickets/new'), ActionIntent::PRIMARY, 'plus'),
+                PageBuilder::action('new', 'New ticket', ActionTarget::link('/tickets/new'), ActionIntent::Primary, 'plus'),
             ])
             // metrics region → StatRow grid (dashboard layout); keeps the cards out of
             // `content` so they are not double-wrapped in a per-block Card.
@@ -240,8 +240,8 @@ final class TicketController extends AbstractController
             ->title('#' . $id . ' · ' . $ticket->subject)
             ->subtitle('Ticket detail — workflow state + tabbed detail/activity/SLA')
             ->actions([
-                PageBuilder::action('edit', 'Edit', ActionTarget::link('/tickets/' . $id . '/edit'), ActionIntent::PRIMARY, 'pencil'),
-                PageBuilder::action('back', 'All tickets', ActionTarget::link('/tickets'), ActionIntent::SECONDARY, 'arrow-left'),
+                PageBuilder::action('edit', 'Edit', ActionTarget::link('/tickets/' . $id . '/edit'), ActionIntent::Primary, 'pencil'),
+                PageBuilder::action('back', 'All tickets', ActionTarget::link('/tickets'), ActionIntent::Secondary, 'arrow-left'),
             ])
             // sidebar layout renders the `main` + `aside` regions (not `content`).
             ->region('main', function (RegionBuilder $region) use ($ticket, $section, $entries, $sla): void {
@@ -295,7 +295,7 @@ final class TicketController extends AbstractController
             return $this->redirect('/tickets/new?step=1', Response::HTTP_SEE_OTHER);
         }
 
-        $form = $this->renderers->get(RenderTarget::PROPS)->render($this->form)->props;
+        $form = $this->renderers->get(RenderTarget::Props)->render($this->form)->props;
         $values = array_merge($form['values'] ?? [], (array) ($session->get(self::WIZARD_SESSION) ?? []));
         $schema = $this->fieldsFor($form['schema'] ?? [], self::WIZARD_STEPS[$step]['fields']);
 
@@ -305,7 +305,7 @@ final class TicketController extends AbstractController
         // primary submit (Continue/Create) and Cancel, so step 1 needs no footer —
         // avoids the duplicate Cancel the older two-footer wiring produced.
         $footer = $step > 1
-            ? [PageBuilder::action('back', 'Back', ActionTarget::link('/tickets/new?step=' . ($step - 1)), ActionIntent::SECONDARY, 'arrow-left')]
+            ? [PageBuilder::action('back', 'Back', ActionTarget::link('/tickets/new?step=' . ($step - 1)), ActionIntent::Secondary, 'arrow-left')]
             : [];
         // The submit advances on step 1 and creates on step 2; Cancel abandons to
         // the queue. Labels ride in form_panel meta (read by the React block).
@@ -385,7 +385,7 @@ final class TicketController extends AbstractController
     public function edit(int $id): Response
     {
         $ticket = Ticket::findOrFail($id);
-        $form = $this->renderers->get(RenderTarget::PROPS)->render($this->form)->props;
+        $form = $this->renderers->get(RenderTarget::Props)->render($this->form)->props;
 
         // Inject the selected entity labels so the async entity_picker renders the
         // current customer/assignee on load. The picker only carries the id, and
@@ -432,7 +432,7 @@ final class TicketController extends AbstractController
             ->title('Edit ticket #' . $id)
             ->subtitle('Update — the prefilled form_panel submits with PUT')
             ->actions([
-                PageBuilder::action('back', 'All tickets', ActionTarget::link('/tickets'), ActionIntent::SECONDARY, 'arrow-left'),
+                PageBuilder::action('back', 'All tickets', ActionTarget::link('/tickets'), ActionIntent::Secondary, 'arrow-left'),
             ])
             ->region('content', function (RegionBuilder $region) use ($schema, $values, $id): void {
                 $region->formPanel('ticket_form', '/tickets/' . $id, 'PUT', $schema, $values);
@@ -573,7 +573,7 @@ final class TicketController extends AbstractController
     /** @return array<string, mixed> */
     private function formProps(): array
     {
-        return $this->renderers->get(RenderTarget::PROPS)->render($this->form)->props;
+        return $this->renderers->get(RenderTarget::Props)->render($this->form)->props;
     }
 
     /**

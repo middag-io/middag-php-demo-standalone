@@ -118,7 +118,7 @@ final class PersistenceTest extends DemoTestCase
 
         // ...read it back through the data-mapper QueryBuilder over the same table.
         $row = QueryBuilder::on($this->container->get(ConnectionAdapterInterface::class), 'demo_tickets')
-            ->where('id', Operator::EQ, $id)
+            ->where('id', Operator::Eq, $id)
             ->first();
 
         self::assertNotNull($row);

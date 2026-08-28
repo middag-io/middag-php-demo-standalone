@@ -38,13 +38,13 @@ final class AgentRepository extends AbstractRepository
     public function byRole(string $role): array
     {
         return $this->hydrate(
-            $this->query()->where('role', Operator::EQ, $role)->orderBy('name', 'asc')->get(),
+            $this->query()->where('role', Operator::Eq, $role)->orderBy('name', 'asc')->get(),
         );
     }
 
     public function countActive(): int
     {
-        return $this->query()->where('active', Operator::EQ, 1)->count();
+        return $this->query()->where('active', Operator::Eq, 1)->count();
     }
 
     protected function table(): string
@@ -65,6 +65,6 @@ final class AgentRepository extends AbstractRepository
      */
     private function hydrate(array $rows): array
     {
-        return array_map(fn (array $row): Agent => $this->mapper()->dbToDomain((object) $row, []), $rows);
+        return array_map(fn (array $row): Agent => $this->mapper()->dbToDomain($row, []), $rows);
     }
 }

@@ -28,39 +28,39 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 final class TicketDto
 {
-    #[Field(type: FieldType::TEXT)]
+    #[Field(type: FieldType::Text)]
     #[Assert\NotBlank]
     #[Assert\Length(max: 200)]
     public string $subject;
 
-    #[Field(type: FieldType::TEXTAREA)]
+    #[Field(type: FieldType::Textarea)]
     public ?string $body = null;
 
-    #[Field(type: FieldType::SELECT)]
+    #[Field(type: FieldType::Select)]
     #[Assert\NotBlank]
     #[Assert\Choice(choices: ['low', 'normal', 'high', 'urgent'])]
     public string $priority;
 
-    #[Field(type: FieldType::SELECT)]
+    #[Field(type: FieldType::Select)]
     #[Assert\NotBlank]
     #[Assert\Choice(choices: ['email', 'web', 'phone'])]
     public string $channel;
 
-    #[Field(type: FieldType::ENTITY_PICKER)]
+    #[Field(type: FieldType::EntityPicker)]
     #[Assert\NotNull]
     #[Assert\Positive]
     public int $customerId;
 
-    #[Field(type: FieldType::ENTITY_PICKER)]
+    #[Field(type: FieldType::EntityPicker)]
     #[Assert\Positive]
     public ?int $agentId = null;
 
     #[Assert\Positive]
     public ?int $slaPolicyId = null;
 
-    #[Field(type: FieldType::TAGS)]
+    #[Field(type: FieldType::Tags)]
     public ?string $tags = null;
 
-    #[Field(type: FieldType::DATETIME)]
+    #[Field(type: FieldType::Datetime)]
     public ?string $dueAt = null;
 }

@@ -32,7 +32,7 @@ final class SlaPolicyRepository extends AbstractRepository
     public function findByPriority(string $priority): ?SlaPolicy
     {
         $rows = $this->hydrate(
-            $this->query()->where('priority', Operator::EQ, $priority)->get(),
+            $this->query()->where('priority', Operator::Eq, $priority)->get(),
         );
 
         return $rows[0] ?? null;
@@ -56,6 +56,6 @@ final class SlaPolicyRepository extends AbstractRepository
      */
     private function hydrate(array $rows): array
     {
-        return array_map(fn (array $row): SlaPolicy => $this->mapper()->dbToDomain((object) $row, []), $rows);
+        return array_map(fn (array $row): SlaPolicy => $this->mapper()->dbToDomain($row, []), $rows);
     }
 }

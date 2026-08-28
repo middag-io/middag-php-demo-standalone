@@ -102,7 +102,7 @@ final class DashboardController extends AbstractController
             $open,
         );
 
-        [$categories, $series] = $this->createdTrend($tickets, 14);
+        $trend = $this->createdTrend($tickets, 14);
 
         $contract = PageBuilder::page('demo.dashboard')
             ->shell('basic')
@@ -118,12 +118,12 @@ final class DashboardController extends AbstractController
                 $region->metricCard('urgent', $highUrgent, 'High / urgent open', icon: 'flame');
                 $region->metricCard('csat', $avgCsat, 'Avg CSAT', icon: 'star');
             })
-            ->region('content', function (RegionBuilder $region) use ($strip, $score, $rows, $categories, $series): void {
+            ->region('content', function (RegionBuilder $region) use ($strip, $score, $rows, $trend): void {
                 // status_strip with the score ring → generic block() (no typed score arg).
                 $region->block('status_strip', 'sla_health', ['items' => $strip, 'score' => $score]);
 
                 // custom free chart block — inline-SVG trend, registered host-side.
-                $region->chart('trend', ChartType::BAR, [new ChartSeries('Created', $series)], $categories);
+                $region->chart('trend', ChartType::Bar, [new ChartSeries('created', 'Created')], 'date', $trend);
 
                 $region->denseTable('open_tickets', [
                     ['key' => 'subject', 'label' => 'Subject'],
@@ -140,20 +140,20 @@ final class DashboardController extends AbstractController
     }
 
     /**
-     * Tickets created per day over the last $days days.
+     * Tickets created per day over the last $days days, shaped as chart rows: one
+     * row per day with the `date` categoryKey field plus the `created` series field
+     * (the {@see ChartSeries} key passed to `RegionBuilder::chart()`).
      *
      * @param list<Ticket> $tickets
      *
-     * @return array{0: list<string>, 1: list<float>} [categories (m-d labels), counts]
+     * @return list<array{date: string, created: float}>
      */
     private function createdTrend(array $tickets, int $days): array
     {
         $today = (int) (floor(time() / 86400) * 86400);
-        $labels = [];
         $counts = [];
         for ($i = $days - 1; $i >= 0; --$i) {
             $dayStart = $today - ($i * 86400);
-            $labels[] = date('m-d', $dayStart);
             $counts[date('Y-m-d', $dayStart)] = 0;
         }
 
@@ -164,6 +164,11 @@ final class DashboardController extends AbstractController
             }
         }
 
-        return [$labels, array_map('floatval', array_values($counts))];
+        $rows = [];
+        foreach ($counts as $ymd => $count) {
+            $rows[] = ['date' => date('m-d', strtotime($ymd)), 'created' => (float) $count];
+        }
+
+        return $rows;
     }
 }

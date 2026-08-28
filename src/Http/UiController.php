@@ -18,12 +18,12 @@ use Middag\Framework\Kernel\Facade\HookFacade;
 use Middag\Ui\Page\PageBuilder;
 use Middag\Ui\Region\Fragment;
 use Middag\Ui\Region\RegionBuilder;
-use Middag\Ui\Shared\Data\Notification;
 use Middag\Ui\Shared\Enum\NotificationLevel;
 use Middag\Ui\Shared\Enum\ValueFormat;
+use Middag\Ui\Shared\ValueObject\Notification;
 use Middag\Ui\Table\Column;
 use Middag\Ui\Table\TableConfig;
-use Middag\Ui\Table\TableOptions;
+use Middag\Ui\Table\TableDisplayOptions;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
@@ -57,7 +57,7 @@ final class UiController extends AbstractController
                 $region->denseTable('tickets', [
                     ['key' => 'subject', 'label' => 'Subject'],
                     ['key' => 'status', 'label' => 'Status'],
-                    ['key' => 'created', 'label' => 'Created', 'format' => ValueFormat::DATE->value],
+                    ['key' => 'created', 'label' => 'Created', 'format' => ValueFormat::Date->value],
                 ], $rows);
             })
             ->notifySuccess('Dashboard rendered from the ui 0.6.0 contract', 'OK')
@@ -78,9 +78,9 @@ final class UiController extends AbstractController
         $table = new TableConfig(
             columns: [
                 new Column(key: 'subject', label: 'Subject', sortable: true, searchable: true),
-                new Column(key: 'created', label: 'Created', format: ValueFormat::DATE),
+                new Column(key: 'created', label: 'Created', format: ValueFormat::Date),
             ],
-            options: new TableOptions(
+            options: new TableDisplayOptions(
                 perPage: 25,
                 sortColumn: 'created',
                 sortDirection: 'desc',
@@ -92,7 +92,7 @@ final class UiController extends AbstractController
         $count = count(Ticket::all());
 
         $fragment = Fragment::table($table)
-            ->withNotifications(new Notification(NotificationLevel::INFO, sprintf('%d ticket(s) in store', $count)));
+            ->withNotifications(new Notification(NotificationLevel::Info, sprintf('%d ticket(s) in store', $count)));
 
         return JsonResponse::fromJsonString((string) json_encode($fragment));
     }
