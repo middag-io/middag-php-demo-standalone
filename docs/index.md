@@ -20,7 +20,7 @@ together in a real application.
 ## Versioning
 
 The demo is a member of the `middag-php-*` version family
-([ADR-032](https://github.com/middag-io/docs-middag-ops/blob/main/internal/decisions/ADR-032-php-library-version-family.md)). It stays on `0.x` until the family cut, then jumps to `2.0.0`. From
+(ADR-032 of the internal `docs-middag-ops`). It stays on `0.x` until the family cut, then jumps to `2.0.0`. From
 `2.0.0` every family member shares MAJOR.MINOR, a PATCH carries fixes only, and the
 product owner decides every family MINOR and MAJOR. See the
 [README](https://github.com/middag-io/middag-php-demo-standalone/blob/main/README.md#versioning).

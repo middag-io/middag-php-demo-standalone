@@ -45,18 +45,22 @@ or the proprietary core: that boundary is the whole point of the harness.
 - **Branch base:** `main`. **Commits:** Conventional Commits; **NEVER** `Co-Authored-By`;
   one lowercase scope (the `.githooks/commit-msg` hook enforces it — `composer install`
   wires `core.hooksPath`).
-- **Release-trigger types:** release-please cuts a release only on `feat:`/`fix:` (and `!`
-  breaking). A dependency bump meant to ship a release must be `fix(deps):` or `feat(deps):` —
+- **Release-trigger types:** release-please cuts a release only on `feat:`/`fix:`. A
+  dependency bump meant to ship a release must be `fix(deps):` (`feat(deps):` passes only on
+  `0.x`; from `2.0.0` it fails the version family check outside a window) —
   **never** `build(deps):`/`chore(deps):`, which release-please treats as non-user-facing and
   skips (the image then never publishes).
-- **Version family ([ADR-032](https://github.com/middag-io/docs-middag-ops/blob/main/internal/decisions/ADR-032-php-library-version-family.md), amends ADR-003 for the PHP libs):** this repo is in
+- **Version family (ADR-032 of the internal `docs-middag-ops`, amends ADR-003 for the PHP libs):** this repo is in
   the `middag-php-*` family. It stays on `0.x` until the family cut, then jumps to `2.0.0`
   with every other member. From `2.0.0`: shared MAJOR.MINOR, PATCH is fix-only, `feat`
   waits for a family MINOR window, a break waits for a family MAJOR window (deprecate
   first in a MINOR), and one `^2.N` range for every `middag-io/*` sibling. The product
   owner decides every family MINOR and MAJOR. The PR check
   `php-version-family-check / check` reads the window from the org variable
-  `PHP_LIBS_OPEN_RELEASE`; `!`/`BREAKING CHANGE` fail now unless a MAJOR window is open.
+  `PHP_LIBS_OPEN_RELEASE`; `!`/`BREAKING CHANGE` fail now unless a MAJOR window is open, so
+  on `0.x` a break ships as `feat:` described in the commit body. A window counts as open only
+  when it is ahead of the demo's version; while one is open, merge the Release PR only at the
+  coordinated `X.Y.0`.
   A waiting PR is kept current by merging `main` into it, never by rebase or force-push.
   Detail: [`CONTRIBUTING.md`](CONTRIBUTING.md#versioning). Do not change the
   release-please `versioning` or the sibling ranges before the cut.

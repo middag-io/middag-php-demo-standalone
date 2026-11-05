@@ -9,7 +9,7 @@ It is not a published library and is not intended for production use.
 ## Supported versions
 
 The demo is a member of the `middag-php-*` version family
-([ADR-032](https://github.com/middag-io/docs-middag-ops/blob/main/internal/decisions/ADR-032-php-library-version-family.md)).
+(ADR-032 of the internal `docs-middag-ops`).
 
 | Version | Supported |
 | --- | --- |

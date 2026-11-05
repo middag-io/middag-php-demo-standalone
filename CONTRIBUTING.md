@@ -90,19 +90,24 @@ Longer body when the "why" isn't obvious.
 - Types: `feat`, `fix`, `refactor`, `perf`, `docs`, `style`, `test`, `build`,
   `ci`, `chore`, `revert`.
 - One scope per commit, lowercase — the `commit-msg` hook rejects comma-separated
-  multi-scope subjects. Mark a breaking change with `!` or a `BREAKING CHANGE:` footer;
-  see [Versioning](#versioning) for when a `feat` or a breaking change can land.
+  multi-scope subjects. Do **not** mark a breaking change with `!` or a `BREAKING CHANGE:`
+  footer outside a family MAJOR window: the hook accepts both, but the version family
+  check refuses them. On `0.x` a break ships as `feat:` with the break and the migration
+  described in the commit body. See [Versioning](#versioning) for when a `feat` or a
+  breaking change can land.
 - **Never** add `Co-Authored-By` trailers.
 - The branch base is **`main`**.
 
 ## Versioning
 
 The demo belongs to the `middag-php-*` version family
-([ADR-032](https://github.com/middag-io/docs-middag-ops/blob/main/internal/decisions/ADR-032-php-library-version-family.md), which amends ADR-003 for the PHP libraries). release-please derives
+(ADR-032 of the internal `docs-middag-ops`, which amends ADR-003 for the PHP libraries). release-please derives
 each release from the commit types on `main`.
 
-- **Now (`0.x`).** `feat:` and `fix:` cut a release as before. A breaking change fails
-  the version family check unless a family MAJOR window is open. The `1.x` framework
+- **Now (`0.x`).** `feat:` and `fix:` cut a release as before. A breaking change ships
+  as `feat:` with the break and the migration described in the commit body; `!` or a
+  `BREAKING CHANGE:` footer fails the version family check unless a family MAJOR window
+  is open. The `1.x` framework
   and ui may still break inside a MINOR until 2026-11-30. From 2026-12-01 no break
   lands on `1.x` until the cut.
 - **The cut.** The family ships `2.0.0` before 2026-11-30, through a coordinated
@@ -114,7 +119,8 @@ each release from the commit types on `main`.
   repo. The product owner decides each family MINOR (a new Moodle version to support,
   a MIDDAG release that needs a feature, a deprecation or a new range, or a new
   Symfony MINOR to absorb) and every family MAJOR. `composer.json` requires one
-  `^2.N` range for every `middag-io/*` sibling.
+  `^2.N` range for every `middag-io/*` sibling. A dependency bump meant to ship a
+  release is `fix(deps):`; `feat(deps):` fails the check outside a window.
 
 ### The version family check
 
@@ -137,6 +143,12 @@ footers of every commit in the PR except merge commits.
 To pass it, use the type that describes the change; never relabel a feature as a
 `fix`. A feature or a break that has to wait stays on its open PR. Keep the PR
 current by merging `main` into it, and re-run the check when the window opens.
+
+A window counts as open only when it is ahead of the demo's current version; a value
+left set after its family release reads as closed. While a window is open, the demo's
+Release PR is merged only at the coordinated `X.Y.0`. A re-run reads the base of the
+original event: after the `2.0.0` cut, a PR opened before the cut must merge `main`
+into it so that the check reads the new version.
 
 ## Code of conduct
 
