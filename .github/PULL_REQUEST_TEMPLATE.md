@@ -1,6 +1,6 @@
 <!--
 Thanks for contributing to middag-io/demo-standalone!
-Please fill in the sections below. PRs target the `develop` branch.
+Please fill in the sections below. PRs target the `main` branch.
 -->
 
 ## Summary
@@ -25,6 +25,18 @@ Closes #
 - [ ] `chore` — tooling, build, or dependency changes
 - [ ] `perf` — a performance improvement
 - [ ] `style` — formatting only (no behavior change)
+- [ ] This PR introduces a breaking change (described in the commit body)
+
+<!--
+Version family (ADR-032): the `php-version-family-check / check` job fails a
+breaking change unless a family MAJOR window is open, and from 2.0.0 it fails a
+`feat` unless a family window is open. The window is the organization variable
+PHP_LIBS_OPEN_RELEASE, set on the order of the product owner. Do not use `!` or a
+`BREAKING CHANGE:` footer outside a family MAJOR window; on 0.x a break ships as
+`feat:` described in the commit body. A PR that has to wait stays
+open; keep it current by merging `main` into it (no rebase, no force-push).
+See CONTRIBUTING.md#versioning.
+-->
 
 ## Scope check
 
@@ -39,7 +51,8 @@ demo a faithful, runnable example and does not work around an upstream bug silen
 
 ## Checklist
 
-- [ ] Targets the `develop` branch
+- [ ] Targets the `main` branch
+- [ ] `php-version-family-check / check` passes, or the PR waits for the family window
 - [ ] `composer check` passes locally
 - [ ] `composer test` passes locally
 - [ ] Commits follow Conventional Commits

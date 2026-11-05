@@ -4,8 +4,21 @@
 
 `middag-io/demo-standalone` is an **example application** — a runnable harness that
 proves the `middag-io/framework` and `middag-io/ui` OSS surface works standalone.
-It is not a published library and is not intended for production use. Only the
-`main` branch is maintained; there are no release branches.
+It is not a published library and is not intended for production use.
+
+## Supported versions
+
+The demo is a member of the `middag-php-*` version family
+(ADR-032 of the internal `docs-middag-ops`).
+
+| Version | Supported |
+| --- | --- |
+| Latest `0.x` release, from `main` | Yes, until the family `2.0.0` cut |
+| Older `0.x` releases | No |
+
+From `2.0.0`, the latest family MINOR, released from `main`, is supported. When a
+later family MAJOR ships, the last MINOR of the previous MAJOR receives security
+fixes only, for 6 months. Today there are no release branches.
 
 Security-relevant behaviour the demo exercises (session auth, the `#[Auth]` gate,
 CSRF, validated requests) is provided by `middag-io/framework`. A vulnerability in

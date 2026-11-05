@@ -11,8 +11,9 @@
         {"type": "perf", "section": "Performance"},
         {"type": "refactor", "section": "Refactoring"},
         {"type": "docs", "section": "Documentation"},
-        {"type": "chore", "section": "Miscellaneous"}
-      ]
+        {"type": "chore", "section": "Miscellaneous", "hidden": true}
+      ],
+      "exclude-paths": ["docs"]
     }
   }
 }
