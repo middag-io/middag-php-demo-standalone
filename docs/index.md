@@ -15,7 +15,15 @@ together in a real application.
 - **[COVERAGE.md](https://github.com/middag-io/middag-php-demo-standalone/blob/main/COVERAGE.md)** —
   the `@api` → artifact → test matrix, and the honest OSS ↔ core boundary.
 - **[CONTRIBUTING](https://github.com/middag-io/middag-php-demo-standalone/blob/main/CONTRIBUTING.md)** —
-  workflow, coding standards, and the quality gates.
+  workflow, coding standards, the quality gates, and versioning.
+
+## Versioning
+
+The demo is a member of the `middag-php-*` version family
+([ADR-032](https://github.com/middag-io/docs-middag-ops/blob/main/internal/decisions/ADR-032-php-library-version-family.md)). It stays on `0.x` until the family cut, then jumps to `2.0.0`. From
+`2.0.0` every family member shares MAJOR.MINOR, a PATCH carries fixes only, and the
+product owner decides every family MINOR and MAJOR. See the
+[README](https://github.com/middag-io/middag-php-demo-standalone/blob/main/README.md#versioning).
 
 ## Two things worth seeing
 

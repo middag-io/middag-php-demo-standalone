@@ -42,9 +42,9 @@ OSS `@api` area — and proving each one with a test.
 ## Stack
 
 - PHP `^8.2` (tested on 8.4)
-- **`middag-io/framework`** `^0.11.3` — concern-first kernel (Bus / Database / Form /
+- **`middag-io/framework`** `^1.15` — concern-first kernel (Bus / Database / Form /
   Http / Kernel / Logging / Persistence), Symfony-backed behind host-agnostic contracts.
-- **`middag-io/ui`** `^1.0` — zero-dependency page/fragment contract builders.
+- **`middag-io/ui`** `^1.6` — zero-dependency page/fragment contract builders.
 - SQLite via `ext-pdo_sqlite`.
 - Symfony components — `messenger`, `routing`, `http-foundation`, `dependency-injection`,
   `serializer`, `validator` … (transitive via the framework); `console`, `lock`,
@@ -115,8 +115,28 @@ Multi-tenant / org-scope / licensing are host/core concerns. See
 - **Multi-engine schema.** `doctrine/dbal` (a dev dependency) lets the schema test prove
   the same descriptor targets another engine; drop the dep and the case skips itself.
 
+## Versioning
+
+This repo is a member of the `middag-php-*` **version family**
+([ADR-032](https://github.com/middag-io/docs-middag-ops/blob/main/internal/decisions/ADR-032-php-library-version-family.md),
+which amends ADR-003 for the PHP libraries). The release version is also the Docker
+image tag.
+
+- **Until the family cut** the demo stays on `0.x` and requires the `1.x` framework
+  and ui. It does not go through `1.x`.
+- **At the cut** it jumps from `0.x` straight to `2.0.0`, together with every other
+  family member.
+- **From `2.0.0`** every family member shares MAJOR.MINOR. A PATCH carries fixes only.
+  A feature waits for the next family MINOR. A MINOR never breaks: a removal is
+  deprecated first in a MINOR and is removed in the next family MAJOR. The product
+  owner decides every family MINOR and MAJOR. The demo requires one `^2.N` range for
+  every `middag-io/*` sibling.
+
+The version family check on pull requests enforces these rules. See
+[CONTRIBUTING → Versioning](CONTRIBUTING.md#versioning).
+
 ## Contributing
 
-See [`CONTRIBUTING.md`](CONTRIBUTING.md). The branch base is `develop`; commits follow
+See [`CONTRIBUTING.md`](CONTRIBUTING.md). Pull requests target `main`; commits follow
 [Conventional Commits](https://www.conventionalcommits.org/); `composer check && composer test`
 must be green. License: **Apache-2.0**.
