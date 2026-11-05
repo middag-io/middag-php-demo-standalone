@@ -1,73 +1,92 @@
 name: Release
 
+# Opens or updates the release pull request from the Conventional Commits on
+# main and, when that pull request merges, creates the tag and the GitHub
+# release, then publishes the Docker Hub image of that release.
+#
+# release-please runs through the release-please component of
+# middag-io/actions, pinned by commit SHA with the tag in a comment, with the
+# token of the release GitHub App (client id in an organization variable,
+# private key in an organization secret). A release pull request opened or
+# updated with the App token triggers the pull request workflows of this
+# repository, including the required version family check.
+#
+# QG-OSS-02: the release is gated on a green CI run of a push to main. The
+# workflow_run trigger fires only after CI finishes; the job guard requires
+# success. workflow_dispatch bypasses the gate deliberately (retry). Never
+# publish a tag while CI is red. No paths filter: the merge of the release
+# pull request must always run release-please. workflow_run runs nothing from
+# the triggering run: the component checks out only the configuration and the
+# manifest of the default branch, the image job checks out the release tag,
+# and the release job also requires a push event.
 on:
-  push:
+  workflow_run: # zizmor: ignore[dangerous-triggers]
+    workflows: [CI]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
-# Self-contained release-please workflow.
-#
-# NOTE (ADR-006 deviation): the org pattern is a thin wrapper over the reusable
-# workflows in middag-io/.github-private. A PUBLIC repository cannot consume
-# reusable workflows from a PRIVATE repository, so the wrapper fails to start
-# here with "error parsing called workflow ... release-please.yml@main". Until
-# the reusable workflows are published to a PUBLIC repo (e.g. middag-io/.github),
-# this repo inlines release-please + sync-develop so releases are not blocked.
-# Matches the same fix applied to middag-php-framework/moodle/wordpress.
-permissions:
-  contents: write
-  pull-requests: write
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   release-please:
-    runs-on: ubuntu-latest
-    outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
-      version: ${{ steps.release.outputs.version }}
-    steps:
-      - uses: googleapis/release-please-action@v5
-        id: release
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push') }}
+    uses: middag-io/actions/.github/workflows/release-please.yml@c448e654322ecb3905afe697ad63ef6ae822bf94 # release-please-v1.0.0
+    # The component only checks out the configuration and the manifest; every
+    # write (release branch, pull request, tag, release) uses the App token.
+    permissions:
+      contents: read
+    with:
+      config-file: release-please-config.json
+      manifest-file: .release-please-manifest.json
+      app-client-id: ${{ vars.GH_APPS_MIDDAG_CI_RELEASE_CLIENT_ID }}
+    secrets:
+      app-private-key: ${{ secrets.GH_APPS_MIDDAG_CI_RELEASE_PRIVATE_KEY }}
 
-  # Builds + pushes the Docker Hub image only when release-please actually cuts a
-  # release on this push (its release PR was merged). On the merge that opens the
-  # release PR, release_created is false and this job is skipped — the image is
-  # published on the follow-up merge that lands the release. The 0.3.0 release
-  # predates this job and was never published; build it once by hand (or tag-push)
-  # to backfill — see docker/dockerhub-readme.md.
+  # Builds and pushes the Docker Hub image only when release-please cuts a
+  # release in this run (its release pull request was merged). On the run that
+  # opens or updates the release pull request, release-created is false and
+  # this job is skipped. The image is built from the release tag.
   docker:
     needs: release-please
-    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    if: ${{ needs.release-please.outputs.release-created == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: read # the UI build stage pulls @middag-io/react from GitHub Packages
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          ref: ${{ needs.release-please.outputs.tag-name }}
+          persist-credentials: false
 
       # QEMU registers binfmt handlers so buildx can build the arm64 image on
       # the amd64 runner via emulation. Slower than native, but no arm runner
       # needed. Required for the multi-arch `platforms` below.
-      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
 
-      - uses: docker/setup-buildx-action@v4
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
-      - uses: docker/login-action@v4
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - id: meta
-        uses: docker/metadata-action@v6
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: middagtec/middag-demo-standalone
-          # tag_name is "v0.3.0"; semver pattern strips the leading v -> 0.3.0,
+          # tag-name is "v0.3.0"; semver pattern strips the leading v -> 0.3.0,
           # plus the moving "latest" tag for the newest release.
           tags: |
-            type=semver,pattern={{version}},value=${{ needs.release-please.outputs.tag_name }}
+            type=semver,pattern={{version}},value=${{ needs.release-please.outputs.tag-name }}
             type=raw,value=latest
 
-      - uses: docker/build-push-action@v7
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           platforms: linux/amd64,linux/arm64
@@ -80,22 +99,3 @@ jobs:
             github_token=${{ secrets.GITHUB_TOKEN }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-  # Keep develop current with whatever release-please shipped onto main, so the
-  # GitFlow loop stays closed and develop never drifts behind.
-  sync-develop:
-    needs: release-please
-    if: needs.release-please.outputs.release_created == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          ref: develop
-          fetch-depth: 0
-      - name: Merge main into develop
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git merge origin/main --no-edit
-          git push origin develop
