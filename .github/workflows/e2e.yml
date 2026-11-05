@@ -2,12 +2,16 @@ name: E2E
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
 
 permissions:
   contents: read
   packages: read # @middag-io/react is published to GitHub Packages
+
+concurrency:
+  group: e2e-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # Full-stack Playwright E2E: build the React bundle into public/build, then let
 # Playwright boot a freshly seeded PHP server (composer install:db + serve) and

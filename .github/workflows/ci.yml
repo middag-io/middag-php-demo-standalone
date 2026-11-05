@@ -2,80 +2,39 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
 
-permissions:
-  contents: read
+permissions: {}
 
-# The demo is an application with a committed composer.lock, so CI installs
-# FROM the lock (the deployed artifact) rather than re-resolving. This is the
-# clean-install guard: it catches a stale or broken lock — e.g. a lock pinning
-# a middag-io/framework version that lacks a class the demo uses — which would
-# otherwise only surface on a fresh clone. The lock currently resolves Symfony
-# 8.x (requires PHP 8.4), so CI runs on 8.4 to match the artifact.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  ci:
-    name: Clean install + gates (PHP 8.4)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
+  # Released php-library-check component of middag-io/actions, pinned by
+  # commit SHA with the tag in a comment. The demo is an application with a
+  # committed composer.lock, so the install comes FROM the lock (the deployed
+  # artifact) rather than re-resolving: the clean-install guard catches a
+  # stale or broken lock, e.g. one pinning a middag-io/framework version that
+  # lacks a class the demo uses. The lock resolves Symfony 8.x (PHP 8.4), so
+  # CI runs on 8.4 only. composer validate --strict checks the lock is in sync.
+  php-library-check:
+    uses: middag-io/actions/.github/workflows/php-library-check.yml@5e6dc3d595edc2bf6134043a2b17067af5f64c25 # php-library-check-v1.0.0
+    permissions:
+      contents: read
+    with:
+      php-versions: '["8.4"]'
+      php-extensions: curl, intl, mbstring, pdo, pdo_sqlite, sqlite3
+      composer-validate-strict: true
+      composer-scripts: check:vendor
+      audit-blocking-severities: critical, high
 
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          extensions: curl, intl, mbstring, pdo, pdo_sqlite, sqlite3
-          coverage: none
-          tools: composer:v2
-
-      - name: Validate composer.json + lock are in sync
-        run: composer validate --strict
-
-      - name: Cache Composer vendor
-        uses: actions/cache@v4
-        with:
-          path: vendor
-          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
-
-      - name: Install from lockfile (clean-install guard)
-        run: composer install --prefer-dist --no-interaction --no-progress
-
-      - name: Cache PHP-CS-Fixer (incremental analysis)
-        uses: actions/cache@v4
-        with:
-          path: .cache/php-cs-fixer.cache
-          key: ${{ runner.os }}-php-cs-fixer-${{ hashFiles('composer.lock', '.php-cs-fixer.dist.php') }}
-          restore-keys: |
-            ${{ runner.os }}-php-cs-fixer-
-
-      - name: Cache Rector (incremental analysis)
-        uses: actions/cache@v4
-        with:
-          path: .cache/rector
-          key: ${{ runner.os }}-rector-${{ hashFiles('composer.lock', '.php-rector.php') }}
-          restore-keys: |
-            ${{ runner.os }}-rector-
-
-      - name: Cache PHPStan (incremental analysis)
-        uses: actions/cache@v4
-        with:
-          path: .cache/phpstan
-          key: ${{ runner.os }}-phpstan-${{ hashFiles('composer.lock', '.phpstan.neon') }}
-          restore-keys: |
-            ${{ runner.os }}-phpstan-
-
-      - name: Static analysis & style (PHP-CS-Fixer + Rector + PHPStan)
-        run: composer check
-
-      - name: Tests
-        run: composer test
-
-  # Build the release image WITHOUT pushing, so the Dockerfile (incl. the UI
-  # build stage + GitHub Packages auth) is exercised on every PR — not only at
-  # release time. Single native arch for speed; the release job does the
-  # multi-arch push. Catches a broken Dockerfile before a release is cut.
+  # Specific to this repository, so it stays inline. Build the release image
+  # WITHOUT pushing, so the Dockerfile (incl. the UI build stage + GitHub
+  # Packages auth) is exercised on every PR — not only at release time.
+  # Single native arch for speed; the release job does the multi-arch push.
+  # Catches a broken Dockerfile before a release is cut.
   docker-build:
     name: Docker image build (no push)
     runs-on: ubuntu-latest
