@@ -7,6 +7,27 @@ release tag — manual entries below the unreleased section will be overwritten.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.3](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.5.2...v0.5.3) (2026-11-05)
+
+
+### Features
+
+* **deps:** bump middag-io/framework to ^1.15 and ui to ^1.6 ([8ffbe6f](https://github.com/middag-io/middag-php-demo-standalone/commit/8ffbe6f92426bf91e76ad1899018d011a758097c))
+* **deps:** bump middag-io/framework to ^1.15 and ui to ^1.6 ([b15ede2](https://github.com/middag-io/middag-php-demo-standalone/commit/b15ede2af1fced39e0d31c8366c1a52803b17c02))
+
+
+### Bug Fixes
+
+* **deps:** update symfony/http-foundation to 8.1.11 ([5dc2526](https://github.com/middag-io/middag-php-demo-standalone/commit/5dc2526d5d08cea1d92cf1dc1f26fdf9f9f92f75))
+
+
+### Documentation
+
+* align versioning docs with the version family (ADR-032) ([7a8139d](https://github.com/middag-io/middag-php-demo-standalone/commit/7a8139de826275acf64a730e1e435a5f2ca20a3c))
+* align versioning docs with the version family (ADR-032) ([d755116](https://github.com/middag-io/middag-php-demo-standalone/commit/d755116147a2cf202a66e6186e96ad97344fcee0))
+* canonical AGENTS.md, CLAUDE.md symlink (ADR-017) ([519380c](https://github.com/middag-io/middag-php-demo-standalone/commit/519380c3897b7315b60c81924b7f01f8ca26ca28))
+* match the breaking-change guidance to the version family check ([a347b0c](https://github.com/middag-io/middag-php-demo-standalone/commit/a347b0c2dd9ea8d9f03c01042075f507e7c6e37c))
+
 ## [0.5.2](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.5.1...v0.5.2) (2026-07-27)
 
 
