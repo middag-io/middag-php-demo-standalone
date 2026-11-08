@@ -12,15 +12,15 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # Released php-library-check component of middag-io/actions, pinned by
-  # commit SHA with the tag in a comment. The demo is an application with a
+  # Released php-library-check component of middag-io/actions, called by its
+  # major tag. The demo is an application with a
   # committed composer.lock, so the install comes FROM the lock (the deployed
   # artifact) rather than re-resolving: the clean-install guard catches a
   # stale or broken lock, e.g. one pinning a middag-io/framework version that
   # lacks a class the demo uses. The lock resolves Symfony 8.x (PHP 8.4), so
   # CI runs on 8.4 only. composer validate --strict checks the lock is in sync.
   php-library-check:
-    uses: middag-io/actions/.github/workflows/php-library-check.yml@5e6dc3d595edc2bf6134043a2b17067af5f64c25 # php-library-check-v1.0.0
+    uses: middag-io/actions/.github/workflows/php-library-check.yml@php-library-check-v1
     permissions:
       contents: read
     with:

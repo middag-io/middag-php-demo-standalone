@@ -5,7 +5,7 @@ name: Release
 # release, then publishes the Docker Hub image of that release.
 #
 # release-please runs through the release-please component of
-# middag-io/actions, pinned by commit SHA with the tag in a comment, with the
+# middag-io/actions, called by its major tag, with the
 # token of the release GitHub App (client id in an organization variable,
 # private key in an organization secret). A release pull request opened or
 # updated with the App token triggers the pull request workflows of this
@@ -35,7 +35,7 @@ concurrency:
 jobs:
   release-please:
     if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push') }}
-    uses: middag-io/actions/.github/workflows/release-please.yml@c448e654322ecb3905afe697ad63ef6ae822bf94 # release-please-v1.0.0
+    uses: middag-io/actions/.github/workflows/release-please.yml@release-please-v1
     # The component only checks out the configuration and the manifest; every
     # write (release branch, pull request, tag, release) uses the App token.
     permissions:

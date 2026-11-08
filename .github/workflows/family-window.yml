@@ -10,7 +10,7 @@ jobs:
   php-version-family-check:
     permissions:
       contents: read
-    uses: middag-io/actions/.github/workflows/php-version-family-check.yml@41fc1a2b1f92d584eefa6f7f4450fe375d06eb7a # php-version-family-check-v1.0.0
+    uses: middag-io/actions/.github/workflows/php-version-family-check.yml@php-version-family-check-v1
     with:
       # The family window is the organization variable PHP_LIBS_OPEN_RELEASE
       # (empty = closed, X.Y = family MINOR window, X.0 = family MAJOR window).
