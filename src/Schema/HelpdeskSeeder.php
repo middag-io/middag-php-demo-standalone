@@ -21,6 +21,7 @@ use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicy;
 use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicyRepository;
 use Middag\Demo\Standalone\Domain\Ticket;
 use Middag\Framework\Database\Contract\ConnectionAdapterInterface;
+use Middag\Framework\Shared\ValueObject\Uuid;
 
 /**
  * Idempotent seeder for the help-desk demo dataset.
@@ -117,6 +118,7 @@ final class HelpdeskSeeder
             $customerId = (int) $custIds[$i % count($custIds)];
 
             $ticket = new Ticket([
+                'ref' => (string) Uuid::v7(),
                 'subject' => $subject,
                 'body' => $subject . ' — reported via ' . $channel . '. Steps and context provided by the customer.',
                 'status' => $status,

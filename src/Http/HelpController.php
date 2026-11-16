@@ -12,8 +12,10 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Http;
 
+use Middag\Demo\Standalone\Shared\Concerns\DeclaresPublicRoute;
 use Middag\Demo\Standalone\Shared\Concerns\RendersPages;
 use Middag\Framework\Http\Attribute\Auth;
+use Middag\Framework\Http\Contract\PublicRouteAwareInterface;
 use Middag\Framework\Http\Controller\AbstractController;
 use Middag\Ui\Page\PageBuilder;
 use Middag\Ui\Region\RegionBuilder;
@@ -28,9 +30,11 @@ use Symfony\Component\HttpFoundation\Response;
  * typed emptyState() string `cta` arg cannot express), and an action_grid of
  * quick links into the rest of the demo.
  */
-#[Auth(login: true)]
-final class HelpController extends AbstractController
+#[Auth(login: false)]
+final class HelpController extends AbstractController implements PublicRouteAwareInterface
 {
+    use DeclaresPublicRoute;
+
     use RendersPages;
 
     public function index(): Response

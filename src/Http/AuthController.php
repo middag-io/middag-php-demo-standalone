@@ -14,10 +14,14 @@ namespace Middag\Demo\Standalone\Http;
 
 use Middag\Demo\Standalone\Domain\User;
 use Middag\Demo\Standalone\Form\LoginForm;
+use Middag\Demo\Standalone\Shared\Concerns\DeclaresPublicRoute;
 use Middag\Demo\Standalone\Shared\Concerns\RendersPages;
 use Middag\Framework\Form\Renderer\RendererRegistry;
+use Middag\Framework\Http\Attribute\Auth;
 use Middag\Framework\Http\Contract\AuthenticatorInterface;
+use Middag\Framework\Http\Contract\PublicRouteAwareInterface;
 use Middag\Framework\Http\Controller\AbstractController;
+use Middag\Framework\Security\Contract\PasswordHasherInterface;
 use Middag\Ui\Page\PageBuilder;
 use Middag\Ui\Region\RegionBuilder;
 use Middag\Ui\Shared\Enum\RenderTarget;
@@ -35,12 +39,16 @@ use Symfony\Component\HttpFoundation\Response;
  * needs a CUSTOM @middag-io/react login component (the lib ships none), which is
  * future `ui/` work — the backend (this controller + the contract) is complete.
  */
-final class AuthController extends AbstractController
+#[Auth(login: false)]
+final class AuthController extends AbstractController implements PublicRouteAwareInterface
 {
+    use DeclaresPublicRoute;
+
     use RendersPages;
 
     public function __construct(
         private readonly AuthenticatorInterface $auth,
+        private readonly PasswordHasherInterface $hasher,
         private readonly RendererRegistry $renderers,
         private readonly LoginForm $form,
     ) {}
@@ -87,7 +95,7 @@ final class AuthController extends AbstractController
 
         $user = User::findByEmail($email);
 
-        if (!$user instanceof User || !$user->verifyPassword($password)) {
+        if (!$user instanceof User || !$user->verifyPassword($password, $this->hasher)) {
             $this->flash('error', 'Invalid credentials.');
 
             return $this->redirectToRoute('login.form');

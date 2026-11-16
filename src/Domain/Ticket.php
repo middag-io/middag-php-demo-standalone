@@ -23,6 +23,9 @@ use Middag\Framework\Persistence\Model;
  * (Agent/Customer/SlaPolicy) to prove paradigm parity on one SQLite engine.
  *
  * @property null|int    $id
+ * @property null|string $ref
+ * @property null|string $ref
+ * @property null|string $ref
  * @property string      $subject
  * @property null|string $body
  * @property string      $status        new|open|pending|resolved|closed
@@ -47,7 +50,7 @@ final class Ticket extends Model
 
     /** @var list<string> */
     protected array $fillable = [
-        'subject', 'body', 'status', 'priority', 'channel', 'customer_id',
+        'ref', 'subject', 'body', 'status', 'priority', 'channel', 'customer_id',
         'agent_id', 'sla_policy_id', 'tags', 'satisfaction', 'due_at',
         'resolved_at', 'created_at',
     ];

@@ -25,13 +25,16 @@ use Middag\Demo\Standalone\Http\AuthController;
 use Middag\Demo\Standalone\Http\CoverageController;
 use Middag\Demo\Standalone\Http\CustomerController;
 use Middag\Demo\Standalone\Http\DashboardController;
+use Middag\Demo\Standalone\Http\ErrorPageRenderer;
 use Middag\Demo\Standalone\Http\HelpController;
+use Middag\Demo\Standalone\Http\Middleware\ApiRequestIdMiddleware;
 use Middag\Demo\Standalone\Http\ParityController;
 use Middag\Demo\Standalone\Http\TicketApiController;
 use Middag\Demo\Standalone\Http\TicketController;
 use Middag\Demo\Standalone\Http\UiController;
 use Middag\Demo\Standalone\Logging\CleanLogsHandler;
 use Middag\Demo\Standalone\Observability\DebugCollector;
+use Middag\Demo\Standalone\Webhook\TicketWebhookNotifier;
 use Middag\Framework\Bus\Command\CommandWorker;
 use Middag\Framework\Bus\Contract\MessageBusInterface;
 use Middag\Framework\Bus\Contract\UserContextResolverInterface;
@@ -48,8 +51,11 @@ use Middag\Framework\Form\EntitySourceRegistry;
 use Middag\Framework\Http\Auth\SessionAuthenticator;
 use Middag\Framework\Http\Auth\SessionUserContextResolver;
 use Middag\Framework\Http\Contract\AuthenticatorInterface;
+use Middag\Framework\Http\Contract\ExceptionRendererInterface;
 use Middag\Framework\Http\Contract\HttpKernelInterface;
+use Middag\Framework\Http\Contract\RetryPolicyInterface;
 use Middag\Framework\Http\Contract\SessionInterface;
+use Middag\Framework\Http\HttpClientFactory;
 use Middag\Framework\Http\HttpKernel;
 use Middag\Framework\Http\Inertia\InertiaAdapter;
 use Middag\Framework\Http\Inertia\InertiaFactory;
@@ -59,6 +65,7 @@ use Middag\Framework\Http\Middleware\MiddlewareDispatcher;
 use Middag\Framework\Http\Middleware\ShareFlashMiddleware;
 use Middag\Framework\Http\Middleware\StartSessionMiddleware;
 use Middag\Framework\Http\Middleware\VerifyCsrfMiddleware;
+use Middag\Framework\Http\Retry\RetryPolicy;
 use Middag\Framework\Http\Security\CsrfTokenManager;
 use Middag\Framework\Http\Session\FlashBag;
 use Middag\Framework\Http\Session\NativeSession;
@@ -73,10 +80,17 @@ use Middag\Framework\Logging\Contract\OriginResolverInterface;
 use Middag\Framework\Logging\LoggerFactory;
 use Middag\Framework\Logging\NullActorResolver;
 use Middag\Framework\Logging\NullOriginResolver;
+use Middag\Framework\Observability\Contract\ErrorReporterInterface;
 use Middag\Framework\Observability\Contract\ProfileCollectorInterface;
+use Middag\Framework\Observability\NullErrorReporter;
 use Middag\Framework\Observability\ProfileCollector;
 use Middag\Framework\Persistence\Contract\ConnectionResolverInterface;
 use Middag\Framework\Persistence\SingleConnectionResolver;
+use Middag\Framework\Security\Contract\PasswordHasherInterface;
+use Middag\Framework\Security\Contract\SignatureVerifierInterface;
+use Middag\Framework\Security\Enum\SignatureEncoding;
+use Middag\Framework\Security\HmacSignatureVerifier;
+use Middag\Framework\Security\NativePasswordHasher;
 use Middag\Framework\Translation\Contract\TranslatorInterface;
 use Middag\Framework\Translation\FallbackTranslator;
 use Monolog\Logger;
@@ -153,7 +167,7 @@ final readonly class DemoBootstrap implements BootstrapInterface
             ->setPublic(true);
 
         // (5) Database — PDO SQLite + PdoConnectionAdapter (defaults to StandardSqlDialect).
-        $dsn = $_ENV['DB_DSN'] ?? ('sqlite:' . $this->projectRoot . '/var/demo.sqlite');
+        $dsn = DemoEnv::get('DB_DSN') ?? ('sqlite:' . $this->projectRoot . '/var/demo.sqlite');
         $c->register(PDO::class, PDO::class)
             ->setFactory([self::class, 'pdoFactory'])
             ->setArguments([$dsn])
@@ -249,6 +263,41 @@ final readonly class DemoBootstrap implements BootstrapInterface
             ])
             ->setPublic(true);
 
+        // Error pages: the kernel resolves ExceptionRendererInterface from the
+        // container. The demo renderer reports 5xx failures through the
+        // ErrorReporterInterface (the OSS NullErrorReporter here) and extends the
+        // framework's DefaultExceptionRenderer for the browser error page.
+        $c->register(ErrorReporterInterface::class, NullErrorReporter::class)->setPublic(true);
+        $c->register(ExceptionRendererInterface::class, ErrorPageRenderer::class)
+            ->setArguments([new Reference(ErrorReporterInterface::class), $this->debug])
+            ->setPublic(true);
+
+        // Route middleware declared with #[Middleware] on the API controller.
+        $c->register(ApiRequestIdMiddleware::class, ApiRequestIdMiddleware::class)->setPublic(true);
+
+        // Security primitives: the login verifies through the password hasher;
+        // outbound webhooks are signed (HMAC-SHA256, hex) with the verifier.
+        $c->register(PasswordHasherInterface::class, NativePasswordHasher::class)->setPublic(true);
+        $c->register(SignatureVerifierInterface::class, HmacSignatureVerifier::class)
+            ->setArguments(['sha256', SignatureEncoding::Hex])
+            ->setPublic(true);
+
+        // Outbound webhook (opt-in): DEMO_WEBHOOK_URL turns on a signed POST per
+        // created ticket, retried with backoff on 429 and 5xx.
+        $c->register(HttpClientFactory::class, HttpClientFactory::class)->setPublic(true);
+        $c->register(RetryPolicyInterface::class, RetryPolicy::class)
+            ->setArguments([3, 200])
+            ->setPublic(true);
+        $c->register(TicketWebhookNotifier::class, TicketWebhookNotifier::class)
+            ->setArguments([
+                new Reference(HttpClientFactory::class),
+                new Reference(RetryPolicyInterface::class),
+                new Reference(SignatureVerifierInterface::class),
+                (string) DemoEnv::get('DEMO_WEBHOOK_URL', ''),
+                (string) DemoEnv::get('DEMO_WEBHOOK_SECRET', ''),
+            ])
+            ->setPublic(true);
+
         // (10) Session + auth + flash + CSRF primitives (H3/M7/M8) and the PSR-15
         // middleware pipeline (H4) that fronts the kernel. Binding AuthenticatorInterface
         // arms the kernel's `#[Auth]` gate; binding FlashBag arms the kernel's web
@@ -324,6 +373,18 @@ final readonly class DemoBootstrap implements BootstrapInterface
         // Help-desk hook on the live HookManager: demo.ticket.created → enqueue the
         // async SLA escalation (high/urgent) onto the in-memory transport.
         TicketHooks::register($hooks, $c->get(MessageBusInterface::class), $c->get(LoggerInterface::class));
+
+        if (DemoEnv::get('DEMO_WEBHOOK_URL') !== null) {
+            $notifier = $c->get(TicketWebhookNotifier::class);
+            $hooks->addAction(
+                'demo.ticket.created',
+                static function (int $id, string $priority) use ($notifier): void {
+                    $notifier->notify('ticket.created', ['id' => $id, 'priority' => $priority]);
+                },
+                20,
+                2,
+            );
+        }
 
         // Entity sources feeding the ticket form's entity-pickers.
         $c->get(EntitySourceRegistry::class)->register('demo_customers', $c->get(CustomerEntitySource::class));

@@ -20,6 +20,7 @@ use Middag\Framework\Database\Contract\ConnectionInterface;
 use Middag\Framework\Database\Contract\SchemaBuilderAdapterInterface;
 use Middag\Framework\Database\Schema\MysqlVersionTracker;
 use Middag\Framework\Database\Schema\SchemaBuilder;
+use Middag\Framework\Security\Contract\PasswordHasherInterface;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -68,7 +69,7 @@ final class InstallCommand extends Command
         $output->writeln(sprintf('<info>version:</info> %d -> %d', $old, DemoMigrationRunner::VERSION));
 
         // Seed the demo login user (app-owned user store; auth session is framework-side).
-        User::seedDemo();
+        User::seedDemo($this->container->get(PasswordHasherInterface::class));
         $output->writeln(sprintf(
             '<info>demo user:</info> %s / %s',
             User::DEMO_EMAIL,

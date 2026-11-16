@@ -28,6 +28,9 @@ use Middag\Framework\Form\Renderer\RendererRegistry;
 use Middag\Framework\Http\Attribute\Auth;
 use Middag\Framework\Http\Contract\SessionInterface;
 use Middag\Framework\Http\Controller\AbstractController;
+use Middag\Framework\Shared\Util\Arr;
+use Middag\Framework\Shared\Util\Inflector;
+use Middag\Framework\Shared\ValueObject\Uuid;
 use Middag\Ui\Action\ActionTarget;
 use Middag\Ui\Block\BlockBuilder;
 use Middag\Ui\Page\PageBuilder;
@@ -203,6 +206,7 @@ final class TicketController extends AbstractController
             'id' => 'summary',
             'title' => 'Ticket details',
             'fields' => [
+                ['key' => 'ref', 'label' => 'Reference', 'value' => Uuid::tryVisualId($ticket->ref)],
                 ['key' => 'subject', 'label' => 'Subject', 'value' => (string) $ticket->subject],
                 ['key' => 'status', 'label' => 'Status', 'value' => (string) $ticket->status],
                 ['key' => 'priority', 'label' => 'Priority', 'value' => (string) $ticket->priority],
@@ -289,7 +293,8 @@ final class TicketController extends AbstractController
         }
 
         $form = $this->renderers->get(RenderTarget::Props)->render($this->form)->props;
-        $values = array_merge($form['values'] ?? [], (array) ($session->get(self::WIZARD_SESSION) ?? []));
+        // The saved step-1 partial wins over the form defaults, except where it is null.
+        $values = Arr::mergePreferNonNull($form['values'] ?? [], (array) ($session->get(self::WIZARD_SESSION) ?? []));
         $schema = $this->fieldsFor($form['schema'] ?? [], self::WIZARD_STEPS[$step]['fields']);
 
         // Step 1 → wizardStore (validates + advances); step 2 → wizardConfirm (creates).
@@ -480,7 +485,7 @@ final class TicketController extends AbstractController
                 $index === $position => ['Current', 'info'],
                 default => ['Pending', 'neutral'],
             };
-            $items[] = ['key' => $status, 'label' => ucfirst($status), 'value' => $value, 'appearance' => $appearance];
+            $items[] = ['key' => $status, 'label' => Inflector::title($status), 'value' => $value, 'appearance' => $appearance];
         }
 
         return $items;

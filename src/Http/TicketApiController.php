@@ -13,11 +13,16 @@ declare(strict_types=1);
 namespace Middag\Demo\Standalone\Http;
 
 use Middag\Demo\Standalone\Command\CreateTicketCommand;
+use Middag\Demo\Standalone\Domain\Ticket;
+use Middag\Demo\Standalone\Http\Dto\CreatedTicketResource;
 use Middag\Demo\Standalone\Http\Dto\TicketDto;
+use Middag\Demo\Standalone\Http\Middleware\ApiRequestIdMiddleware;
 use Middag\Demo\Standalone\Http\Request\CreateTicketRequest;
 use Middag\Framework\Bus\Contract\MessageBusInterface;
 use Middag\Framework\Form\EntitySourceRegistry;
 use Middag\Framework\Http\Attribute\Auth;
+use Middag\Framework\Http\Attribute\Cors;
+use Middag\Framework\Http\Attribute\Middleware;
 use Middag\Framework\Http\Attribute\ValidatedDto;
 use Middag\Framework\Http\Controller\AbstractApiController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -34,8 +39,13 @@ use Symfony\Component\Messenger\Stamp\HandledStamp;
  * Login-gated by the class-level #[Auth(login: true)].
  */
 #[Auth(login: true)]
+#[Cors(origins: [self::DEV_ORIGIN], methods: ['GET', 'POST'], headers: ['Content-Type', 'Accept', 'X-CSRF-Token'], maxAge: 600)]
+#[Middleware(ApiRequestIdMiddleware::class)]
 final class TicketApiController extends AbstractApiController
 {
+    /** The only cross-origin caller allowed: the ui/ vite dev server. */
+    public const string DEV_ORIGIN = 'http://localhost:5173';
+
     public function __construct(
         private readonly MessageBusInterface $bus,
         private readonly EntitySourceRegistry $sources,
@@ -59,7 +69,7 @@ final class TicketApiController extends AbstractApiController
     {
         $envelope = $this->bus->dispatch($this->commandFrom($request));
 
-        return $this->created(['id' => $envelope->last(HandledStamp::class)?->getResult()]);
+        return $this->created($this->resource((int) $envelope->last(HandledStamp::class)?->getResult()));
     }
 
     /**
@@ -72,7 +82,7 @@ final class TicketApiController extends AbstractApiController
     {
         $envelope = $this->bus->dispatch($this->commandFromDto($ticket));
 
-        return $this->created(['id' => $envelope->last(HandledStamp::class)?->getResult()]);
+        return $this->created($this->resource((int) $envelope->last(HandledStamp::class)?->getResult()));
     }
 
     private function commandFrom(CreateTicketRequest $request): CreateTicketCommand
@@ -105,5 +115,15 @@ final class TicketApiController extends AbstractApiController
             tags: $dto->tags !== null && $dto->tags !== '' ? $dto->tags : null,
             dueAt: $dto->dueAt !== null && $dto->dueAt !== '' ? (strtotime($dto->dueAt) ?: null) : null,
         );
+    }
+
+    /**
+     * @return array{id: int, ref: ?string}
+     */
+    private function resource(int $id): array
+    {
+        $ticket = Ticket::find($id);
+
+        return (new CreatedTicketResource($id, $ticket instanceof Ticket ? $ticket->ref : null))->toArray();
     }
 }

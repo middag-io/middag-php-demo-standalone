@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace Middag\Demo\Standalone\Domain;
 
 use Middag\Framework\Persistence\Model;
+use Middag\Framework\Security\Contract\PasswordHasherInterface;
 use Middag\Framework\Shared\Enum\Operator;
 
 /**
@@ -49,16 +50,16 @@ final class User extends Model
         return self::query()->where('email', Operator::Eq, $email)->first();
     }
 
-    public function verifyPassword(string $password): bool
+    public function verifyPassword(string $password, PasswordHasherInterface $hasher): bool
     {
-        return password_verify($password, (string) $this->password_hash);
+        return $hasher->verify($password, (string) $this->password_hash);
     }
 
     /**
      * Idempotently seed the single static demo user. Called by install:db (runtime)
      * and the test harness. Password is hashed with PASSWORD_DEFAULT.
      */
-    public static function seedDemo(): void
+    public static function seedDemo(PasswordHasherInterface $hasher): void
     {
         if (self::findByEmail(self::DEMO_EMAIL) instanceof User) {
             return;
@@ -67,7 +68,7 @@ final class User extends Model
         (new self([
             'email' => self::DEMO_EMAIL,
             'name' => 'Demo User',
-            'password_hash' => self::$demoHash ??= password_hash(self::DEMO_PASSWORD, PASSWORD_DEFAULT),
+            'password_hash' => self::$demoHash ??= $hasher->hash(self::DEMO_PASSWORD),
             'created_at' => time(),
         ]))->save();
     }

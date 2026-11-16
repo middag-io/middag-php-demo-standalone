@@ -15,7 +15,7 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 
 | Library | `@api` | covered | host | gap |
 |---|---|---|---|---|
-| `middag-io/framework` | 223 | 108 | 16 | 99 |
+| `middag-io/framework` | 223 | 136 | 16 | 71 |
 | `middag-io/ui` | 94 | 50 | 0 | 44 |
 
 ## `middag-io/framework`
@@ -118,51 +118,51 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | `Form\Renderer\RendererRegistry` | covered | `src/Http/TicketController.php` | `HttpTest::showExistingIdSucceedsWhenAuthenticated`<br>`KernelContainerTest::serviceProviderAutoDiscoveredDemoServices` | — |
 | `Form\Schema\FieldSchemaReader` | gap | Not exercised by the demo. | — | — |
 
-### Http — 44 `@api`: 27 covered, 0 host, 17 gap
+### Http — 44 `@api`: 43 covered, 0 host, 1 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
 | `Http\Attribute\Auth` | covered | `src/Http/TicketController.php` | `HttpTest::apiRejectsUnauthenticatedWith401`<br>`HttpTest::showExistingIdSucceedsWhenAuthenticated` | — |
-| `Http\Attribute\Cors` | gap | Not exercised by the demo. | — | — |
-| `Http\Attribute\Middleware` | gap | Not exercised by the demo. | — | — |
+| `Http\Attribute\Cors` | covered | `src/Http/TicketApiController.php` | `HttpSeamsTest::corsAnswersOnlyTheAllowedOrigin` | — |
+| `Http\Attribute\Middleware` | covered | `src/Http/TicketApiController.php` | `HttpSeamsTest::apiRouteMiddlewareStampsATimeOrderedRequestId` | — |
 | `Http\Attribute\ValidatedDto` | covered | `src/Http/TicketApiController.php` | `HttpTest::apiStoreDtoValidatesAndReturns201` | — |
-| `Http\Auth\CapabilityReference` | gap | Not exercised by the demo. | — | — |
-| `Http\Auth\CapabilityRequirement` | gap | Not exercised by the demo. | — | — |
+| `Http\Auth\CapabilityReference` | covered | `src/Security/SuperviseCapability.php` | `HttpSeamsTest::supervisorGateIsARichCapabilityRequirement`<br>`AgentContractTest::listShowsSupervisorColumnsWhenCapabilityHeld` | — |
+| `Http\Auth\CapabilityRequirement` | covered | `src/Http/AgentController.php` | `HttpSeamsTest::supervisorGateIsARichCapabilityRequirement`<br>`AgentContractTest::listShowsSupervisorColumnsWhenCapabilityHeld` | — |
 | `Http\Auth\SessionAuthenticator` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
 | `Http\Auth\SessionUserContextResolver` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
 | `Http\Contract\AuthenticatorInterface` | covered | `src/Http/AuthController.php` | `HttpTest::apiRejectsUnauthenticatedWith401` | — |
 | `Http\Contract\AuthorizationAwareInterface` | covered | Reached through ControllerInterface, which AbstractController implements. | `AuthTest::guardRedirectsAnonymousToLogin` | — |
-| `Http\Contract\CapabilityDefinitionInterface` | gap | Not exercised by the demo. | — | — |
-| `Http\Contract\CapabilityRequirementAwareInterface` | gap | Not exercised by the demo. | — | — |
+| `Http\Contract\CapabilityDefinitionInterface` | covered | `src/Security/SuperviseCapability.php` | `HttpSeamsTest::supervisorGateIsARichCapabilityRequirement` | — |
+| `Http\Contract\CapabilityRequirementAwareInterface` | covered | `src/Http/AgentController.php` | `AgentContractTest::listShowsSupervisorColumnsWhenCapabilityHeld`<br>`AgentContractTest::listRendersRosterAndGatesSupervisorColumnsByDefault` | — |
 | `Http\Contract\ContainerAwareInterface` | covered | Reached through AbstractController. | `HttpTest::indexWithXInertiaHeaderReturnsJson` | — |
 | `Http\Contract\ControllerInterface` | covered | Reached through AbstractController. | `HttpTest::indexWithXInertiaHeaderReturnsJson` | — |
-| `Http\Contract\ExceptionRendererInterface` | gap | Not exercised by the demo. | — | — |
+| `Http\Contract\ExceptionRendererInterface` | covered | `src/Http/ErrorPageRenderer.php` | `HttpSeamsTest::unknownRouteRendersTheNotFoundPage` | — |
 | `Http\Contract\FormRequestInterface` | covered | Reached through AbstractFormRequest. | `TicketContractTest::wizardAdvancesThroughStepsAndCreatesWithMergedData` | — |
 | `Http\Contract\HttpKernelInterface` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `KernelContainerTest::containerResolvesFrameworkContractsToOssDefaults` | — |
-| `Http\Contract\PublicRouteAwareInterface` | gap | Not exercised by the demo. | — | — |
+| `Http\Contract\PublicRouteAwareInterface` | covered | `src/Shared/Concerns/DeclaresPublicRoute.php` | `HttpSeamsTest::loginAndHelpArePublicRoutes` | — |
 | `Http\Contract\RequestHandlingInterface` | covered | Reached through AbstractController. | `HttpTest::indexWithXInertiaHeaderReturnsJson` | — |
-| `Http\Contract\RetryPolicyInterface` | gap | Not exercised by the demo. | — | — |
-| `Http\Contract\RouteMiddlewareInterface` | gap | Not exercised by the demo. | — | — |
+| `Http\Contract\RetryPolicyInterface` | covered | `src/Webhook/TicketWebhookNotifier.php` | `SecurityTest::webhookIsSignedSentAndRetriedOnce` | — |
+| `Http\Contract\RouteMiddlewareInterface` | covered | `src/Http/Middleware/ApiRequestIdMiddleware.php` | `HttpSeamsTest::apiRouteMiddlewareStampsATimeOrderedRequestId` | — |
 | `Http\Contract\SessionInterface` | covered | `src/Http/TicketController.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`HttpTest::showExistingIdSucceedsWhenAuthenticated` | — |
 | `Http\Controller\AbstractApiController` | covered | `src/Http/TicketApiController.php` | `HttpTest::apiRejectsUnauthenticatedWith401` | — |
 | `Http\Controller\AbstractController` | covered | `src/Http/TicketController.php` | `HttpTest::showExistingIdSucceedsWhenAuthenticated`<br>`KernelContainerTest::serviceProviderAutoDiscoveredDemoServices` | — |
-| `Http\DefaultExceptionRenderer` | gap | Not exercised by the demo. | — | — |
-| `Http\FatalErrorHandler` | gap | Not exercised by the demo. | — | — |
-| `Http\HttpClientFactory` | gap | Not exercised by the demo. | — | — |
+| `Http\DefaultExceptionRenderer` | covered | `src/Http/ErrorPageRenderer.php` | `HttpSeamsTest::unknownRouteRendersTheNotFoundPage`<br>`HttpSeamsTest::serverErrorsAreReportedAndClientErrorsAreNot` | — |
+| `Http\FatalErrorHandler` | covered | `public/index.php` | `HttpSeamsTest::fatalErrorHandlerAnswersWithThe500Envelope` | — |
+| `Http\HttpClientFactory` | covered | `src/Webhook/TicketWebhookNotifier.php` | `SecurityTest::webhookIsSignedSentAndRetriedOnce` | — |
 | `Http\Inertia\InertiaAdapter` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
 | `Http\Inertia\InertiaFactory` | covered | `src/Shared/Concerns/RendersPages.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
 | `Http\Inertia\InertiaManager` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
 | `Http\Inertia\InertiaVersionManager` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::bootPipesHostContextVersionIntoInertia` | — |
-| `Http\Middleware\CorsMiddleware` | gap | Not exercised by the demo. | — | — |
+| `Http\Middleware\CorsMiddleware` | gap | The demo declares CORS per controller with #[Cors], which the kernel applies; CorsMiddleware is the pipeline-wide alternative and would answer every route. | — | — |
 | `Http\Middleware\MiddlewareDispatcher` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
 | `Http\Middleware\ShareFlashMiddleware` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `FrontendContractTest::createFlashesSuccessOnNextVisit` | — |
 | `Http\Middleware\StartSessionMiddleware` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
 | `Http\Middleware\VerifyCsrfMiddleware` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
 | `Http\Request\AbstractFormRequest` | covered | `src/Http/Request/CreateTicketRequest.php` | `TicketContractTest::wizardAdvancesThroughStepsAndCreatesWithMergedData` | — |
-| `Http\Retry\RetryPolicy` | gap | Not exercised by the demo. | — | — |
-| `Http\Routing\RouteMiddlewareStack` | gap | Not exercised by the demo. | — | — |
+| `Http\Retry\RetryPolicy` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `SecurityTest::webhookIsSignedSentAndRetriedOnce` | — |
+| `Http\Routing\RouteMiddlewareStack` | covered | Reached through the kernel, which builds the per-route stack from the #[Middleware] declarations. | `HttpSeamsTest::apiRouteMiddlewareStampsATimeOrderedRequestId` | — |
 | `Http\Security\CsrfTokenManager` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
-| `Http\Session\ArraySession` | gap | Not exercised by the demo. | — | — |
+| `Http\Session\ArraySession` | covered | `tests/HttpSeamsTest.php` | `HttpSeamsTest::arraySessionBacksTheSessionAuthenticator` | — |
 | `Http\Session\FlashBag` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `FrontendContractTest::createFlashesSuccessOnNextVisit` | — |
 | `Http\Session\NativeSession` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
 | `Http\StandaloneKernel` | covered | `public/index.php` | `HttpTest::indexFirstVisitRendersInertiaHtmlShell` | — |
@@ -233,13 +233,13 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | `Mail\Mail` | gap | Not exercised by the demo. | — | — |
 | `Mail\NullMailer` | host | OSS default of MailerInterface; moodle and wordpress implement their own. | — | — |
 
-### Observability — 5 `@api`: 2 covered, 0 host, 3 gap
+### Observability — 5 `@api`: 4 covered, 0 host, 1 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
-| `Observability\Contract\ErrorReporterInterface` | gap | Not exercised by the demo. | — | — |
+| `Observability\Contract\ErrorReporterInterface` | covered | `src/Http/ErrorPageRenderer.php` | `HttpSeamsTest::serverErrorsAreReportedAndClientErrorsAreNot` | — |
 | `Observability\Contract\ProfileCollectorInterface` | covered | `src/Observability/DebugCollector.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
-| `Observability\NullErrorReporter` | gap | Not exercised by the demo. | — | — |
+| `Observability\NullErrorReporter` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HttpSeamsTest::unknownRouteRendersTheNotFoundPage`<br>`HttpSeamsTest::serverErrorsAreReportedAndClientErrorsAreNot` | — |
 | `Observability\ProfileCollector` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
 | `Observability\SentryErrorReporter` | gap | Needs a Sentry DSN. | — | — |
 
@@ -282,32 +282,32 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | `Runtime\ServiceMap` | gap | Not exercised by the demo. | — | — |
 | `Runtime\StandaloneKernel` | gap | Not exercised by the demo. | — | — |
 
-### Security — 5 `@api`: 0 covered, 0 host, 5 gap
+### Security — 5 `@api`: 5 covered, 0 host, 0 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
-| `Security\Contract\PasswordHasherInterface` | gap | Not exercised by the demo. | — | — |
-| `Security\Contract\SignatureVerifierInterface` | gap | Not exercised by the demo. | — | — |
-| `Security\Enum\SignatureEncoding` | gap | Not exercised by the demo. | — | — |
-| `Security\HmacSignatureVerifier` | gap | Not exercised by the demo. | — | — |
-| `Security\NativePasswordHasher` | gap | Not exercised by the demo. | — | — |
+| `Security\Contract\PasswordHasherInterface` | covered | `src/Domain/User.php` | `SecurityTest::seededUserVerifiesThroughThePasswordHasher`<br>`AuthTest::validCredentialsCreateSession` | — |
+| `Security\Contract\SignatureVerifierInterface` | covered | `src/Webhook/TicketWebhookNotifier.php` | `SecurityTest::webhookIsSignedSentAndRetriedOnce` | — |
+| `Security\Enum\SignatureEncoding` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `SecurityTest::base64EncodingSignsTheSamePayloadDifferently` | — |
+| `Security\HmacSignatureVerifier` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `SecurityTest::webhookIsSignedSentAndRetriedOnce`<br>`SecurityTest::base64EncodingSignsTheSamePayloadDifferently` | — |
+| `Security\NativePasswordHasher` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `SecurityTest::seededUserVerifiesThroughThePasswordHasher` | — |
 
-### Shared — 12 `@api`: 6 covered, 0 host, 6 gap
+### Shared — 12 `@api`: 11 covered, 0 host, 1 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
 | `Shared\Attribute\TrustedOutput` | covered | `src/Shortcode/TicketSummary.php` | `ShortcodeTest::trustedOutputAttributeMarksRenderMethod` | — |
-| `Shared\Contract\DtoInterface` | gap | Not exercised by the demo. | — | — |
-| `Shared\Dto\AbstractDto` | gap | Not exercised by the demo. | — | — |
+| `Shared\Contract\DtoInterface` | covered | Reached through AbstractDto, which CreatedTicketResource extends. | `HttpSeamsTest::createdTicketCarriesItsVisualReference` | — |
+| `Shared\Dto\AbstractDto` | covered | `src/Http/Dto/CreatedTicketResource.php` | `HttpSeamsTest::createdTicketCarriesItsVisualReference` | — |
 | `Shared\Dto\SyncResult` | gap | Not exercised by the demo. | — | — |
 | `Shared\Enum\DebugMode` | covered | `bin/debug.php` | `DebugToolsTest::debugScriptReportsEnvironmentTypingAndDebugMode` | — |
 | `Shared\Enum\Operator` | covered | `src/Http/ParityController.php` | `PersistenceTest::paradigmParityActiveRecordWriteDataMapperRead` | — |
-| `Shared\Util\Arr` | gap | Not exercised by the demo. | — | — |
+| `Shared\Util\Arr` | covered | `src/Http/TicketController.php` | `TicketContractTest::wizardAdvancesThroughStepsAndCreatesWithMergedData` | — |
 | `Shared\Util\Debug` | covered | `bin/debug.php` | `DebugToolsTest::debugScriptReportsEnvironmentTypingAndDebugMode` | — |
 | `Shared\Util\Environment` | covered | `bin/debug.php` | `DebugToolsTest::debugScriptReportsEnvironmentTypingAndDebugMode` | — |
-| `Shared\Util\Inflector` | gap | Not exercised by the demo. | — | — |
+| `Shared\Util\Inflector` | covered | `src/Http/TicketController.php` | `TicketContractTest::showRendersStatusLifecycleAndTabbedDetailActivitySla` | — |
 | `Shared\Util\Typing` | covered | `bin/debug.php` | `DebugToolsTest::debugScriptReportsEnvironmentTypingAndDebugMode` | — |
-| `Shared\ValueObject\Uuid` | gap | Not exercised by the demo. | — | — |
+| `Shared\ValueObject\Uuid` | covered | `src/Command/CreateTicketCommandHandler.php` | `HttpSeamsTest::createdTicketCarriesItsVisualReference`<br>`HttpSeamsTest::apiRouteMiddlewareStampsATimeOrderedRequestId` | — |
 
 ### Translation — 4 `@api`: 3 covered, 1 host, 0 gap
 

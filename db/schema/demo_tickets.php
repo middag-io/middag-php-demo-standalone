@@ -13,6 +13,7 @@ return [
     'name' => 'demo_tickets',
     'columns' => [
         ['name' => 'id', 'type' => 'bigint', 'notnull' => true, 'sequence' => true],
+        ['name' => 'ref', 'type' => 'varchar', 'length' => 36, 'notnull' => false],
         ['name' => 'subject', 'type' => 'varchar', 'length' => 200, 'notnull' => true],
         ['name' => 'body', 'type' => 'text', 'notnull' => false],
         ['name' => 'status', 'type' => 'varchar', 'length' => 20, 'notnull' => true, 'default' => 'new'],
