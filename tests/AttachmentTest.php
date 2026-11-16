@@ -139,6 +139,17 @@ final class AttachmentTest extends DemoTestCase
     }
 
     #[Test]
+    public function aPendingUploadDoesNotDownload(): void
+    {
+        $pending = $this->upload('notes.txt', self::CONTENTS);
+
+        $response = $this->handle('GET', $pending->downloadUrl(), [], ['HTTP_ACCEPT' => 'application/json']);
+
+        self::assertSame(404, $response->getStatusCode());
+        self::assertStringNotContainsString(self::CONTENTS, (string) $response->getContent());
+    }
+
+    #[Test]
     public function uploadRefusesAnUnlistedTypeAndAnOversizedFile(): void
     {
         $this->post('script.php', '<?php echo 1;');
