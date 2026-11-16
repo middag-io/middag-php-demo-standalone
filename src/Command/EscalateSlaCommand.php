@@ -29,8 +29,8 @@ use Middag\Framework\Bus\Command\CommandWorker;
  * NOTE (scope): the transport is InMemoryTransport (process-local), so the
  * enqueue→drain round-trip is proved within one process (a console run or the
  * BusAsyncTest), not across containers. The persistent, genuinely cross-process
- * outbox path (middag-php-core's AnsiOutboxStore + #[AsyncOn]) is out of scope for
- * this demo cycle — core is not a dependency here. Filed in the coverage manifest.
+ * outbox path lives in MIDDAG's proprietary core and is out of scope for this
+ * demo cycle: the core is not a dependency here. Filed in the coverage manifest.
  */
 final class EscalateSlaCommand extends AbstractCommand
 {

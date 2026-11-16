@@ -51,7 +51,7 @@ silently here. And never import a host API or the proprietary core: that boundar
   `0.x`; from `2.0.0` it fails the version family check outside a window) —
   **never** `build(deps):`/`chore(deps):`, which release-please treats as non-user-facing and
   skips (the image then never publishes).
-- **Version family (ADR-032 of the internal `docs-middag-ops`, amends ADR-003 for the PHP libs):** this repo is in
+- **Version family (https://docs.middag.dev/libraries/reference/versioning-and-compatibility):** this repo is in
   the `middag-php-*` family. It stays on `0.x` until the family cut, then jumps to `2.0.0`
   with every other member. From `2.0.0`: shared MAJOR.MINOR, PATCH is fix-only, `feat`
   waits for a family MINOR window, a break waits for a family MAJOR window (deprecate
