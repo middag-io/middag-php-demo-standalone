@@ -26,5 +26,16 @@ use Middag\Framework\Database\Schema\MigrationRunner;
 final class DemoMigrationRunner extends MigrationRunner
 {
     /** Bump when db/schema/*.php changes in a way upgrade() should apply. */
-    public const int VERSION = 2026060200;
+    public const int VERSION = 2026111600;
+
+    /**
+     * 2026111600: tickets carry a UUID v7 `ref`. New tables (tags, the ticket-tag
+     * pivot) come from install(); an existing demo_tickets table gains the column.
+     */
+    protected function onUpgrade(int $oldVersion): void
+    {
+        if ($oldVersion < 2026111600 && $this->adapter->tableExists('demo_tickets') && !$this->adapter->columnExists('demo_tickets', 'ref')) {
+            $this->adapter->addColumn('demo_tickets', ['name' => 'ref', 'type' => 'varchar', 'length' => 36, 'notnull' => false]);
+        }
+    }
 }

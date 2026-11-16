@@ -41,6 +41,7 @@ final class CustomerController extends AbstractController
     public function index(): Response
     {
         $customers = $this->customers->latest();
+        $withOpenTickets = \count($this->customers->withOpenTickets());
 
         $rows = array_map(
             static function (Customer $c): array {
@@ -68,8 +69,9 @@ final class CustomerController extends AbstractController
             ->layout('stack')
             ->title('Customers')
             ->subtitle('Reporters — data-mapper read rendered as a card_grid')
-            ->region('content', function (RegionBuilder $region) use ($columns, $rows): void {
+            ->region('content', function (RegionBuilder $region) use ($columns, $rows, $withOpenTickets): void {
                 $region->metricCard('customer_count', count($rows), 'Customers', icon: 'building');
+                $region->metricCard('with_open_tickets', $withOpenTickets, 'With open tickets', icon: 'inbox');
                 $region->cardGrid('customers', $columns, $rows, null, [
                     'emptyState' => [
                         'icon' => 'building',

@@ -15,7 +15,7 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 
 | Library | `@api` | covered | host | gap |
 |---|---|---|---|---|
-| `middag-io/framework` | 223 | 152 | 15 | 56 |
+| `middag-io/framework` | 223 | 166 | 15 | 42 |
 | `middag-io/ui` | 94 | 50 | 0 | 44 |
 
 ## `middag-io/framework`
@@ -106,7 +106,7 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | `Filesystem\FlysystemFilesystem` | gap | The attachment flow proves FilesystemInterface with LocalFilesystem; Flysystem would add a dependency to prove the same contract. | — | — |
 | `Filesystem\LocalFilesystem` | gap | Not exercised by the demo. | — | — |
 
-### Form — 7 `@api`: 6 covered, 0 host, 1 gap
+### Form — 7 `@api`: 7 covered, 0 host, 0 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
@@ -116,7 +116,7 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | `Form\EntitySourceRegistry` | covered | `src/Http/TicketApiController.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`HttpTest::apiRejectsUnauthenticatedWith401` | — |
 | `Form\FieldFactory` | covered | `src/Form/LoginForm.php` | `FormTest::rendersToInertiaProps` | — |
 | `Form\Renderer\RendererRegistry` | covered | `src/Http/TicketController.php` | `HttpTest::showExistingIdSucceedsWhenAuthenticated`<br>`KernelContainerTest::serviceProviderAutoDiscoveredDemoServices` | — |
-| `Form\Schema\FieldSchemaReader` | gap | Not exercised by the demo. | — | — |
+| `Form\Schema\FieldSchemaReader` | covered | `tests/PersistenceSeamsTest.php` | `PersistenceSeamsTest::fieldSchemaReaderReadsTheDtoFields` | — |
 
 ### Http — 44 `@api`: 43 covered, 0 host, 1 gap
 
@@ -243,35 +243,35 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | `Observability\ProfileCollector` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
 | `Observability\SentryErrorReporter` | gap | Needs a Sentry DSN. | — | — |
 
-### Persistence — 27 `@api`: 13 covered, 1 host, 13 gap
+### Persistence — 27 `@api`: 26 covered, 1 host, 0 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
-| `Persistence\Attribute\EntityType` | gap | Not exercised by the demo. | — | — |
-| `Persistence\Contract\CastInterface` | gap | Not exercised by the demo. | — | — |
+| `Persistence\Attribute\EntityType` | covered | `src/Domain/Ticket.php` | `PersistenceSeamsTest::modelsDeclareTheirEntityTypes` | — |
+| `Persistence\Contract\CastInterface` | covered | `src/Domain/TrimmedStringCast.php` | `PersistenceSeamsTest::authorCastTrimsOnWriteAndRead` | — |
 | `Persistence\Contract\ConditionCompilerInterface` | host | moodle (SqlGenerator) and wordpress (WpdbConditionCompiler) implement it; no OSS default. | — | — |
 | `Persistence\Contract\ConnectionResolverInterface` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
 | `Persistence\Contract\EntityInterface` | covered | `src/Http/AgentController.php` | `PersistenceTest::dataMapperCrud` | — |
-| `Persistence\Contract\EntityTypeInterface` | gap | Not exercised by the demo. | — | — |
-| `Persistence\Contract\EntityTypeRegistryInterface` | gap | Not exercised by the demo. | — | — |
+| `Persistence\Contract\EntityTypeInterface` | covered | Reached through DefaultEntityType, which the registrar builds per declared model. | `PersistenceSeamsTest::modelsDeclareTheirEntityTypes` | — |
+| `Persistence\Contract\EntityTypeRegistryInterface` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `PersistenceSeamsTest::modelsDeclareTheirEntityTypes` | — |
 | `Persistence\Contract\MapperInterface` | covered | `src/Domain/Doctrine/CustomerRepository.php` | `CustomerContractTest::customersRenderAsCardGridWithEmptyStateFallback`<br>`HttpTest::entitiesEndpointServesEntitySource`<br>`KernelContainerTest::serviceProviderAutoDiscoveredDemoServices` | — |
 | `Persistence\Contract\QueryBuilderInterface` | covered | Reached through QueryBuilder. | `PersistenceTest::paradigmParityActiveRecordWriteDataMapperRead` | — |
 | `Persistence\Contract\RepositoryInterface` | covered | Reached through AbstractRepository. | `PersistenceTest::dataMapperCrud` | — |
 | `Persistence\Contract\ResultInterface` | covered | Reached through paginate(). | `PersistenceTest::dataMapperQueryBuilderPaginatesIntoPage` | — |
-| `Persistence\Entity\DefaultEntityType` | gap | Not exercised by the demo. | — | — |
-| `Persistence\Entity\EntityTypeRegistry` | gap | Not exercised by the demo. | — | — |
-| `Persistence\Loader\EntityTypeRegistrar` | gap | Not exercised by the demo. | — | — |
+| `Persistence\Entity\DefaultEntityType` | covered | `tests/PersistenceSeamsTest.php` | `PersistenceSeamsTest::modelsDeclareTheirEntityTypes` | — |
+| `Persistence\Entity\EntityTypeRegistry` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `PersistenceSeamsTest::modelsDeclareTheirEntityTypes` | — |
+| `Persistence\Loader\EntityTypeRegistrar` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `PersistenceSeamsTest::modelsDeclareTheirEntityTypes` | — |
 | `Persistence\Mapper\AbstractMapper` | covered | `src/Domain/Doctrine/CustomerMapper.php` | `PersistenceTest::dataMapperCrud` | — |
 | `Persistence\Model` | covered | `src/Domain/Ticket.php` | `AuthTest::invalidCredentialsRejected`<br>`AuthTest::validCredentialsCreateSession`<br>`BusTest::syncDispatchPersistsTicketAndReturnsIdViaHandledStamp` | — |
 | `Persistence\ModelQuery` | covered | Reached through Ticket::query(). | `BusTest::syncDispatchPersistsTicketAndReturnsIdViaHandledStamp`<br>`ExceptionsTest::findOrFailThrowsNotFound`<br>`FrontendContractTest::createFlashesSuccessOnNextVisit` | — |
 | `Persistence\Query\Page` | covered | `src/Domain/Doctrine/CustomerRepository.php` | `FrontendContractTest::indexEmitsPageContractViaInertia`<br>`FrontendContractTest::showEmitsDetailContract`<br>`HelpContractTest::helpPageRendersImmersiveShellWithMarkdownEmptyStateAndActionGrid` | — |
 | `Persistence\Query\QueryBuilder` | covered | `src/Http/ParityController.php` | `PersistenceTest::paradigmParityActiveRecordWriteDataMapperRead` | — |
-| `Persistence\Query\RelationRef` | gap | Not exercised by the demo. | — | — |
-| `Persistence\Relation\BelongsTo` | gap | Not exercised by the demo. | — | — |
-| `Persistence\Relation\BelongsToMany` | gap | Not exercised by the demo. | — | — |
-| `Persistence\Relation\HasMany` | gap | Not exercised by the demo. | — | — |
-| `Persistence\Relation\HasOne` | gap | Not exercised by the demo. | — | — |
-| `Persistence\Relation\Relation` | gap | Not exercised by the demo. | — | — |
+| `Persistence\Query\RelationRef` | covered | `src/Domain/Doctrine/CustomerRepository.php` | `PersistenceSeamsTest::customersWithOpenTicketsComeFromARelationRefJoin` | — |
+| `Persistence\Relation\BelongsTo` | covered | `src/Domain/Comment.php` | `PersistenceSeamsTest::ticketRelationsReadCommentsOpeningCommentAndTags` | — |
+| `Persistence\Relation\BelongsToMany` | covered | `src/Domain/Ticket.php` | `PersistenceSeamsTest::ticketRelationsReadCommentsOpeningCommentAndTags`<br>`PersistenceSeamsTest::editingTheTagsRewritesThePivot` | — |
+| `Persistence\Relation\HasMany` | covered | `src/Domain/Ticket.php` | `PersistenceSeamsTest::ticketRelationsReadCommentsOpeningCommentAndTags`<br>`PersistenceSeamsTest::eagerLoadingFillsTheRelation` | — |
+| `Persistence\Relation\HasOne` | covered | `src/Domain/Ticket.php` | `PersistenceSeamsTest::ticketRelationsReadCommentsOpeningCommentAndTags` | — |
+| `Persistence\Relation\Relation` | covered | Reached through HasMany, HasOne, BelongsTo and BelongsToMany, which extend it; eager loading goes through it. | `PersistenceSeamsTest::eagerLoadingFillsTheRelation` | — |
 | `Persistence\Repository\AbstractRepository` | covered | `src/Domain/Doctrine/CustomerRepository.php` | `CustomerContractTest::customersRenderAsCardGridWithEmptyStateFallback`<br>`HttpTest::entitiesEndpointServesEntitySource`<br>`KernelContainerTest::serviceProviderAutoDiscoveredDemoServices` | — |
 | `Persistence\SingleConnectionResolver` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
 

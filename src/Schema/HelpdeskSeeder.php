@@ -19,6 +19,7 @@ use Middag\Demo\Standalone\Domain\Doctrine\Customer;
 use Middag\Demo\Standalone\Domain\Doctrine\CustomerRepository;
 use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicy;
 use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicyRepository;
+use Middag\Demo\Standalone\Domain\Tag;
 use Middag\Demo\Standalone\Domain\Ticket;
 use Middag\Framework\Database\Contract\ConnectionAdapterInterface;
 use Middag\Framework\Shared\ValueObject\Uuid;
@@ -135,6 +136,7 @@ final class HelpdeskSeeder
             ]);
             $ticket->save();
             $ticketId = (int) $ticket->getKey();
+            Tag::syncTicket($ticketId, $tags);
 
             (new Comment([
                 'ticket_id' => $ticketId,

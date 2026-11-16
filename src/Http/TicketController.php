@@ -19,6 +19,7 @@ use Middag\Demo\Standalone\Domain\Doctrine\AgentRepository;
 use Middag\Demo\Standalone\Domain\Doctrine\CustomerRepository;
 use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicy;
 use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicyRepository;
+use Middag\Demo\Standalone\Domain\Tag;
 use Middag\Demo\Standalone\Domain\Ticket;
 use Middag\Demo\Standalone\Form\TicketForm;
 use Middag\Demo\Standalone\Http\Request\CreateTicketRequest;
@@ -196,7 +197,11 @@ final class TicketController extends AbstractController
         $agentNames = $this->idLabelMap($this->agents->latest());
 
         /** @var list<Comment> $comments */
-        $comments = Comment::query()->where('ticket_id', $id)->orderBy('created_at', 'asc')->get();
+        $comments = $ticket->comments()->getQuery()->orderBy('created_at', 'asc')->get();
+
+        /** @var list<Tag> $tags */
+        $tags = $ticket->tagModels()->getResults();
+        $opening = $ticket->openingComment()->getResults();
 
         $customer = $customerNames[(int) $ticket->customer_id] ?? '—';
         $assignee = $ticket->agent_id !== null ? ($agentNames[(int) $ticket->agent_id] ?? '—') : 'Unassigned';
@@ -213,7 +218,8 @@ final class TicketController extends AbstractController
                 ['key' => 'channel', 'label' => 'Channel', 'value' => (string) $ticket->channel],
                 ['key' => 'customer', 'label' => 'Reporter', 'value' => $customer],
                 ['key' => 'agent', 'label' => 'Assignee', 'value' => $assignee],
-                ['key' => 'tags', 'label' => 'Tags', 'value' => $ticket->tags !== null && $ticket->tags !== '' ? implode(', ', array_map('trim', explode(',', (string) $ticket->tags))) : null],
+                ['key' => 'tags', 'label' => 'Tags', 'value' => $tags !== [] ? implode(', ', array_map(static fn (Tag $tag): string => (string) $tag->name, $tags)) : null],
+                ['key' => 'opened_by', 'label' => 'Opened by', 'value' => $opening instanceof Comment ? (string) $opening->author : null],
                 ['key' => 'created', 'label' => 'Created', 'value' => $ticket->created_at ? date('Y-m-d H:i', (int) $ticket->created_at) : null],
                 ['key' => 'resolved', 'label' => 'Resolved', 'value' => $ticket->resolved_at ? date('Y-m-d H:i', (int) $ticket->resolved_at) : null],
                 ['key' => 'satisfaction', 'label' => 'CSAT', 'value' => $ticket->satisfaction !== null ? (int) $ticket->satisfaction : null],

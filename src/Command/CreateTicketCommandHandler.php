@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Command;
 
+use Middag\Demo\Standalone\Domain\Tag;
 use Middag\Demo\Standalone\Domain\Ticket;
 use Middag\Framework\Kernel\Facade\HookFacade;
 use Middag\Framework\Shared\ValueObject\Uuid;
@@ -49,6 +50,7 @@ final readonly class CreateTicketCommandHandler
         $ticket->save();
 
         $id = (int) $ticket->getKey();
+        Tag::syncTicket($id, $ticket->tags);
         $this->logger->info('CreateTicketCommand handled', ['id' => $id]);
         HookFacade::doAction('demo.ticket.created', $id, $command->priority);
 

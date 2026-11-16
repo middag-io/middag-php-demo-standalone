@@ -14,6 +14,7 @@ namespace Middag\Demo\Standalone\Domain\Doctrine;
 
 use Middag\Framework\Persistence\Contract\MapperInterface;
 use Middag\Framework\Persistence\Query\Page;
+use Middag\Framework\Persistence\Query\RelationRef;
 use Middag\Framework\Persistence\Repository\AbstractRepository;
 
 /**
@@ -75,6 +76,27 @@ final class CustomerRepository extends AbstractRepository
             $result->perpage(),
             false,
         );
+    }
+
+    /**
+     * Names of the customers with at least one open ticket: the customers table
+     * joined to demo_tickets by a RelationRef (one customer, many tickets).
+     *
+     * @return list<string>
+     */
+    public function withOpenTickets(): array
+    {
+        $tickets = new RelationRef('demo_tickets', 'id', 'customer_id', 't', 'one-to-many');
+
+        /** @var list<string> $names */
+        $names = $this->query()
+            ->joinRef($tickets)
+            ->whereIn('t.status', ['new', 'open', 'pending'])
+            ->distinct()
+            ->orderBy('name', 'asc')
+            ->pluck('name');
+
+        return array_map(strval(...), $names);
     }
 
     protected function table(): string

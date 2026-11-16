@@ -12,7 +12,11 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Domain;
 
+use Middag\Framework\Persistence\Attribute\EntityType;
 use Middag\Framework\Persistence\Model;
+use Middag\Framework\Persistence\Relation\BelongsToMany;
+use Middag\Framework\Persistence\Relation\HasMany;
+use Middag\Framework\Persistence\Relation\HasOne;
 
 /**
  * Active-Record ticket — the Laravel-Eloquent-style experience.
@@ -40,6 +44,7 @@ use Middag\Framework\Persistence\Model;
  * @property null|int    $resolved_at   unix timestamp
  * @property int         $created_at    unix timestamp
  */
+#[EntityType(key: 'ticket', label: 'Ticket')]
 final class Ticket extends Model
 {
     public const array STATUSES = ['new', 'open', 'pending', 'resolved', 'closed'];
@@ -66,4 +71,28 @@ final class Ticket extends Model
         'resolved_at' => 'int',
         'created_at' => 'int',
     ];
+
+    /**
+     * The comment feed of the ticket.
+     */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class, 'ticket_id');
+    }
+
+    /**
+     * The comment that opened the ticket (the seed and the create flow write it first).
+     */
+    public function openingComment(): HasOne
+    {
+        return $this->hasOne(Comment::class, 'ticket_id');
+    }
+
+    /**
+     * The tags of the ticket, through the demo_ticket_tags pivot.
+     */
+    public function tagModels(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'demo_ticket_tags', 'ticket_id', 'tag_id');
+    }
 }

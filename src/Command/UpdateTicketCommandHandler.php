@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Command;
 
+use Middag\Demo\Standalone\Domain\Tag;
 use Middag\Demo\Standalone\Domain\Ticket;
 use Middag\Framework\Kernel\Facade\HookFacade;
 use Psr\Log\LoggerInterface;
@@ -37,6 +38,7 @@ final readonly class UpdateTicketCommandHandler
         $ticket->tags = $command->tags;
         $ticket->satisfaction = $command->satisfaction;
         $ticket->save();
+        Tag::syncTicket($command->id, $ticket->tags);
 
         $this->logger->info('UpdateTicketCommand handled', ['id' => $command->id]);
         HookFacade::doAction('demo.ticket.updated', $command->id);

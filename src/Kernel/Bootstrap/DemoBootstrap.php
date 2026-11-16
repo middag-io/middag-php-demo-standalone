@@ -14,6 +14,8 @@ namespace Middag\Demo\Standalone\Kernel\Bootstrap;
 
 use Closure;
 use Middag\Demo\Standalone\Command\EscalateSlaCommand;
+use Middag\Demo\Standalone\Domain\Comment;
+use Middag\Demo\Standalone\Domain\Tag;
 use Middag\Demo\Standalone\Domain\Ticket;
 use Middag\Demo\Standalone\Form\AgentEntitySource;
 use Middag\Demo\Standalone\Form\CustomerEntitySource;
@@ -90,6 +92,9 @@ use Middag\Framework\Observability\Contract\ProfileCollectorInterface;
 use Middag\Framework\Observability\NullErrorReporter;
 use Middag\Framework\Observability\ProfileCollector;
 use Middag\Framework\Persistence\Contract\ConnectionResolverInterface;
+use Middag\Framework\Persistence\Contract\EntityTypeRegistryInterface;
+use Middag\Framework\Persistence\Entity\EntityTypeRegistry;
+use Middag\Framework\Persistence\Loader\EntityTypeRegistrar;
 use Middag\Framework\Persistence\SingleConnectionResolver;
 use Middag\Framework\Security\Contract\PasswordHasherInterface;
 use Middag\Framework\Security\Contract\SignatureVerifierInterface;
@@ -160,6 +165,9 @@ final readonly class DemoBootstrap implements BootstrapInterface
             ->setFactory([LevelFilteringLogger::class, 'fromName'])
             ->setArguments([new Reference('demo.logger.system'), (string) DemoEnv::get('LOG_LEVEL', 'debug')])
             ->setPublic(true);
+
+        // Entity types declared with #[EntityType] on the models, registered at runtime.
+        $c->register(EntityTypeRegistryInterface::class, EntityTypeRegistry::class)->setPublic(true);
 
         // Filled by DemoKernel with the registry its boot failure policy feeds.
         $c->register(FailedModuleRegistryInterface::class)->setSynthetic(true)->setPublic(true);
@@ -399,6 +407,9 @@ final readonly class DemoBootstrap implements BootstrapInterface
         // Help-desk hook on the live HookManager: demo.ticket.created → enqueue the
         // async SLA escalation (high/urgent) onto the in-memory transport.
         TicketHooks::register($hooks, $c->get(MessageBusInterface::class), $c->get(LoggerInterface::class));
+
+        (new EntityTypeRegistrar($c->get(EntityTypeRegistryInterface::class)))
+            ->register([Ticket::class, Comment::class, Tag::class]);
 
         if (DemoEnv::get('DEMO_WEBHOOK_URL') !== null) {
             $notifier = $c->get(TicketWebhookNotifier::class);
