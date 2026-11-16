@@ -10,7 +10,8 @@ import { test, expect } from '@playwright/test';
  * not express: the mailto `link` cell and the custom `sparkline` cell.
  *
  * Every test runs in the desktop and the mobile project: the table renders rows
- * on desktop and cards on a phone.
+ * on desktop and cards on a phone. The header-click sort runs on desktop only,
+ * since the cards have no column headers.
  */
 test('renders the roster with its variant cells and metrics', async ({ page }) => {
   await page.goto('/agents');
@@ -34,6 +35,39 @@ test('sorts the roster by name on the server', async ({ page }) => {
   const names = page.getByText(/^(Ana Souza|Bruno Lima|Carla Dias)$/);
   await expect(names.first()).toHaveText('Carla Dias');
   await expect(names.last()).toHaveText('Ana Souza');
+});
+
+test('sorts the roster from the Name header', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'the phone card list has no column headers');
+
+  await page.goto('/agents');
+
+  // The default sort (name, ascending) is the active one when the page loads.
+  const header = page.getByRole('columnheader', { name: /name/i });
+  const names = page.getByText(/^(Ana Souza|Bruno Lima|Carla Dias)$/);
+  await expect(header).toHaveAttribute('aria-sort', 'ascending');
+  await expect(names.first()).toHaveText('Ana Souza');
+
+  // First click: the server sorts descending and the header shows it.
+  const descending = page.waitForRequest((r) => new URL(r.url()).pathname === '/agents');
+  await header.getByRole('button').click();
+  const descendingParams = new URL((await descending).url()).searchParams;
+  expect(descendingParams.get('sort')).toBe('name');
+  expect(descendingParams.get('direction')).toBe('desc');
+  await expect(header).toHaveAttribute('aria-sort', 'descending');
+  await expect(names.first()).toHaveText('Carla Dias');
+  await expect(names.last()).toHaveText('Ana Souza');
+
+  // Second click clears the sort: the request carries none and the server falls
+  // back to the default, which the header shows again.
+  const cleared = page.waitForRequest((r) => new URL(r.url()).pathname === '/agents');
+  await header.getByRole('button').click();
+  const clearedParams = new URL((await cleared).url()).searchParams;
+  expect(clearedParams.has('sort')).toBe(false);
+  expect(clearedParams.has('direction')).toBe(false);
+  await expect(header).toHaveAttribute('aria-sort', 'ascending');
+  await expect(names.first()).toHaveText('Ana Souza');
+  await expect(names.last()).toHaveText('Carla Dias');
 });
 
 test('searches the roster on the server', async ({ page }) => {
