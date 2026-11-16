@@ -150,6 +150,60 @@ final class AttachmentTest extends DemoTestCase
     }
 
     #[Test]
+    public function anUploadPurgesStalePendingUploadsAndTheirFiles(): void
+    {
+        $stale = $this->upload('stale.txt', self::CONTENTS);
+        $stale->created_at = time() - Attachment::PENDING_TTL - 1;
+        $stale->save();
+
+        $fresh = $this->upload('fresh.txt', self::CONTENTS);
+        $attachedOld = $this->attach($this->upload('kept.txt', self::CONTENTS));
+        $attachedOld->created_at = time() - Attachment::PENDING_TTL - 1;
+        $attachedOld->save();
+
+        $this->upload('next.txt', self::CONTENTS);
+
+        $files = $this->container->get(FilesystemInterface::class);
+        self::assertNull(Attachment::query()->where('id', $stale->id)->first());
+        self::assertFalse($files->exists($stale->path()));
+        self::assertNotNull(Attachment::query()->where('id', $fresh->id)->first());
+        self::assertTrue($files->exists($fresh->path()));
+        self::assertNotNull(Attachment::query()->where('id', $attachedOld->id)->first(), 'attached files are never purged');
+        self::assertTrue($files->exists($attachedOld->path()));
+    }
+
+    #[Test]
+    public function purgeSkipsAPendingUploadWhoseFileIsGone(): void
+    {
+        $stale = $this->upload('stale.txt', self::CONTENTS);
+        $stale->created_at = time() - Attachment::PENDING_TTL - 1;
+        $stale->save();
+        $this->container->get(FilesystemInterface::class)->delete($stale->path());
+
+        self::assertSame(1, Attachment::purgeStale($this->container->get(FilesystemInterface::class), time()));
+        self::assertNull(Attachment::query()->where('id', $stale->id)->first());
+    }
+
+    #[Test]
+    public function uploadRefusesAUserHoldingTheMaximumOfPendingUploads(): void
+    {
+        for ($i = 0; $i < Attachment::MAX_PENDING_PER_USER; ++$i) {
+            $this->upload('notes-' . $i . '.txt', self::CONTENTS);
+        }
+
+        $refused = $this->post('one-more.txt', self::CONTENTS);
+
+        self::assertSame(303, $refused->getStatusCode());
+        self::assertSame('/tickets/' . $this->ticketId . '/attachments', $refused->headers->get('Location'));
+        self::assertSame(Attachment::MAX_PENDING_PER_USER, Attachment::pendingCount(self::UPLOADER));
+
+        // The cap is per user: another user still uploads.
+        $this->container->get(AuthenticatorInterface::class)->login(self::OTHER_USER, ['name' => 'Other', 'capabilities' => []]);
+        $this->upload('other.txt', self::CONTENTS);
+        self::assertSame(1, Attachment::pendingCount(self::OTHER_USER));
+    }
+
+    #[Test]
     public function uploadRefusesAnUnlistedTypeAndAnOversizedFile(): void
     {
         $this->post('script.php', '<?php echo 1;');
@@ -172,11 +226,22 @@ final class AttachmentTest extends DemoTestCase
         $location = (string) $response->headers->get('Location');
         self::assertStringStartsWith('/tickets/' . $this->ticketId . '/attachments?token=', $location);
 
-        $pending = Attachment::findPending($this->ticketId, self::UPLOADER, substr($location, (int) strpos($location, '=') + 1));
+        $pending = Attachment::findPending($this->ticketId, (int) $this->container->get(AuthenticatorInterface::class)->id(), substr($location, (int) strpos($location, '=') + 1));
         self::assertInstanceOf(Attachment::class, $pending);
         $this->written[] = $pending->path();
 
         return $pending;
+    }
+
+    private function attach(Attachment $pending): Attachment
+    {
+        $value = $this->formPanel('?token=' . $pending->token)['values']['file'];
+        $this->handle('POST', '/tickets/' . $this->ticketId . '/attachments', ['file' => $value]);
+        $attached = Attachment::query()->where('id', $pending->id)->first();
+        self::assertInstanceOf(Attachment::class, $attached);
+        self::assertSame(Attachment::ATTACHED, $attached->status);
+
+        return $attached;
     }
 
     private function post(string $name, string $contents): Response

@@ -108,13 +108,16 @@ final class AttachmentController extends AbstractController
 
     /**
      * POST /tickets/{id}/attachments/upload — stores the posted file as a pending
-     * upload and sends the browser back to the form, which now holds it.
+     * upload and sends the browser back to the form, which now holds it. Stale
+     * pending uploads are purged first, and a user holding the maximum of
+     * pending uploads is refused until one is attached or expires.
      */
     public function upload(int $id): RedirectResponse
     {
         Ticket::findOrFail($id);
+        Attachment::purgeStale($this->files, time());
         $file = $this->request->files->get('file');
-        $error = $this->uploadError($file);
+        $error = $this->uploadError($file) ?? $this->quotaError();
         if ($error !== null || !$file instanceof UploadedFile) {
             $this->flash('error', $error ?? 'Choose a file to upload.');
 
@@ -229,6 +232,16 @@ final class AttachmentController extends AbstractController
         }
 
         return null;
+    }
+
+    /** Why the session user may not upload another file now, or null. */
+    private function quotaError(): ?string
+    {
+        if (Attachment::pendingCount($this->userId()) < Attachment::MAX_PENDING_PER_USER) {
+            return null;
+        }
+
+        return sprintf('You already have %d uploads waiting: attach them or try again later.', Attachment::MAX_PENDING_PER_USER);
     }
 
     /**

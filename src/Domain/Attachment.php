@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Domain;
 
+use Middag\Framework\Filesystem\Contract\FilesystemInterface;
 use Middag\Framework\Persistence\Model;
 
 /**
@@ -34,6 +35,12 @@ final class Attachment extends Model
     public const string PENDING = 'pending';
 
     public const string ATTACHED = 'attached';
+
+    /** Seconds a pending upload waits to be attached before it is purged. */
+    public const int PENDING_TTL = 1800;
+
+    /** Pending uploads one user may hold at a time. */
+    public const int MAX_PENDING_PER_USER = 5;
 
     /** An upload token is 16 random bytes in hex. */
     public const string TOKEN_PATTERN = '/^[0-9a-f]{32}$/';
@@ -64,6 +71,34 @@ final class Attachment extends Model
             && $attachment->ticket_id === $ticketId
             && $attachment->user_id === $userId
             && $attachment->status === self::PENDING ? $attachment : null;
+    }
+
+    /**
+     * Delete every pending upload older than {@see self::PENDING_TTL}: the row
+     * and its file. A file already gone is skipped. Returns how many were purged.
+     */
+    public static function purgeStale(FilesystemInterface $files, int $now): int
+    {
+        /** @var list<self> $stale */
+        $stale = self::query()
+            ->where('status', self::PENDING)
+            ->where('created_at', '<', $now - self::PENDING_TTL)
+            ->get();
+
+        foreach ($stale as $attachment) {
+            if ($files->exists($attachment->path())) {
+                $files->delete($attachment->path());
+            }
+            $attachment->delete();
+        }
+
+        return count($stale);
+    }
+
+    /** How many pending uploads this user holds. */
+    public static function pendingCount(int $userId): int
+    {
+        return self::query()->where('status', self::PENDING)->where('user_id', $userId)->count();
     }
 
     /**
