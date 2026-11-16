@@ -8,29 +8,38 @@ with no Moodle or WordPress host and no proprietary code: a PSR-15 web app rende
 
 Example application: not a library, no public API, do not require it as a dependency; see the [hub](https://docs.middag.dev/libraries/) for the supported libraries.
 
-What it shows and how to run it: [docs.middag.dev — Demo Application](https://docs.middag.dev/framework/reference/demo-standalone/).
+**No `@api` surface.** The demo is an application, not a package: nothing in it is
+marked `@api`, and everything in `src/` is internal. Classes, routes and the database
+schema can change in any release without notice; build on `middag-io/framework` and
+`middag-io/ui`, not on the demo.
+
+Hub page, with what the demo shows and how to run it:
+[docs.middag.dev — Demo Application](https://docs.middag.dev/framework/reference/demo-standalone/).
 
 ## Help and status
 
-- **Status of the example app.** It is maintained with the framework and ui: each
+- **Status:** maintained with the framework and ui: each
   release builds against their current versions. [`COVERAGE.md`](COVERAGE.md) lists every
   `@api` symbol of the installed framework and ui as covered by a demo test or E2E spec,
   proved by the host adapters, or a gap with its reason. It is generated
   (`composer coverage:md`); CI regenerates it and fails on any difference, and
   `ApiCoverageTest` fails when the map and the installed libraries drift apart.
 - **Questions and bugs:** https://github.com/middag-io/middag-php-demo-standalone/issues
-- **Security reports:** [`SECURITY.md`](SECURITY.md)
+- **Security reports:** follow [`SECURITY.md`](SECURITY.md); do not open a public issue.
 - **Changes:** [`CHANGELOG.md`](CHANGELOG.md)
 
-## Supported versions
+## Requirements
+
+The PHP, Symfony and package ranges are the ones `composer.json` and `ui/package.json`
+declare.
 
 | Item | Supported |
 |---|---|
 | PHP | `^8.3`: 8.3, 8.4 and 8.5, with `pdo` and `pdo_sqlite`. `config.platform.php` is `8.3.0`, so `composer.lock` resolves at the floor |
 | Symfony | `^7.4 \|\| ^8.1` for every Symfony component the demo requires. The lock resolves 7.4; a CI job without the platform pin proves 8.x |
-| `middag-io/framework` | `^1.20` |
+| `middag-io/framework` | `^1.20.3` |
 | `middag-io/ui` | `^1.8` |
-| `@middag-io/react` (renderer, `ui/`) | `^0.45.0` |
+| `@middag-io/react` (renderer, `ui/`) | `^0.45.3` |
 | Host | none: no Moodle or WordPress. The adapters `middag-io/moodle` and `middag-io/wordpress` are not part of the demo |
 | Database | SQLite, in a file or in memory |
 | Docker image | PHP 8.4 (see [`DOCKER.md`](DOCKER.md)) |
@@ -60,6 +69,8 @@ lives in `e2e/` ([`e2e/README.md`](e2e/README.md)).
 | `GET /tickets/new` → `POST /tickets/new` → `POST /tickets/new/confirm` | the ticket wizard |
 | `POST /tickets` · `GET /tickets/{id}/edit` · `PUT /tickets/{id}` | web create, edit and update (PRG) |
 | `POST /tickets/{id}/close` | the "Close ticket" action: a redirect for a browser, an `ActionResult` for JSON |
+| `GET /tickets/{id}/attachments` · `POST /tickets/{id}/attachments/upload` · `POST /tickets/{id}/attachments` · `GET /tickets/{id}/attachments/{attachment}` | ticket attachments: the upload (stored as pending under an upload token), the attach by that token, and the download |
+| `GET /agents/{id}/panel` · `POST /agents/{id}/panel` | the editable side panel of an agent; `403` without `helpdesk:supervise` |
 | `GET /agents` · `GET /agents/{id}` · `GET /customers` · `GET /parity` · `GET /coverage` | help-desk pages |
 | `GET /help` · `GET /login` | public pages |
 | `POST /login` · `POST /logout` | session auth |
