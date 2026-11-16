@@ -42,6 +42,9 @@ final class Attachment extends Model
     /** Pending uploads one user may hold at a time. */
     public const int MAX_PENDING_PER_USER = 5;
 
+    /** Attached files one ticket may hold. */
+    public const int MAX_ATTACHED_PER_TICKET = 10;
+
     /** An upload token is 16 random bytes in hex. */
     public const string TOKEN_PATTERN = '/^[0-9a-f]{32}$/';
 
@@ -99,6 +102,12 @@ final class Attachment extends Model
     public static function pendingCount(int $userId): int
     {
         return self::query()->where('status', self::PENDING)->where('user_id', $userId)->count();
+    }
+
+    /** How many files are attached to this ticket. */
+    public static function attachedCount(int $ticketId): int
+    {
+        return self::query()->where('status', self::ATTACHED)->where('ticket_id', $ticketId)->count();
     }
 
     /**

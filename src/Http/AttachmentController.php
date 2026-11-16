@@ -109,15 +109,16 @@ final class AttachmentController extends AbstractController
     /**
      * POST /tickets/{id}/attachments/upload — stores the posted file as a pending
      * upload and sends the browser back to the form, which now holds it. Stale
-     * pending uploads are purged first, and a user holding the maximum of
-     * pending uploads is refused until one is attached or expires.
+     * pending uploads are purged first; a user holding the maximum of pending
+     * uploads is refused until one is attached or expires, and a ticket holding
+     * the maximum of attached files takes no more uploads.
      */
     public function upload(int $id): RedirectResponse
     {
         Ticket::findOrFail($id);
         Attachment::purgeStale($this->files, time());
         $file = $this->request->files->get('file');
-        $error = $this->uploadError($file) ?? $this->quotaError();
+        $error = $this->uploadError($file) ?? $this->quotaError($id);
         if ($error !== null || !$file instanceof UploadedFile) {
             $this->flash('error', $error ?? 'Choose a file to upload.');
 
@@ -161,6 +162,13 @@ final class AttachmentController extends AbstractController
 
         if (!$attachment instanceof Attachment) {
             $this->flash('error', 'Upload a file first.');
+
+            return $this->redirect('/tickets/' . $id . '/attachments', Response::HTTP_SEE_OTHER);
+        }
+
+        // Pending uploads made before the ticket filled up must not pass the cap.
+        if (Attachment::attachedCount($id) >= Attachment::MAX_ATTACHED_PER_TICKET) {
+            $this->flash('error', $this->ticketFullMessage());
 
             return $this->redirect('/tickets/' . $id . '/attachments', Response::HTTP_SEE_OTHER);
         }
@@ -235,14 +243,22 @@ final class AttachmentController extends AbstractController
         return null;
     }
 
-    /** Why the session user may not upload another file now, or null. */
-    private function quotaError(): ?string
+    /** Why the session user may not upload another file to this ticket now, or null. */
+    private function quotaError(int $ticketId): ?string
     {
-        if (Attachment::pendingCount($this->userId()) < Attachment::MAX_PENDING_PER_USER) {
-            return null;
+        if (Attachment::attachedCount($ticketId) >= Attachment::MAX_ATTACHED_PER_TICKET) {
+            return $this->ticketFullMessage();
+        }
+        if (Attachment::pendingCount($this->userId()) >= Attachment::MAX_PENDING_PER_USER) {
+            return sprintf('You already have %d uploads waiting: attach them or try again later.', Attachment::MAX_PENDING_PER_USER);
         }
 
-        return sprintf('You already have %d uploads waiting: attach them or try again later.', Attachment::MAX_PENDING_PER_USER);
+        return null;
+    }
+
+    private function ticketFullMessage(): string
+    {
+        return sprintf('This ticket already has %d attached files.', Attachment::MAX_ATTACHED_PER_TICKET);
     }
 
     /**

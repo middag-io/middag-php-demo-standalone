@@ -209,6 +209,31 @@ final class AttachmentTest extends DemoTestCase
     }
 
     #[Test]
+    public function aTicketHoldingTheMaximumOfAttachedFilesTakesNoMoreUploads(): void
+    {
+        // A pending upload made while the ticket still had room.
+        $early = $this->upload('early.txt', self::CONTENTS);
+        $earlyValue = $this->formPanel('?token=' . $early->token)['values']['file'];
+        for ($i = 0; $i < Attachment::MAX_ATTACHED_PER_TICKET; ++$i) {
+            $this->attach($this->upload('notes-' . $i . '.txt', self::CONTENTS));
+        }
+
+        $refused = $this->post('one-more.txt', self::CONTENTS);
+
+        self::assertSame(303, $refused->getStatusCode());
+        self::assertSame('/tickets/' . $this->ticketId . '/attachments', $refused->headers->get('Location'));
+        self::assertSame(1, Attachment::pendingCount(self::UPLOADER), 'the refused upload stored nothing');
+
+        $this->handle('POST', '/tickets/' . $this->ticketId . '/attachments', ['file' => $earlyValue]);
+        self::assertSame(Attachment::MAX_ATTACHED_PER_TICKET, Attachment::attachedCount($this->ticketId));
+        self::assertSame(Attachment::PENDING, Attachment::query()->where('id', $early->id)->first()?->status);
+
+        // The cap is per ticket: another ticket still takes uploads.
+        $this->ticketId = $this->createTicket();
+        $this->upload('elsewhere.txt', self::CONTENTS);
+    }
+
+    #[Test]
     public function uploadRefusesAnUnlistedTypeAndAnOversizedFile(): void
     {
         $this->post('script.php', '<?php echo 1;');
