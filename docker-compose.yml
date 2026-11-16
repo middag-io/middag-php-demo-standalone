@@ -3,12 +3,14 @@ name: demo-standalone
 # Default (`docker compose up`) brings up only web + worker — simple.
 # Extras stay behind profiles (they do not start on their own):
 #   docker compose --profile redis up   # + Redis (validate cache/session/transport)
-#   docker compose --profile ui up      # + Vite dev server (once middag-react unblocks)
+#   docker compose --profile ui up      # + Vite dev server (HMR) for ui/
 
 services:
   app:
     build:
       context: .
+      secrets:
+        - github_token     # @middag-io/react comes from GitHub Packages
     image: middag-demo-standalone:dev
     command: serve
     ports:
@@ -26,6 +28,8 @@ services:
   worker:
     build:
       context: .
+      secrets:
+        - github_token     # @middag-io/react comes from GitHub Packages
     image: middag-demo-standalone:dev
     command: worker
     environment:
@@ -63,3 +67,10 @@ services:
       - .:/app
       - /app/ui/node_modules
       - ${NPMRC_FILE:-${HOME}/.npmrc}:/root/.npmrc:ro
+
+# BuildKit secret for the image's ui stage (npm ci of @middag-io/react from
+# GitHub Packages). Export GITHUB_TOKEN (a token with read:packages) before
+# `docker compose up --build`; the token is never baked into a layer.
+secrets:
+  github_token:
+    environment: GITHUB_TOKEN
