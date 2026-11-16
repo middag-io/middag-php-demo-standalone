@@ -24,7 +24,10 @@ declare(strict_types=1);
  * renderable-but-unemittable, PRO-only, or simply not yet exercised) with a reason,
  * so the demo never claims more than it proves.
  *
- * @return array{covered: array<string, array{kind: string, route: ?string, note: string}>, gaps: array<string, array{reason: string, filed: string}>}
+ * `api` is the `@api` map of framework and ui (coverage/api.php), checked by
+ * ApiCoverageTest and rendered into COVERAGE.md.
+ *
+ * @return array{covered: array<string, array{kind: string, route: ?string, note: string}>, gaps: array<string, array{reason: string, filed: string}>, api: array<string, array<string, mixed>>}
  */
 return [
     'covered' => [
@@ -91,4 +94,6 @@ return [
         'field:currency_rating_slug_color_phone_document' => ['reason' => 'React-renderable but absent from the PHP FieldType enum entirely', 'filed' => 'framework: field types'],
         'transport:persistent_bus' => ['reason' => 'only InMemoryTransport ships; bus-routed async cannot cross processes (the demo uses the in-memory worker, not a cross-process outbox)', 'filed' => 'framework: persistent transport'],
     ],
+
+    'api' => require __DIR__ . '/api.php',
 ];

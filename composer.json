@@ -15,6 +15,7 @@
     "doctrine/dbal": "^4.0",
     "filp/whoops": "^2.18",
     "friendsofphp/php-cs-fixer": "^3.0",
+    "opis/json-schema": "^2.4",
     "phpstan/phpstan": "^2.0",
     "phpunit/phpunit": "^11.0",
     "rector/rector": "^2.0",
@@ -52,6 +53,8 @@
     "logs:clean": "@php bin/console logs:clean",
     "migrate:discover": "@php bin/console migrate:discover",
     "test": "phpunit",
+    "test:highest": "phpunit --exclude-group api-coverage",
+    "coverage:md": "@php bin/coverage-md.php",
     "post-install-cmd": "git config core.hooksPath .githooks 2>/dev/null || true",
     "post-update-cmd": "git config core.hooksPath .githooks 2>/dev/null || true",
     "check": [
@@ -61,6 +64,10 @@
       "@check:vendor"
     ],
     "check:vendor": "@php bin/check-vendor-ghosts.php",
+    "check:coverage-md": [
+      "@coverage:md",
+      "git diff --exit-code -- COVERAGE.md"
+    ],
     "check:stan": "phpstan analyse --configuration=.phpstan.neon",
     "check:style": "php-cs-fixer fix --dry-run --verbose --config=.php-cs-fixer.dist.php",
     "check:rector": "rector process --dry-run --config=.php-rector.php",

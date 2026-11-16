@@ -29,7 +29,9 @@ jobs:
       php-versions: '["8.3", "8.4", "8.5"]'
       php-extensions: curl, intl, mbstring, pdo, pdo_sqlite, sqlite3
       composer-validate-strict: true
-      composer-scripts: check:vendor
+      # check:coverage-md regenerates COVERAGE.md from the coverage manifest and
+      # the installed libraries, and fails on any diff.
+      composer-scripts: check:vendor, check:coverage-md
       tool-cache-paths: .cache
       audit-blocking-severities: critical, high
 
@@ -37,7 +39,9 @@ jobs:
   # the highest dependency versions on the PHP of each job, then asserts that
   # every Symfony package the demo requires resolved to 8.x. A green run on
   # Symfony 7.4 does not pass. The static checks already run in the locked
-  # job.
+  # job. test:highest leaves out the api-coverage group: a new @api symbol in
+  # an unreleased-to-the-lock library announces work for the demo, it does not
+  # break the pull request (the locked jobs run the group).
   php-library-check-highest:
     uses: middag-io/actions/.github/workflows/php-library-check.yml@php-library-check-v1
     permissions:
@@ -47,6 +51,7 @@ jobs:
       php-extensions: curl, intl, mbstring, pdo, pdo_sqlite, sqlite3
       dependency-versions: highest
       unset-platform-php: true
+      test-script: test:highest
       expect-majors: >-
         symfony/dotenv:8,
         symfony/console:8,

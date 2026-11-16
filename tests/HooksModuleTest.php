@@ -46,7 +46,7 @@ final class HooksModuleTest extends DemoTestCase
     public function pageFilterHookTransformsEmittedContract(): void
     {
         $payload = $this->json($this->handle('GET', '/ui/page'));
-        self::assertSame('demo.ui.page filter hook', $payload['meta']['generatedBy']);
+        self::assertSame('Filtered by the demo.ui.page hook', $payload['page']['subtitle']);
     }
 
     #[Test]

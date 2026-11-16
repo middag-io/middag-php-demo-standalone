@@ -119,6 +119,10 @@ coverage/
 !/coverage/
 /coverage/*
 !/coverage/manifest.php
+!/coverage/api.php
+# Same pattern, same case-insensitive match: tests/Coverage/ holds the coverage
+# tooling (inventory scanner and COVERAGE.md renderer).
+!/tests/Coverage/
 
 # -----------------------------------------------------------------------------
 # Builds e artefatos de distribuição

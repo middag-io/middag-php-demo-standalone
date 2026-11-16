@@ -63,7 +63,7 @@ final class UiController extends AbstractController
             ->notifySuccess('Dashboard rendered from the ui 0.6.0 contract', 'OK')
             ->build();
 
-        // FILTER hook transforms the emitted page props (stamps meta.generatedBy).
+        // FILTER hook transforms the emitted page props (rewrites page.subtitle).
         /** @var array<string, mixed> $payload */
         $payload = (array) json_decode((string) json_encode($contract), true);
 
