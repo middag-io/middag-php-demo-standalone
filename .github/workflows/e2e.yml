@@ -18,14 +18,20 @@ concurrency:
 # drive real auth + navigation + business flows in Chromium (desktop + mobile).
 jobs:
   e2e:
-    name: Playwright E2E (full-stack, PHP 8.4)
+    name: Playwright E2E (full-stack, PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The committed composer.lock is resolved at the platform pin (8.3.0),
+        # so the same lock runs on every supported PHP.
+        php: ['8.3', '8.4', '8.5']
     steps:
       - uses: actions/checkout@v7
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: ${{ matrix.php }}
           extensions: curl, intl, mbstring, pdo, pdo_sqlite, sqlite3
           coverage: none
           tools: composer:v2
@@ -67,6 +73,6 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-report
+          name: playwright-report-php${{ matrix.php }}
           path: e2e/playwright-report/
           retention-days: 7
