@@ -47,6 +47,7 @@ use Middag\Ui\Shared\Enum\HttpMethod;
 use Middag\Ui\Shared\Enum\NotificationLevel;
 use Middag\Ui\Shared\Enum\RenderTarget;
 use Middag\Ui\Shared\ValueObject\Notification;
+use Middag\Ui\Table\FilterDefinition;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -97,8 +98,14 @@ final class TicketController extends AbstractController
         $customerNames = $this->idLabelMap($this->customers->latest());
         $agentNames = $this->idLabelMap($this->agents->latest());
 
+        // The metric cards count the whole queue; the table shows one server page.
         /** @var list<Ticket> $tickets */
-        $tickets = Ticket::query()->orderBy('created_at', 'desc')->get();
+        $tickets = Ticket::query()->get();
+        $queue = TicketQueueQuery::fromQuery($this->request?->query->all() ?? []);
+        $page = $queue->apply(Ticket::query())->paginate($queue->page, $queue->perPage);
+
+        /** @var list<Ticket> $pageTickets */
+        $pageTickets = $page->items();
 
         // The queue table is the cell-renderer showcase: each column's `variant`
         // selects the React cell, so the row VALUES are shaped per cell — a plain
@@ -136,7 +143,7 @@ final class TicketController extends AbstractController
                     'created' => (int) $t->created_at,
                 ];
             },
-            $tickets,
+            $pageTickets,
         );
 
         $open = array_filter($tickets, static fn (Ticket $t): bool => !in_array((string) $t->status, ['resolved', 'closed'], true));
@@ -154,12 +161,12 @@ final class TicketController extends AbstractController
             ])
             // metrics region → StatRow grid (dashboard layout); keeps the cards out of
             // `content` so they are not double-wrapped in a per-block Card.
-            ->region('metrics', function (RegionBuilder $region) use ($rows, $open, $urgent): void {
-                $region->metricCard('total', count($rows), 'Total tickets', icon: 'inbox');
+            ->region('metrics', function (RegionBuilder $region) use ($tickets, $open, $urgent): void {
+                $region->metricCard('total', count($tickets), 'Total tickets', icon: 'inbox');
                 $region->metricCard('open', count($open), 'Open', icon: 'folder-open');
                 $region->metricCard('urgent', count($urgent), 'High / urgent', icon: 'flame');
             })
-            ->region('content', function (RegionBuilder $region) use ($rows): void {
+            ->region('content', function (RegionBuilder $region) use ($rows, $queue, $page): void {
                 // Hand-built columns keyed by `variant` — the cell renderer the React
                 // DenseTableBlock selects per column. Exercises status, rich_status,
                 // annotated, the custom tag_chips and timestamp cells in one table.
@@ -168,20 +175,30 @@ final class TicketController extends AbstractController
                     ['key' => 'status', 'label' => 'Status', 'variant' => 'status', 'sortable' => true],
                     ['key' => 'priority', 'label' => 'Priority', 'variant' => 'rich_status'],
                     ['key' => 'channel', 'label' => 'Channel', 'sortable' => true],
-                    ['key' => 'customer', 'label' => 'Customer', 'sortable' => true],
+                    ['key' => 'customer', 'label' => 'Customer'],
                     ['key' => 'assignee', 'label' => 'Assignee', 'variant' => 'annotated'],
                     ['key' => 'tags', 'label' => 'Tags', 'variant' => 'tag_chips'],
                     ['key' => 'created', 'label' => 'Created', 'variant' => 'timestamp', 'timestampFormat' => 'date', 'sortable' => true],
                 ], $rows, [
                     'rowHref' => '/tickets/{id}',
+                    // Server mode: the table sends page, per_page, sort, direction,
+                    // search and filter[...] back as query parameters, and
+                    // TicketQueueQuery answers with one filtered, sorted page.
+                    'pagination' => $queue->pagination($page->total())->jsonSerialize(),
+                    'sort' => ['column' => $queue->sort, 'direction' => $queue->direction],
+                    'filters' => [
+                        'available' => array_map(
+                            static fn (FilterDefinition $filter): array => $filter->jsonSerialize(),
+                            TicketQueueQuery::filterDefinitions(),
+                        ),
+                        'applied' => $queue->appliedFilters(),
+                    ],
+                    'searchPlaceholder' => 'Search subject or tag',
                 ], [
-                    // Client-side search/sort/pagination over the full row set the
-                    // server already sends (the queue is small). Without this the
-                    // table is server-driven: its ?search/?sort/?page params trigger
-                    // an Inertia partial reload scoped to `only:[tickets]`, but the
-                    // demo nests data under the single `contract` prop, so the reload
-                    // returns `props:[]` and the table never updates — dead search.
-                    'clientSide' => true,
+                    // The table reloads with an Inertia partial reload of this key.
+                    // The page data lives under the single `contract` prop, so the
+                    // reload asks for `contract`, not for the block key.
+                    'partialReloadKey' => 'contract',
                 ]);
             })
             ->build();

@@ -53,7 +53,7 @@ lives in `e2e/` ([`e2e/README.md`](e2e/README.md)).
 | Route | Returns |
 |---|---|
 | `GET /` | dashboard |
-| `GET /tickets` · `GET /tickets/{id}` | ticket list and detail (breadcrumbs, status lifecycle, tabs) |
+| `GET /tickets` · `GET /tickets/{id}` | ticket queue, filtered, sorted and paged on the server (`search`, `filter[status]`, `filter[priority]`, `sort`, `direction`, `page`, `per_page`), and ticket detail (breadcrumbs, status lifecycle, tabs) |
 | `GET /tickets/new` → `POST /tickets/new` → `POST /tickets/new/confirm` | the ticket wizard |
 | `POST /tickets` · `GET /tickets/{id}/edit` · `PUT /tickets/{id}` | web create, edit and update (PRG) |
 | `POST /tickets/{id}/close` | the "Close ticket" action: a redirect for a browser, an `ActionResult` for JSON |

@@ -16,7 +16,7 @@ Generated from `middag-io/framework` v1.20.2 and `middag-io/ui` v1.8.2, as insta
 | Library | `@api` | covered | host | gap |
 |---|---|---|---|---|
 | `middag-io/framework` | 225 | 201 | 14 | 10 |
-| `middag-io/ui` | 94 | 68 | 0 | 26 |
+| `middag-io/ui` | 94 | 71 | 0 | 23 |
 
 ## `middag-io/framework`
 
@@ -437,7 +437,7 @@ Generated from `middag-io/framework` v1.20.2 and `middag-io/ui` v1.8.2, as insta
 | `Region\RegionBuilder` | covered | `src/Http/TicketController.php` | `HttpTest::showExistingIdSucceedsWhenAuthenticated`<br>`KernelContainerTest::serviceProviderAutoDiscoveredDemoServices` | — |
 | `Region\RegionUpdate` | gap | No consumer in the free renderer. | — | — |
 
-### Shared — 21 `@api`: 17 covered, 0 host, 4 gap
+### Shared — 21 `@api`: 18 covered, 0 host, 3 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
@@ -447,7 +447,7 @@ Generated from `middag-io/framework` v1.20.2 and `middag-io/ui` v1.8.2, as insta
 | `Shared\Enum\ColumnVariant` | covered | `src/Http/AgentController.php` | `AgentContractTest::listShowsSupervisorColumnsWhenCapabilityHeld`<br>`CoverageManifestTest::everyCoveredCellSymbolIsEmittedByItsRoute` | — |
 | `Shared\Enum\ConditionOperator` | covered | `src/Form/TicketForm.php` | `FormTest::conditionalRequiredWhenPriorityHighOrUrgent` | — |
 | `Shared\Enum\FieldType` | covered | `src/Http/Dto/TicketDto.php` | `HttpTest::apiStoreDtoValidatesAndReturns201` | — |
-| `Shared\Enum\FilterType` | gap | See FilterDefinition. | — | — |
+| `Shared\Enum\FilterType` | covered | `src/Http/TicketQueueQuery.php` | `TicketContractTest::queueFiltersSortsAndPaginatesOnTheServer` | — |
 | `Shared\Enum\FormComponent` | covered | The component of every emitted form node is validated against the enum in the schema. | `WireSchemaTest::formPanelNodesMatchFormSchemaNode` | — |
 | `Shared\Enum\FragmentKind` | covered | Reached through Fragment::table(). | `UiContractTest::fragmentEndpointEmitsPartialTableFragment` | — |
 | `Shared\Enum\HttpMethod` | covered | `src/Http/TicketController.php` | `UiSeamsTest::detailCarriesBreadcrumbsAndAConfirmedCloseAction` | `business/actions.spec.ts › closing a ticket asks for confirmation and moves it to closed` |
@@ -463,15 +463,15 @@ Generated from `middag-io/framework` v1.20.2 and `middag-io/ui` v1.8.2, as insta
 | `Shared\ValueObject\Translatable` | covered | Reached through AbstractField::toDefinition(). | `FormTest::rendersToInertiaProps` | — |
 | `Shared\ValueObject\UserPreferences` | gap | The free renderer does not apply a server-sent preference; the theme is client-side only. | — | — |
 
-### Table — 8 `@api`: 4 covered, 0 host, 4 gap
+### Table — 8 `@api`: 6 covered, 0 host, 2 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
 | `Table\Column` | covered | `src/Http/UiController.php` | `UiContractTest::fragmentEndpointEmitsPartialTableFragment` | — |
 | `Table\Contract\CrudBuilderInterface` | gap | See CrudBuilder. | — | — |
 | `Table\CrudBuilder` | gap | The demo builds its list pages region by region; CrudBuilder generates a whole CRUD page from an entity class, which no demo page uses. | — | — |
-| `Table\FilterDefinition` | gap | The ticket queue searches, sorts and paginates in the browser (clientSide); there is no server-side filter. | — | — |
-| `Table\Pagination` | gap | The ticket queue paginates in the browser (clientSide); there is no server-side pagination. | — | — |
+| `Table\FilterDefinition` | covered | `src/Http/TicketQueueQuery.php` | `TicketContractTest::queueFiltersSortsAndPaginatesOnTheServer` | `business/table.spec.ts › filters and pages the ticket queue on the server` |
+| `Table\Pagination` | covered | `src/Http/TicketQueueQuery.php` | `TicketContractTest::queueFiltersSortsAndPaginatesOnTheServer` | `business/table.spec.ts › filters and pages the ticket queue on the server` |
 | `Table\TableBuilder` | covered | `src/Http/AgentController.php` | `AgentContractTest::listRendersRosterAndGatesSupervisorColumnsByDefault` | — |
 | `Table\TableConfig` | covered | `src/Http/UiController.php` | `UiContractTest::fragmentEndpointEmitsPartialTableFragment` | — |
 | `Table\TableDisplayOptions` | covered | `src/Http/UiController.php` | `UiContractTest::fragmentEndpointEmitsPartialTableFragment` | — |
