@@ -27,7 +27,7 @@ declare(strict_types=1);
  * `api` is the `@api` map of framework and ui (coverage/api.php), checked by
  * ApiCoverageTest and rendered into COVERAGE.md.
  *
- * @return array{covered: array<string, array{kind: string, route: ?string, note: string}>, gaps: array<string, array{reason: string, filed: string}>, api: array<string, array<string, mixed>>}
+ * @return array{covered: array<string, array{kind: string, route: ?string, note: string}>, gaps: array<string, array{reason: string, filed: string}>, api: array<string, array<string, mixed>>, internal: array<string, string>}
  */
 return [
     'covered' => [
@@ -96,4 +96,10 @@ return [
     ],
 
     'api' => require __DIR__ . '/api.php',
+
+    // Framework classes marked @internal that the demo still names, and why.
+    'internal' => [
+        'Middag\\Framework\\Http\\HttpKernel' => 'Bound as the implementation of HttpKernelInterface in DemoBootstrap: no @api seam builds the HTTP kernel.',
+        'Middag\\Framework\\Form\\FormValidator' => 'The AbstractForm constructor takes it, so every form (TicketForm, LoginForm) names it.',
+    ],
 ];

@@ -368,7 +368,7 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 |---|---|---|---|---|
 | `Form\Contract\FieldInterface` | covered | Reached through AbstractField. | `FormTest::rendersToInertiaProps` | — |
 | `Form\Contract\FormInterface` | covered | Reached through AbstractForm. | `FormTest::rendersToInertiaProps` | — |
-| `Form\Contract\FormRendererInterface` | covered | Reached through InertiaRenderer. | `FormTest::rendersToInertiaProps` | — |
+| `Form\Contract\FormRendererInterface` | covered | Resolved from the RendererRegistry for the Props target, where the framework binds its Inertia renderer. | `FormTest::rendersToInertiaProps` | — |
 | `Form\Contract\FormSchemaNodeInterface` | covered | Reached through FormHeaderNode, which the login form_panel serializes. | `UiSeamsTest::loginFormStartsWithAHeaderNode` | — |
 | `Form\FieldConstraints` | covered | Reached through AbstractField::toDefinition(). | `FormTest::rendersToInertiaProps` | — |
 | `Form\FieldDefinition` | covered | Reached through AbstractField::toDefinition(). | `FormTest::rendersToInertiaProps` | — |
@@ -530,6 +530,15 @@ Block, cell, field, layout and shell types the PHP contract emits and the free R
 | `field:duration` | emittable via FieldDefinition::duration() but no free React field renderer (would hit "Unknown field component") |
 | `field:otp_slider_native_select_tags` | React-renderable but no FieldDefinition factory method |
 | `field:currency_rating_slug_color_phone_document` | React-renderable but absent from the PHP FieldType enum entirely |
+
+## Internal classes the demo still names
+
+Classes the framework marks `@internal`. The demo names them only where no `@api` seam covers the need.
+
+| Class | Why |
+|---|---|
+| `Middag\Framework\Http\HttpKernel` | Bound as the implementation of HttpKernelInterface in DemoBootstrap: no @api seam builds the HTTP kernel. |
+| `Middag\Framework\Form\FormValidator` | The AbstractForm constructor takes it, so every form (TicketForm, LoginForm) names it. |
 
 ## Out of scope
 

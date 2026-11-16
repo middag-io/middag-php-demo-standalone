@@ -23,7 +23,7 @@ final class CoverageReport
     private const array STATUS_LABELS = ['covered' => 'covered', 'host' => 'host', 'gap' => 'gap'];
 
     /**
-     * @param array{covered: array<string, array{kind: string, route: ?string, note: string}>, gaps: array<string, array{reason: string, filed: string}>, api: array<string, array<string, mixed>>} $manifest
+     * @param array{covered: array<string, array{kind: string, route: ?string, note: string}>, gaps: array<string, array{reason: string, filed: string}>, api: array<string, array<string, mixed>>, internal?: array<string, string>} $manifest
      * @param array<string, array{lib: string, area: string, kind: string}>                                                                                                                         $inventory
      * @param array<string, string>                                                                                                                                                                 $versions  library => installed version
      */
@@ -91,6 +91,16 @@ final class CoverageReport
         $out[] = '|---|---|';
         foreach ($manifest['gaps'] as $symbol => $entry) {
             $out[] = sprintf('| `%s` | %s |', $symbol, self::cell($entry['reason']));
+        }
+        $out[] = '';
+        $out[] = '## Internal classes the demo still names';
+        $out[] = '';
+        $out[] = 'Classes the framework marks `@internal`. The demo names them only where no `@api` seam covers the need.';
+        $out[] = '';
+        $out[] = '| Class | Why |';
+        $out[] = '|---|---|';
+        foreach ($manifest['internal'] ?? [] as $class => $why) {
+            $out[] = sprintf('| `%s` | %s |', $class, self::cell($why));
         }
         $out[] = '';
         $out[] = '## Out of scope';

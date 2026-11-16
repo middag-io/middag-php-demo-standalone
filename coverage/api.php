@@ -272,7 +272,7 @@ return [
     'Middag\\Ui\\Envelope\\Contract\\ContractEnvelopeInterface' => ['status' => 'covered', 'artifact' => 'src/Shared/Concerns/RendersPages.php', 'tests' => ['UiContractTest::pageEndpointEmitsFullPageContract']],
     'Middag\\Ui\\Form\\Contract\\FieldInterface' => ['status' => 'covered', 'reason' => 'Reached through AbstractField.', 'tests' => ['FormTest::rendersToInertiaProps']],
     'Middag\\Ui\\Form\\Contract\\FormInterface' => ['status' => 'covered', 'reason' => 'Reached through AbstractForm.', 'tests' => ['FormTest::rendersToInertiaProps']],
-    'Middag\\Ui\\Form\\Contract\\FormRendererInterface' => ['status' => 'covered', 'reason' => 'Reached through InertiaRenderer.', 'tests' => ['FormTest::rendersToInertiaProps']],
+    'Middag\\Ui\\Form\\Contract\\FormRendererInterface' => ['status' => 'covered', 'reason' => 'Resolved from the RendererRegistry for the Props target, where the framework binds its Inertia renderer.', 'tests' => ['FormTest::rendersToInertiaProps']],
     'Middag\\Ui\\Form\\Contract\\FormSchemaNodeInterface' => ['status' => 'covered', 'reason' => 'Reached through FormHeaderNode, which the login form_panel serializes.', 'tests' => ['UiSeamsTest::loginFormStartsWithAHeaderNode']],
     'Middag\\Ui\\Form\\FieldConstraints' => ['status' => 'covered', 'reason' => 'Reached through AbstractField::toDefinition().', 'tests' => ['FormTest::rendersToInertiaProps']],
     'Middag\\Ui\\Form\\FieldDefinition' => ['status' => 'covered', 'reason' => 'Reached through AbstractField::toDefinition().', 'tests' => ['FormTest::rendersToInertiaProps']],

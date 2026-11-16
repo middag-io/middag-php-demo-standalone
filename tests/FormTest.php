@@ -14,8 +14,7 @@ namespace Middag\Demo\Standalone\Tests;
 
 use Middag\Demo\Standalone\Form\TicketForm;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
-use Middag\Framework\Form\Renderer\InertiaFieldMapper;
-use Middag\Framework\Form\Renderer\InertiaRenderer;
+use Middag\Framework\Form\Renderer\RendererRegistry;
 use Middag\Ui\Shared\Enum\RenderTarget;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Test;
@@ -75,7 +74,9 @@ final class FormTest extends DemoTestCase
     #[Test]
     public function rendersToInertiaProps(): void
     {
-        $output = (new InertiaRenderer(new InertiaFieldMapper()))->render($this->form());
+        // Rendered through the @api seam: the RendererRegistry resolves the
+        // FormRendererInterface bound for the Props target.
+        $output = $this->container->get(RendererRegistry::class)->get(RenderTarget::Props)->render($this->form());
 
         self::assertSame(RenderTarget::Props, $output->target);
         $props = $output->props;
