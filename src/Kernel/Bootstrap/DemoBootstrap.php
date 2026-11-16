@@ -28,11 +28,13 @@ use Middag\Demo\Standalone\Http\DashboardController;
 use Middag\Demo\Standalone\Http\ErrorPageRenderer;
 use Middag\Demo\Standalone\Http\HelpController;
 use Middag\Demo\Standalone\Http\Middleware\ApiRequestIdMiddleware;
+use Middag\Demo\Standalone\Http\Middleware\MaintenanceMiddleware;
 use Middag\Demo\Standalone\Http\ParityController;
 use Middag\Demo\Standalone\Http\TicketApiController;
 use Middag\Demo\Standalone\Http\TicketController;
 use Middag\Demo\Standalone\Http\UiController;
 use Middag\Demo\Standalone\Logging\CleanLogsHandler;
+use Middag\Demo\Standalone\Logging\LevelFilteringLogger;
 use Middag\Demo\Standalone\Observability\DebugCollector;
 use Middag\Demo\Standalone\Webhook\TicketWebhookNotifier;
 use Middag\Framework\Bus\Command\CommandWorker;
@@ -70,9 +72,12 @@ use Middag\Framework\Http\Security\CsrfTokenManager;
 use Middag\Framework\Http\Session\FlashBag;
 use Middag\Framework\Http\Session\NativeSession;
 use Middag\Framework\Kernel\Bootstrap\EnvConfigResolver;
+use Middag\Framework\Kernel\Bootstrap\NullMaintenanceGate;
 use Middag\Framework\Kernel\Contract\BootstrapInterface;
 use Middag\Framework\Kernel\Contract\ConfigResolverInterface;
+use Middag\Framework\Kernel\Contract\FailedModuleRegistryInterface;
 use Middag\Framework\Kernel\Contract\HookManagerInterface;
+use Middag\Framework\Kernel\Contract\MaintenanceGateInterface;
 use Middag\Framework\Kernel\HostContext;
 use Middag\Framework\Kernel\Manager\HookManager;
 use Middag\Framework\Logging\Contract\ActorResolverInterface;
@@ -147,9 +152,29 @@ final readonly class DemoBootstrap implements BootstrapInterface
                 true,
             ])
             ->setPublic(true);
-        $c->register(LoggerInterface::class, Logger::class)
+        $c->register('demo.logger.system', Logger::class)
             ->setFactory([new Reference(LoggerFactory::class), 'forChannel'])
-            ->setArguments(['demo', 'system'])
+            ->setArguments(['demo', 'system']);
+        // LOG_LEVEL (default debug) drops the records below that level.
+        $c->register(LoggerInterface::class, LevelFilteringLogger::class)
+            ->setFactory([LevelFilteringLogger::class, 'fromName'])
+            ->setArguments([new Reference('demo.logger.system'), (string) DemoEnv::get('LOG_LEVEL', 'debug')])
+            ->setPublic(true);
+
+        // Filled by DemoKernel with the registry its boot failure policy feeds.
+        $c->register(FailedModuleRegistryInterface::class)->setSynthetic(true)->setPublic(true);
+
+        // Maintenance: the flag-file gate in fault mode (the E2E toggles it), the
+        // framework's null gate otherwise. MaintenanceMiddleware asks the gate.
+        if (DemoEnv::flag('DEMO_FAULT_MODE')) {
+            $c->register(MaintenanceGateInterface::class, FlagFileMaintenanceGate::class)
+                ->setArguments([$this->projectRoot . '/var/maintenance.flag'])
+                ->setPublic(true);
+        } else {
+            $c->register(MaintenanceGateInterface::class, NullMaintenanceGate::class)->setPublic(true);
+        }
+        $c->register(MaintenanceMiddleware::class, MaintenanceMiddleware::class)
+            ->setArguments([new Reference(MaintenanceGateInterface::class), new Reference(Psr17Factory::class)])
             ->setPublic(true);
 
         // (3) Config (env-driven) + i18n (no-op identity translator).
@@ -330,6 +355,7 @@ final readonly class DemoBootstrap implements BootstrapInterface
         $c->register(MiddlewareDispatcher::class, MiddlewareDispatcher::class)
             ->setArguments([
                 new Reference(HttpKernelInterface::class),
+                new Reference(MaintenanceMiddleware::class),
                 new Reference(StartSessionMiddleware::class),
                 new Reference(ShareFlashMiddleware::class),
                 new Reference(VerifyCsrfMiddleware::class),

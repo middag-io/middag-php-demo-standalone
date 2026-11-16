@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Kernel\Module;
 
+use Middag\Demo\Standalone\Hook\ModuleHooks;
 use Middag\Demo\Standalone\Kernel\Bootstrap\DemoServiceProvider;
 use Middag\Framework\Kernel\Facade\HookFacade;
 use Middag\Framework\Kernel\Module\AbstractModule;
@@ -35,9 +36,12 @@ final class DemoModule extends AbstractModule
 
     public function boot(): void
     {
-        HookFacade::addAction('demo.module.booted', static function (string $name): void {
-            // No-op listener; presence + fire proves the module->hook wiring.
-        }, 10, 1);
+        ModuleHooks::register();
+
+        $hookfiles = new DemoHookfileLoader(\dirname(__DIR__, 3) . '/hooks');
+        foreach ($hookfiles->discover() as $path) {
+            $hookfiles->load($path);
+        }
 
         HookFacade::doAction('demo.module.booted', $this->getName());
     }

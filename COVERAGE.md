@@ -15,7 +15,7 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 
 | Library | `@api` | covered | host | gap |
 |---|---|---|---|---|
-| `middag-io/framework` | 223 | 136 | 16 | 71 |
+| `middag-io/framework` | 223 | 152 | 15 | 56 |
 | `middag-io/ui` | 94 | 50 | 0 | 44 |
 
 ## `middag-io/framework`
@@ -167,31 +167,31 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | `Http\Session\NativeSession` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
 | `Http\StandaloneKernel` | covered | `public/index.php` | `HttpTest::indexFirstVisitRendersInertiaHtmlShell` | — |
 
-### Kernel — 31 `@api`: 12 covered, 8 host, 11 gap
+### Kernel — 31 `@api`: 21 covered, 7 host, 3 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
-| `Kernel\Attribute\Lazy` | gap | Not exercised by the demo. | — | — |
-| `Kernel\Bootstrap\BootIsolateFailurePolicy` | gap | Not exercised by the demo. | — | — |
+| `Kernel\Attribute\Lazy` | covered | `src/Domain/ModuleHealthService.php` | `KernelSeamsTest::moduleHealthIsALazyServiceOnItsOwnLogChannel` | — |
+| `Kernel\Bootstrap\BootIsolateFailurePolicy` | covered | `src/Kernel/Bootstrap/DemoKernel.php` | `FaultModeTest::faultyModuleIsIsolatedAndTheDashboardStillRenders` | — |
 | `Kernel\Bootstrap\EnvConfigResolver` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
-| `Kernel\Bootstrap\NullMaintenanceGate` | host | OSS default of MaintenanceGateInterface; moodle and wordpress implement their own. | — | — |
+| `Kernel\Bootstrap\NullMaintenanceGate` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `KernelSeamsTest::defaultModeBindsTheNullGateAndIsolatesNothing` | — |
 | `Kernel\ContainerFactory` | covered | `src/Kernel/Bootstrap/DemoKernel.php` | `KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
-| `Kernel\Contract\BootFailurePolicyInterface` | gap | Not exercised by the demo. | — | — |
+| `Kernel\Contract\BootFailurePolicyInterface` | covered | `src/Kernel/Bootstrap/DemoBootFailurePolicy.php` | `FaultModeTest::faultyModuleIsIsolatedAndTheDashboardStillRenders` | — |
 | `Kernel\Contract\BootstrapInterface` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
 | `Kernel\Contract\ComponentNameResolverInterface` | host | Only moodle implements it; no OSS default. | — | — |
 | `Kernel\Contract\ConfigResolverInterface` | host | OSS default EnvConfigResolver (used by the demo); moodle and wordpress implement their own. | — | — |
 | `Kernel\Contract\FacadeInterface` | covered | Reached through HookFacade. | `HooksModuleTest::moduleBootRegisteredItsActionThroughTheFacade` | — |
 | `Kernel\Contract\FacadeLoaderInterface` | host | Only moodle implements it; no OSS default. | — | — |
-| `Kernel\Contract\FailedModuleRegistryInterface` | gap | Not exercised by the demo. | — | — |
+| `Kernel\Contract\FailedModuleRegistryInterface` | covered | `src/Kernel/Module/InMemoryFailedModuleRegistry.php` | `FaultModeTest::faultyModuleIsIsolatedAndTheDashboardStillRenders`<br>`KernelSeamsTest::defaultModeBindsTheNullGateAndIsolatesNothing` | — |
 | `Kernel\Contract\HookManagerInterface` | covered | `src/Hook/TicketHooks.php` | `KernelContainerTest::containerResolvesFrameworkContractsToOssDefaults` | — |
-| `Kernel\Contract\HookRegisterInterface` | gap | Not exercised by the demo. | — | — |
-| `Kernel\Contract\HookfileLoaderInterface` | gap | Not exercised by the demo. | — | — |
+| `Kernel\Contract\HookRegisterInterface` | covered | `src/Hook/ModuleHooks.php` | `KernelSeamsTest::moduleRegistersItsHooksThroughARegisterClass` | — |
+| `Kernel\Contract\HookfileLoaderInterface` | covered | `src/Kernel/Module/DemoHookfileLoader.php` | `KernelSeamsTest::hookfileCapsTheSubjectAtTheColumnLength` | — |
 | `Kernel\Contract\HostComponentContextInterface` | host | No framework default; the demo implements DemoComponentContext, and moodle and wordpress implement their own. | — | — |
 | `Kernel\Contract\HostEventBridgeInterface` | host | moodle and wordpress implement it; no OSS default. | — | — |
 | `Kernel\Contract\KernelInterface` | host | moodle and wordpress implement it; the standalone app boots through Http\StandaloneKernel. | — | — |
 | `Kernel\Contract\LoaderFailurePolicyInterface` | gap | Only the proprietary core implements it; moodle only consumes it. | — | — |
 | `Kernel\Contract\LoaderInterface` | host | Reached through FacadeLoaderInterface, which extends it; moodle implements it. | — | — |
-| `Kernel\Contract\MaintenanceGateInterface` | gap | Not exercised by the demo. | — | — |
+| `Kernel\Contract\MaintenanceGateInterface` | covered | `src/Http/Middleware/MaintenanceMiddleware.php` | `FaultModeTest::maintenanceFlagClosesTheApplication`<br>`KernelSeamsTest::defaultModeBindsTheNullGateAndIsolatesNothing` | — |
 | `Kernel\Contract\ModuleInterface` | covered | Reached through AbstractModule. | `HooksModuleTest::moduleBootRegisteredItsActionThroughTheFacade`<br>`HooksModuleTest::moduleExposesLifecycleMetadata`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
 | `Kernel\Contract\ModuleLoaderInterface` | gap | Only the proprietary core extends it; the demo registers its module directly, not through a loader. | — | — |
 | `Kernel\Contract\ServiceLoaderInterface` | gap | Only the proprietary core implements it. | — | — |
@@ -201,27 +201,27 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | `Kernel\Manager\HookManager` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HooksModuleTest::hookManagerInstancesDoNotShareState` | — |
 | `Kernel\Module\AbstractModule` | covered | `src/Kernel/Module/DemoModule.php` | `KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
 | `Kernel\ServiceProvider` | covered | `src/Kernel/Bootstrap/DemoServiceProvider.php` | `KernelContainerTest::serviceProviderAutoDiscoveredDemoServices` | — |
-| `Kernel\ShutdownCleanup` | gap | Not exercised by the demo. | — | — |
+| `Kernel\ShutdownCleanup` | covered | `tests/KernelSeamsTest.php` | `KernelSeamsTest::shutdownCleanupRunsEveryCallbackInReverseOrder` | — |
 
-### Logging — 15 `@api`: 6 covered, 2 host, 7 gap
+### Logging — 15 `@api`: 13 covered, 2 host, 0 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
-| `Logging\Attribute\LogChannel` | gap | Not exercised by the demo. | — | — |
+| `Logging\Attribute\LogChannel` | covered | `src/Domain/ModuleHealthService.php` | `KernelSeamsTest::moduleHealthIsALazyServiceOnItsOwnLogChannel` | — |
 | `Logging\CleanLogsCommand` | covered | `src/Logging/CleanLogsHandler.php` | `BusTest::scheduleAttributeIsDeclaredOnCleanLogsCommand`<br>`LoggingTest::cleanLogsHandlerDeletesAgedFiles`<br>`LoggingTest::cleanLogsRunsThroughTheBus` | — |
 | `Logging\Contract\ActorResolverInterface` | host | OSS default NullActorResolver (used by the demo); moodle implements its own. | — | — |
 | `Logging\Contract\OriginResolverInterface` | host | OSS default NullOriginResolver (used by the demo); moodle implements its own. | — | — |
-| `Logging\Contract\SecretRedactorInterface` | gap | Not exercised by the demo. | — | — |
-| `Logging\Enum\LogLevel` | gap | Not exercised by the demo. | — | — |
-| `Logging\ErrorLogFallbackLogger` | gap | Not exercised by the demo. | — | — |
+| `Logging\Contract\SecretRedactorInterface` | covered | Reached through DefaultSecretRedactor, which LoggerFactory takes as its redactor. | `LoggingSeamsTest::channelLoggerRedactsSecretsFromTheContext` | — |
+| `Logging\Enum\LogLevel` | covered | `src/Logging/LevelFilteringLogger.php` | `LoggingSeamsTest::levelFilterDropsRecordsBelowTheMinimum` | — |
+| `Logging\ErrorLogFallbackLogger` | covered | `src/Kernel/Bootstrap/DemoKernel.php` | `LoggingSeamsTest::fallbackLoggerWritesToTheErrorLog`<br>`FaultModeTest::faultyModuleIsIsolatedAndTheDashboardStillRenders` | — |
 | `Logging\Formatter\MiddagLineFormatter` | covered | Reached through LoggerFactory. | `LoggingTest::loggerFactoryWritesFormattedLine` | — |
 | `Logging\Handler\RotatingStreamHandler` | covered | Reached through LoggerFactory. | `LoggingTest::loggerFactoryWritesFormattedLine` | — |
 | `Logging\LoggerFactory` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `LoggingTest::loggerFactoryWritesFormattedLine` | — |
 | `Logging\NullActorResolver` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `LoggingTest::loggerFactoryWritesFormattedLine` | — |
 | `Logging\NullOriginResolver` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `LoggingTest::loggerFactoryWritesFormattedLine` | — |
-| `Logging\Processor\ActorOriginProcessor` | gap | Not exercised by the demo. | — | — |
-| `Logging\Processor\RedactionProcessor` | gap | Not exercised by the demo. | — | — |
-| `Logging\Redactor\DefaultSecretRedactor` | gap | Not exercised by the demo. | — | — |
+| `Logging\Processor\ActorOriginProcessor` | covered | Reached through LoggerFactory, which pushes it on every channel logger with the actor and origin resolvers. | `LoggingSeamsTest::channelLoggerRedactsSecretsFromTheContext`<br>`LoggingTest::loggerFactoryWritesFormattedLine` | — |
+| `Logging\Processor\RedactionProcessor` | covered | Reached through LoggerFactory, which pushes it on every channel logger. | `LoggingSeamsTest::channelLoggerRedactsSecretsFromTheContext` | — |
+| `Logging\Redactor\DefaultSecretRedactor` | covered | `tests/LoggingSeamsTest.php` | `LoggingSeamsTest::channelLoggerRedactsSecretsFromTheContext` | — |
 
 ### Mail — 5 `@api`: 0 covered, 1 host, 4 gap
 

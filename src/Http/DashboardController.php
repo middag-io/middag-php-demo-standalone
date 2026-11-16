@@ -14,6 +14,7 @@ namespace Middag\Demo\Standalone\Http;
 
 use Middag\Demo\Standalone\Domain\Doctrine\AgentRepository;
 use Middag\Demo\Standalone\Domain\Doctrine\CustomerRepository;
+use Middag\Demo\Standalone\Domain\ModuleHealthService;
 use Middag\Demo\Standalone\Domain\Ticket;
 use Middag\Demo\Standalone\Shared\Concerns\MapsEntityLabels;
 use Middag\Demo\Standalone\Shared\Concerns\RendersPages;
@@ -46,6 +47,7 @@ final class DashboardController extends AbstractController
     public function __construct(
         private readonly CustomerRepository $customers,
         private readonly AgentRepository $agents,
+        private readonly ModuleHealthService $moduleHealth,
     ) {}
 
     public function index(): Response
@@ -103,7 +105,7 @@ final class DashboardController extends AbstractController
 
         $trend = $this->createdTrend($tickets, 14);
 
-        $contract = PageBuilder::page('demo.dashboard')
+        $page = PageBuilder::page('demo.dashboard')
             ->shell('basic')
             ->layout('dashboard')
             ->title('Help-desk dashboard')
@@ -132,8 +134,14 @@ final class DashboardController extends AbstractController
                     ['key' => 'agent', 'label' => 'Assignee'],
                     ['key' => 'created', 'label' => 'Created', 'variant' => 'timestamp'],
                 ], $rows, ['rowHref' => '/tickets/{id}'], ['clientSide' => true]);
-            })
-            ->build();
+            });
+
+        // Modules the boot failure policy isolated (only in fault mode) surface
+        // as a warning notification instead of breaking the page.
+        foreach ($this->moduleHealth->isolatedModules() as $name) {
+            $page->notifyWarning(sprintf('The %s module failed to boot and was isolated.', $name), 'Module isolated');
+        }
+        $contract = $page->build();
 
         return $this->page($contract);
     }

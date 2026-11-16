@@ -13,7 +13,12 @@ declare(strict_types=1);
 namespace Middag\Demo\Standalone\Kernel\Bootstrap;
 
 use Middag\Demo\Standalone\Kernel\Module\DemoModule;
+use Middag\Demo\Standalone\Kernel\Module\FaultyModule;
+use Middag\Demo\Standalone\Kernel\Module\InMemoryFailedModuleRegistry;
+use Middag\Framework\Kernel\Bootstrap\BootIsolateFailurePolicy;
 use Middag\Framework\Kernel\ContainerFactory;
+use Middag\Framework\Kernel\Contract\FailedModuleRegistryInterface;
+use Middag\Framework\Logging\ErrorLogFallbackLogger;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Dotenv\Dotenv;
 
@@ -35,15 +40,29 @@ final class DemoKernel
             (new Dotenv())->load($projectRoot . '/.env');
         }
 
-        $factory = new ContainerFactory();
+        // The boot failure policy exists before the container (ContainerFactory
+        // takes it at construction), so its isolate step logs through the
+        // error_log fallback logger, and the registry it feeds is handed to the
+        // container as a synthetic service.
+        $failedModules = new InMemoryFailedModuleRegistry();
+        $factory = new ContainerFactory(failurePolicy: new DemoBootFailurePolicy(
+            $failedModules,
+            new BootIsolateFailurePolicy(new ErrorLogFallbackLogger('demo')),
+        ));
         $container = $factory->build(new DemoBootstrap($projectRoot, $debug));
+        $container->set(FailedModuleRegistryInterface::class, $failedModules);
 
         DemoBootstrap::wireRuntime($container);
 
-        $module = new DemoModule();
-        $module->register($container);
+        $modules = [new DemoModule()];
+        if (DemoEnv::flag('DEMO_FAULT_MODE')) {
+            $modules[] = new FaultyModule();
+        }
+        foreach ($modules as $module) {
+            $module->register($container);
+        }
 
-        $factory->bootModules([$module]);
+        $factory->bootModules($modules);
 
         return $container;
     }
