@@ -17,8 +17,8 @@ use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicyRepository;
 use Middag\Framework\Form\AbstractForm;
 use Middag\Framework\Form\FieldFactory;
 use Middag\Framework\Form\FormValidator;
-use Middag\Ui\Block\LayoutElementInterface;
-use Middag\Ui\Form\FieldInterface;
+use Middag\Ui\Block\Contract\LayoutElementInterface;
+use Middag\Ui\Form\Contract\FieldInterface;
 use Middag\Ui\Shared\Enum\ConditionOperator;
 
 /**

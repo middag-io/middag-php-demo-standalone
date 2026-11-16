@@ -14,8 +14,8 @@ namespace Middag\Demo\Standalone\Form;
 
 use Middag\Framework\Form\AbstractForm;
 use Middag\Framework\Form\FieldFactory;
-use Middag\Ui\Block\LayoutElementInterface;
-use Middag\Ui\Form\FieldInterface;
+use Middag\Ui\Block\Contract\LayoutElementInterface;
+use Middag\Ui\Form\Contract\FieldInterface;
 
 /**
  * Login form — two fields declared with the Field DSL and rendered through the
