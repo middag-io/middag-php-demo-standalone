@@ -174,14 +174,15 @@ final class AttachmentController extends AbstractController
 
     /**
      * GET /tickets/{id}/attachments/{attachment} — the stored bytes as a download.
-     * Only an attached file downloads; a pending upload is not on the ticket yet.
+     * An attached file downloads for anyone signed in; a pending upload only for
+     * its uploader, so the form can preview it.
      */
     public function download(int $id, int $attachment): Response
     {
         $file = Attachment::query()->where('id', $attachment)->first();
         if (!$file instanceof Attachment
             || $file->ticket_id !== $id
-            || $file->status !== Attachment::ATTACHED
+            || !$file->isDownloadableBy($this->userId())
             || !$this->files->exists($file->path())) {
             throw new MiddagNotFoundException('Attachment not found.');
         }

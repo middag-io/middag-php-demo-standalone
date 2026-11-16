@@ -139,14 +139,19 @@ final class AttachmentTest extends DemoTestCase
     }
 
     #[Test]
-    public function aPendingUploadDoesNotDownload(): void
+    public function aPendingUploadDownloadsOnlyForItsUploader(): void
     {
         $pending = $this->upload('notes.txt', self::CONTENTS);
 
-        $response = $this->handle('GET', $pending->downloadUrl(), [], ['HTTP_ACCEPT' => 'application/json']);
+        $own = $this->handle('GET', $pending->downloadUrl(), [], ['HTTP_ACCEPT' => 'application/json']);
+        self::assertSame(200, $own->getStatusCode());
+        self::assertSame(self::CONTENTS, $own->getContent());
 
-        self::assertSame(404, $response->getStatusCode());
-        self::assertStringNotContainsString(self::CONTENTS, (string) $response->getContent());
+        $this->container->get(AuthenticatorInterface::class)->login(self::OTHER_USER, ['name' => 'Other', 'capabilities' => []]);
+        $foreign = $this->handle('GET', $pending->downloadUrl(), [], ['HTTP_ACCEPT' => 'application/json']);
+
+        self::assertSame(404, $foreign->getStatusCode());
+        self::assertStringNotContainsString(self::CONTENTS, (string) $foreign->getContent());
     }
 
     #[Test]

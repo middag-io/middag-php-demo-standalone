@@ -114,6 +114,16 @@ final class Attachment extends Model
         return array_values(array_filter($attachments, static fn (self $a): bool => $a->status === self::ATTACHED));
     }
 
+    /**
+     * Whether this user may download the file: anyone signed in once it is
+     * attached, only its uploader while it is pending (the form's preview).
+     */
+    public function isDownloadableBy(int $userId): bool
+    {
+        return $this->status === self::ATTACHED
+            || ($this->status === self::PENDING && $this->user_id === $userId);
+    }
+
     /** The file's path in the files area. */
     public function path(): string
     {
