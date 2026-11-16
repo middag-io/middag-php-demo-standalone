@@ -355,8 +355,8 @@ Generated from `middag-io/framework` v1.20.4 and `middag-io/ui` v1.10.0, as inst
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
-| `EditablePanel\Contract\EditablePanelDescriptorInterface` | covered | Reached through EditablePanelDescriptor, which PageBuilder::editablePanel() builds on the agents page. | `AgentPanelTest::supervisorsGetThePanelConfigAndTheEditRowAction`<br>`WireSchemaTest::agentEditablePanelMatchesTheSchema` | `business/editable-panel.spec.ts › edits an agent in the side panel` |
-| `EditablePanel\EditablePanelDescriptor` | covered | `src/Http/AgentController.php` | `AgentPanelTest::supervisorsGetThePanelConfigAndTheEditRowAction`<br>`WireSchemaTest::agentEditablePanelMatchesTheSchema` | `business/editable-panel.spec.ts › edits an agent in the side panel` |
+| `EditablePanel\Contract\EditablePanelDescriptorInterface` | covered | Reached through EditablePanelDescriptor, which PageBuilder::editablePanel() builds on the agents page. | `AgentPanelTest::supervisorsGetThePanelConfigAndTheEditRowAction`<br>`WireSchemaTest::agentEditablePanelMatchesTheSchema` | `business/agents.spec.ts › edits an agent in the side panel` |
+| `EditablePanel\EditablePanelDescriptor` | covered | `src/Http/AgentController.php` | `AgentPanelTest::supervisorsGetThePanelConfigAndTheEditRowAction`<br>`WireSchemaTest::agentEditablePanelMatchesTheSchema` | `business/agents.spec.ts › edits an agent in the side panel` |
 
 ### Envelope — 1 `@api`: 1 covered, 0 host, 0 gap
 
@@ -382,10 +382,10 @@ Generated from `middag-io/framework` v1.20.4 and `middag-io/ui` v1.10.0, as inst
 | `Form\FormFieldDocumentMask` | gap | A national document mask has no place in the help-desk domain. | — | — |
 | `Form\FormFieldNode` | covered | The InertiaRenderer emits field nodes in this shape; every node is validated against the definition. | `WireSchemaTest::formPanelNodesMatchFormSchemaNode` | — |
 | `Form\FormFieldValidation` | covered | Schema-only: the validation props of the ticket form nodes are validated against it. | `WireSchemaTest::formPanelNodesMatchFormSchemaNode` | — |
-| `Form\FormGroupNode` | covered | `src/Http/AgentController.php` | `AgentPanelTest::panelEndpointServesTheAgentFormInASectionAndAGroup`<br>`WireSchemaTest::agentEditablePanelMatchesTheSchema` | `business/editable-panel.spec.ts › edits an agent in the side panel` |
+| `Form\FormGroupNode` | covered | `src/Http/AgentController.php` | `AgentPanelTest::panelEndpointServesTheAgentFormInASectionAndAGroup`<br>`WireSchemaTest::agentEditablePanelMatchesTheSchema` | `business/agents.spec.ts › edits an agent in the side panel` |
 | `Form\FormHeaderNode` | covered | `src/Http/AuthController.php` | `UiSeamsTest::loginFormStartsWithAHeaderNode`<br>`WireSchemaTest::loginPageContractMatchesThePublishedSchema` | — |
 | `Form\FormSchemaNode` | covered | Schema-only: the InertiaRenderer emits the form nodes as arrays, validated against this definition. | `WireSchemaTest::formPanelNodesMatchFormSchemaNode` | — |
-| `Form\FormSectionNode` | covered | `src/Http/AgentController.php` | `AgentPanelTest::panelEndpointServesTheAgentFormInASectionAndAGroup`<br>`WireSchemaTest::agentEditablePanelMatchesTheSchema` | `business/editable-panel.spec.ts › edits an agent in the side panel` |
+| `Form\FormSectionNode` | covered | `src/Http/AgentController.php` | `AgentPanelTest::panelEndpointServesTheAgentFormInASectionAndAGroup`<br>`WireSchemaTest::agentEditablePanelMatchesTheSchema` | `business/agents.spec.ts › edits an agent in the side panel` |
 | `Form\FormState` | covered | Reached through AbstractForm. | `FormTest::rendersToInertiaProps` | — |
 | `Form\FormStep` | gap | The free FormPanelBlock does not read steps; the wizard drives its steps through layout.meta.steps and the WizardLayout. | — | — |
 | `Form\Group` | covered | `src/Form/TicketForm.php` | `FormTest::ticketFormIsLaidOutInSectionsAndGroups`<br>`WireSchemaTest::formPanelNodesMatchFormSchemaNode` | `business/form-sections.spec.ts › the edit form renders the ticket and schedule sections` |
@@ -472,7 +472,7 @@ Generated from `middag-io/framework` v1.20.4 and `middag-io/ui` v1.10.0, as inst
 | `Table\CrudBuilder` | gap | The agents list cannot be built with it: rowActions() takes action names and emits link or request targets only, so the Edit action cannot carry the panel target; the column descriptor drops the column variant, so the badge, html, progress and sparkline cells are lost; and build() returns a single content region with no row link, shell, subtitle, extra region or editable panel config. | — | — |
 | `Table\FilterDefinition` | covered | `src/Http/TicketQueueQuery.php` | `TicketContractTest::queueFiltersSortsAndPaginatesOnTheServer` | `business/table.spec.ts › filters and pages the ticket queue on the server` |
 | `Table\Pagination` | covered | `src/Http/TicketQueueQuery.php` | `TicketContractTest::queueFiltersSortsAndPaginatesOnTheServer` | `business/table.spec.ts › filters and pages the ticket queue on the server` |
-| `Table\TableBuilder` | covered | `src/Http/AgentController.php` | `AgentContractTest::listRendersRosterAndGatesSupervisorColumnsByDefault` | — |
+| `Table\TableBuilder` | covered | `src/Http/AgentController.php` | `AgentContractTest::detailShowsSupervisorsTheMailtoAndSparklineActivityTable` | — |
 | `Table\TableConfig` | covered | `src/Http/UiController.php` | `UiContractTest::fragmentEndpointEmitsPartialTableFragment` | — |
 | `Table\TableDisplayOptions` | covered | `src/Http/UiController.php` | `UiContractTest::fragmentEndpointEmitsPartialTableFragment` | — |
 
@@ -508,9 +508,9 @@ Block, cell, field, layout and shell types the PHP contract emits and the free R
 | `cell:timestamp` | `/tickets` | created date |
 | `cell:boolean` | `/parity` | parity match flag |
 | `cell:progress` | `/agents` | agent workload (supervisor view) |
-| `cell:link` | `/agents` | agent email as a mailto link, href interpolates {email} (supervisor view) |
+| `cell:link` | `/agents/{id}` | agent email as a mailto link, href interpolates {email} (supervisor view) |
 | `cell:html` | `/agents` | availability badge — server-controlled HTML, role escaped (supervisor view) |
-| `cell:sparkline` | `/agents` | custom registerCellRenderer (the chart-block seam, cell edition) — 7-day intake (supervisor view) |
+| `cell:sparkline` | `/agents/{id}` | custom registerCellRenderer (the chart-block seam, cell edition) — 7-day intake (supervisor view) |
 | `field:text` | `/tickets/new` | subject, tags |
 | `field:textarea` | `/tickets/new` | description |
 | `field:select` | `/tickets/new` | channel, priority, SLA |

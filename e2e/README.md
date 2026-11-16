@@ -15,6 +15,7 @@ e2e/
 ├── navigation/
 │   └── navigation.spec.ts # dashboard, tickets list, ticket detail, agents
 ├── business/
+│   ├── agents.spec.ts     # CrudBuilder agents index: cells, sort, row link, side-panel edit
 │   └── critical-flow.spec.ts # required-field validation (i18n contract) + edit a ticket
 ├── helpers/
 │   └── auth.ts            # login() helper + seeded credentials

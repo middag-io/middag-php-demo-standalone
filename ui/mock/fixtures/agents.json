@@ -64,44 +64,26 @@
         "theme": {
             "appearance": "light"
         },
-        "flash": [],
+        "flash": {
+            "success": "Welcome, Demo User."
+        },
         "errors": [],
         "csrf_token": "dev-csrf-token",
         "contract": {
             "version": "1",
             "shell": "basic",
             "page": {
-                "key": "demo.agents",
+                "key": "agents.index",
                 "title": "Agents",
-                "subtitle": "Supervisor view — data-mapper roster with contact + workload columns"
+                "subtitle": "Supervisor view — data-mapper roster with availability + workload columns"
             },
             "layout": {
                 "template": "dashboard",
                 "regions": {
-                    "metrics": [
-                        {
-                            "type": "metric_card",
-                            "key": "agent_count",
-                            "data": {
-                                "value": 4,
-                                "label": "Agents",
-                                "icon": "users"
-                            }
-                        },
-                        {
-                            "type": "metric_card",
-                            "key": "supervisors",
-                            "data": {
-                                "value": 2,
-                                "label": "Supervisors",
-                                "icon": "shield"
-                            }
-                        }
-                    ],
                     "content": [
                         {
                             "type": "dense_table",
-                            "key": "agents",
+                            "key": "agents.table",
                             "data": {
                                 "columns": [
                                     {
@@ -128,12 +110,6 @@
                                         "variant": "boolean"
                                     },
                                     {
-                                        "key": "email",
-                                        "label": "Email",
-                                        "variant": "link",
-                                        "href": "mailto:{email}"
-                                    },
-                                    {
                                         "key": "availability",
                                         "label": "Availability",
                                         "sortable": false,
@@ -148,91 +124,87 @@
                                         "searchable": false,
                                         "format": "text",
                                         "variant": "progress"
-                                    },
-                                    {
-                                        "key": "intake",
-                                        "label": "7-day intake",
-                                        "variant": "sparkline"
                                     }
                                 ],
+                                "rowActions": [
+                                    {
+                                        "id": "edit",
+                                        "label": "Edit",
+                                        "target": {
+                                            "kind": "panel"
+                                        },
+                                        "intent": "secondary",
+                                        "icon": "pencil"
+                                    }
+                                ],
+                                "options": {
+                                    "perPage": 25,
+                                    "sortDirection": "asc",
+                                    "selectable": false,
+                                    "searchable": false,
+                                    "sortColumn": "name"
+                                },
                                 "rows": [
                                     {
                                         "id": 1,
                                         "name": "Ana Souza",
                                         "role": "supervisor",
                                         "active": true,
-                                        "email": "ana@middag.io",
                                         "availability": "<span style=\"display:inline-flex;align-items:center;gap:.4rem\"><span style=\"width:.5rem;height:.5rem;border-radius:9999px;background:#16a34a\"></span><strong>Available</strong> &middot; <span style=\"opacity:.7\">supervisor</span></span>",
-                                        "workload": 1,
-                                        "intake": [
-                                            1,
-                                            0,
-                                            0,
-                                            0,
-                                            0,
-                                            1,
-                                            0
-                                        ]
+                                        "workload": 1
                                     },
                                     {
                                         "id": 2,
                                         "name": "Bruno Lima",
                                         "role": "agent",
                                         "active": true,
-                                        "email": "bruno@middag.io",
                                         "availability": "<span style=\"display:inline-flex;align-items:center;gap:.4rem\"><span style=\"width:.5rem;height:.5rem;border-radius:9999px;background:#16a34a\"></span><strong>Available</strong> &middot; <span style=\"opacity:.7\">agent</span></span>",
-                                        "workload": 1,
-                                        "intake": [
-                                            0,
-                                            0,
-                                            0,
-                                            1,
-                                            0,
-                                            0,
-                                            0
-                                        ]
+                                        "workload": 1
                                     },
                                     {
                                         "id": 3,
                                         "name": "Carla Dias",
                                         "role": "agent",
                                         "active": true,
-                                        "email": "carla@middag.io",
                                         "availability": "<span style=\"display:inline-flex;align-items:center;gap:.4rem\"><span style=\"width:.5rem;height:.5rem;border-radius:9999px;background:#16a34a\"></span><strong>Available</strong> &middot; <span style=\"opacity:.7\">agent</span></span>",
-                                        "workload": 2,
-                                        "intake": [
-                                            0,
-                                            0,
-                                            1,
-                                            0,
-                                            0,
-                                            1,
-                                            0
-                                        ]
+                                        "workload": 2
                                     },
                                     {
                                         "id": 4,
                                         "name": "Diego Melo",
                                         "role": "admin",
                                         "active": true,
-                                        "email": "diego@middag.io",
                                         "availability": "<span style=\"display:inline-flex;align-items:center;gap:.4rem\"><span style=\"width:.5rem;height:.5rem;border-radius:9999px;background:#16a34a\"></span><strong>Available</strong> &middot; <span style=\"opacity:.7\">admin</span></span>",
-                                        "workload": 1,
-                                        "intake": [
-                                            0,
-                                            1,
-                                            0,
-                                            0,
-                                            1,
-                                            0,
-                                            0
-                                        ]
+                                        "workload": 1
                                     }
                                 ],
+                                "pagination": {
+                                    "page": 1,
+                                    "perPage": 25,
+                                    "total": 4,
+                                    "lastPage": 1
+                                },
                                 "rowHref": "/agents/{id}"
-                            },
-                            "meta": {
-                                "clientSide": true
+                            }
+                        }
+                    ],
+                    "metrics": [
+                        {
+                            "type": "metric_card",
+                            "key": "agent_count",
+                            "data": {
+                                "value": 4,
+                                "label": "Agents",
+                                "icon": "users"
+                            }
+                        },
+                        {
+                            "type": "metric_card",
+                            "key": "supervisors",
+                            "data": {
+                                "value": 2,
+                                "label": "Supervisors",
+                                "icon": "shield"
                             }
                         }
                     ]
@@ -253,6 +225,11 @@
                     "email": "demo@middag.io"
                 }
             }
+        },
+        "editablePanel": {
+            "endpoint": "/agents/{id}/panel",
+            "submitMethod": "post",
+            "width": 380
         }
     },
     "url": "/agents",

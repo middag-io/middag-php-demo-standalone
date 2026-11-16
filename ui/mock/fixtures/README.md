@@ -15,8 +15,8 @@ One file per route:
 | `tickets.json` | `/tickets` | basic / dashboard — metrics + cell showcase |
 | `ticket-detail.json` | `/tickets/1` | basic / sidebar — status lifecycle + tabs |
 | `ticket-new.json` | `/tickets/new` | basic / wizard — `form_panel` |
-| `agents.json` | `/agents` | basic / dashboard — supervisor roster (full width) |
-| `agent-detail.json` | `/agents/1` | basic / dashboard — metrics + detail |
+| `agents.json` | `/agents` | basic / dashboard — CrudBuilder supervisor roster (full width) |
+| `agent-detail.json` | `/agents/1` | basic / dashboard — metrics + detail + mailto/sparkline table |
 | `customers.json` | `/customers` | basic / stack — card grid |
 | `parity.json` | `/parity` | basic / stack — dual-ORM |
 | `help.json` | `/help` | immersive / stack |

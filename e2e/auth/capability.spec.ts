@@ -5,7 +5,8 @@ import { csrfToken } from '../helpers/csrf';
 /**
  * The helpdesk:supervise gate, proved with the seeded agent login, which does
  * not hold the capability. The agents page hides the supervisor columns and the
- * "Edit" panel action, and the panel endpoints answer 403 to a direct call. The
+ * "Edit" panel action, the agent detail hides the contact and activity table,
+ * and the panel endpoints answer 403 to a direct call. The
  * supervisor reads the same endpoint, so the 403 comes from the capability and
  * not from the route. The phone run checks the card layout of the same page.
  */
@@ -17,7 +18,13 @@ async function expectNoSupervisorSurface(page: Page): Promise<void> {
   await expect(page.getByText('Ana Souza').first()).toBeVisible();
   await expect(page.getByRole('button', { name: 'Edit' })).toHaveCount(0);
   await expect(page.getByText('Open load', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Availability', { exact: true })).toHaveCount(0);
+
+  // The agent detail is open too, without the supervisor contact and activity table.
+  await page.goto('/agents/1');
+  await expect(page.getByText('ana@middag.io')).toBeVisible();
   await expect(page.getByText('7-day intake', { exact: true })).toHaveCount(0);
+  await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
 }
 
 async function expectPanelDenied(page: Page): Promise<void> {

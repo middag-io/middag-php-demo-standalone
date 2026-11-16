@@ -39,22 +39,26 @@ use Middag\Ui\Shared\Enum\FormComponent;
 use Middag\Ui\Shared\Enum\HttpMethod;
 use Middag\Ui\Shared\Enum\RenderTarget;
 use Middag\Ui\Table\Column;
+use Middag\Ui\Table\CrudBuilder;
 use Middag\Ui\Table\TableBuilder;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Help-desk agents — the `sidebar` layout + a capability gate.
+ * Help-desk agents — the CrudBuilder convention + a capability gate.
  *
  * The roster is read the data-mapper way (AgentRepository), the per-agent
- * workload the active-record way (Ticket scopes) — dual-ORM again. The list adds
- * supervisor-only columns (email + workload) only when the viewer holds the
+ * workload the active-record way (Ticket scopes) — dual-ORM again. The index page
+ * is built by CrudBuilder: variant columns, a row link, a subtitle and a metrics
+ * region through page(), and the editable panel config from toProps(). It adds
+ * supervisor-only columns (availability + workload) only when the viewer holds the
  * `helpdesk:supervise` capability on the auth SharedProp: a server-side "Can" gate
  * the seeded operator passes and an anonymous/agent session does not.
  *
  * `/agents/{id}` is the detail page: a detail_panel (agent fields), a metric_card
- * (open-workload aggregate) and a link_list (the agent's open tickets).
+ * (open-workload aggregate), a link_list (the agent's open tickets) and, for
+ * supervisors, a hand-built contact and activity table (mailto link + sparkline).
  *
  * Supervisors also get the editable side panel: an "Edit" row action with the
  * `panel` target opens it, the client reads the form from `GET /agents/{id}/panel`
@@ -68,6 +72,9 @@ final class AgentController extends AbstractController implements CapabilityRequ
 
     /** Panel width that still fits a phone viewport. */
     private const int PANEL_WIDTH = 380;
+
+    /** Days of ticket intake the detail page's sparkline cell plots. */
+    private const int INTAKE_DAYS = 7;
 
     /** @var list<CapabilityRequirement> */
     private array $requirements = [];
@@ -84,10 +91,10 @@ final class AgentController extends AbstractController implements CapabilityRequ
         $agents = $this->agents->latest();
         $canSupervise = $this->canSupervise();
         $openByAgent = $this->openCountByAgent();
-        $intakeByAgent = $this->intakeByAgent(7);
+        $roster = AgentRosterQuery::fromQuery($this->request?->query->all() ?? []);
 
         $rows = array_map(
-            static function (Agent $a) use ($openByAgent, $intakeByAgent): array {
+            static function (Agent $a) use ($openByAgent): array {
                 $d = $a->toArray();
 
                 return [
@@ -95,77 +102,74 @@ final class AgentController extends AbstractController implements CapabilityRequ
                     'name' => (string) $d['name'],
                     'role' => (string) $d['role'],
                     'active' => (bool) $d['active'],
-                    'email' => (string) $d['email'],
                     // server-CONTROLLED HTML for the `html` cell (role escaped).
                     'availability' => self::availabilityHtml((bool) $d['active'], (string) $d['role']),
                     'workload' => $openByAgent[(int) $d['id']] ?? 0,
-                    // per-row number[] for the custom `sparkline` cell.
-                    'intake' => $intakeByAgent[(int) $d['id']] ?? array_fill(0, 7, 0),
                 ];
             },
             $agents,
         );
-
-        // Base columns everyone sees; supervisors additionally see contact + load.
-        // The typed table vocabulary: TableBuilder for the plain sortable name,
-        // Column with a ColumnVariant for the cells. Columns that carry keys the
-        // Column value object does not model (a link href) or a host-registered
-        // cell (sparkline) stay plain arrays.
-        $columns = [
-            ...array_map(
-                static fn (Column $column): array => $column->jsonSerialize(),
-                TableBuilder::make()->column('name', 'Name', ['sortable' => true])->build()->columns,
-            ),
-            (new Column(key: 'role', label: 'Role', variant: ColumnVariant::Badge))->jsonSerialize(),
-            (new Column(key: 'active', label: 'Active', variant: ColumnVariant::Boolean))->jsonSerialize(),
-        ];
-        if ($canSupervise) {
-            // Contact + load + activity, supervisor-only. The cell showcase that the
-            // /tickets queue can't reach: email → single `link` cell (mailto; href
-            // interpolates {email} from the row), availability → server-controlled
-            // `html` cell, workload → `progress`, intake → the custom `sparkline` cell.
-            $columns[] = ['key' => 'email', 'label' => 'Email', 'variant' => 'link', 'href' => 'mailto:{email}'];
-            $columns[] = (new Column(key: 'availability', label: 'Availability', variant: ColumnVariant::Html))->jsonSerialize();
-            $columns[] = (new Column(key: 'workload', label: 'Open load', variant: ColumnVariant::Progress))->jsonSerialize();
-            $columns[] = ['key' => 'intake', 'label' => '7-day intake', 'variant' => 'sparkline'];
-        }
+        // The CrudBuilder table runs in server mode: search, sort and paging come
+        // back as query parameters and are applied here.
+        $page = $roster->apply($rows);
 
         $supervisors = count(array_filter($agents, static fn (Agent $a): bool => $a->isSupervisor()));
 
-        // Supervisors edit an agent in the side panel: the row action carries the
-        // `panel` target, the page declares where the panel reads and saves.
-        $tableData = ['rowHref' => '/agents/{id}'];
+        // Base columns everyone sees; supervisors additionally see availability and
+        // load. Each column's variant selects the React cell renderer.
+        $columns = ['name', 'role', 'active'];
         if ($canSupervise) {
-            $tableData['rowActions'] = [
-                new Action(id: 'edit', label: 'Edit', target: ActionTarget::panel(), icon: 'pencil'),
-            ];
+            $columns = [...$columns, 'availability', 'workload'];
         }
 
-        $builder = PageBuilder::page('demo.agents')
-            ->shell('basic')
-            // Dashboard layout (not sidebar): the roster is a wide rich-cell table
-            // (7 supervisor columns) that a sidebar's fixed 320px aside squeezes —
-            // metric cards go in the gridded `metrics` row, the table gets the full
-            // content width. The sidebar+aside pattern is still proven on the ticket
-            // detail page. metrics → StatRow grid (no double Card wrap).
+        $props = CrudBuilder::for(Agent::class, 'agents')
+            ->without('create', 'edit', 'show')
+            ->label('Agent', 'Agents')
             ->layout('dashboard')
-            ->title('Agents')
-            ->subtitle($canSupervise
-                ? 'Supervisor view — data-mapper roster with contact + workload columns'
-                : 'Agent roster — data-mapper list (supervisor columns gated by capability)')
-            ->region('metrics', function (RegionBuilder $region) use ($agents, $supervisors): void {
-                $region->metricCard('agent_count', count($agents), 'Agents', icon: 'users');
-                $region->metricCard('supervisors', $supervisors, 'Supervisors', icon: 'shield');
+            ->columns($columns)
+            ->column('role', static function (array &$col): void {
+                $col['variant'] = ColumnVariant::Badge;
             })
-            ->region('content', function (RegionBuilder $region) use ($columns, $rows, $tableData): void {
-                $region->denseTable('agents', $columns, $rows, $tableData, ['clientSide' => true]);
-            });
-        if ($canSupervise) {
-            $builder->editablePanel('/agents/{id}/panel', null, HttpMethod::Post, self::PANEL_WIDTH);
-        }
+            ->column('active', static function (array &$col): void {
+                $col['variant'] = ColumnVariant::Boolean;
+            })
+            ->column('availability', static function (array &$col): void {
+                $col['variant'] = ColumnVariant::Html;
+            })
+            ->column('workload', static function (array &$col): void {
+                $col['label'] = 'Open load';
+                $col['variant'] = ColumnVariant::Progress;
+            })
+            ->sort(AgentRosterQuery::SORT_COLUMN, $roster->direction)
+            ->perPage($roster->perPage)
+            ->pageActions([])
+            // Supervisors edit an agent in the side panel: the row action carries
+            // the `panel` target, the page declares where the panel reads and saves.
+            ->rowActions($canSupervise
+                ? [new Action(id: 'edit', label: 'Edit', target: ActionTarget::panel(), icon: 'pencil')]
+                : [])
+            ->rowHref('/agents/{id}')
+            ->page(function (PageBuilder $page, string $action) use ($agents, $supervisors, $canSupervise): void {
+                if ($action !== 'index') {
+                    return;
+                }
 
-        // toProps() carries the editablePanel config next to the contract.
-        $props = $builder->toProps();
+                // Dashboard layout: metric cards in the gridded `metrics` row, the
+                // table across the full content width.
+                $page->shell('basic')
+                    ->subtitle($canSupervise
+                        ? 'Supervisor view — data-mapper roster with availability + workload columns'
+                        : 'Agent roster — data-mapper list (supervisor columns gated by capability)')
+                    ->region('metrics', function (RegionBuilder $region) use ($agents, $supervisors): void {
+                        $region->metricCard('agent_count', count($agents), 'Agents', icon: 'users');
+                        $region->metricCard('supervisors', $supervisors, 'Supervisors', icon: 'shield');
+                    });
+                if ($canSupervise) {
+                    $page->editablePanel('/agents/{id}/panel', null, HttpMethod::Post, self::PANEL_WIDTH);
+                }
+            })
+            // toProps() carries the editablePanel config next to the contract.
+            ->toProps('index', $page);
         $contract = $props['contract'];
         unset($props['contract']);
 
@@ -268,6 +272,8 @@ final class AgentController extends AbstractController implements CapabilityRequ
             $open,
         );
 
+        $activity = $this->canSupervise() ? $this->activityTable($id, (string) $d['email'], $assigned) : null;
+
         $contract = PageBuilder::page('demo.agents.show')
             ->shell('basic')
             ->layout('dashboard')
@@ -278,8 +284,11 @@ final class AgentController extends AbstractController implements CapabilityRequ
                 $region->metricCard('workload', count($open), 'Open assigned', icon: 'briefcase');
                 $region->metricCard('total_assigned', count($assigned), 'Total assigned', icon: 'inbox');
             })
-            ->region('content', function (RegionBuilder $region) use ($section, $links): void {
+            ->region('content', function (RegionBuilder $region) use ($section, $links, $activity): void {
                 $region->detailPanel('detail', [$section]);
+                if ($activity !== null) {
+                    $region->denseTable('activity', $activity['columns'], $activity['rows'], [], ['clientSide' => true]);
+                }
                 $region->linkList('assigned', $links);
             })
             ->build();
@@ -297,6 +306,40 @@ final class AgentController extends AbstractController implements CapabilityRequ
     public function setRequireCapabilityRequirements(array $requirements): void
     {
         $this->requirements = $requirements;
+    }
+
+    /**
+     * The supervisor-only contact and activity row of the detail page, a dense
+     * table built by hand because its two cells are out of CrudBuilder's reach:
+     * the email is a `link` cell whose href interpolates {email} from the row
+     * (a mailto link), and the intake is the host-registered `sparkline` cell.
+     * TableBuilder types the plain column; the other two stay plain arrays.
+     *
+     * @param list<Ticket> $assigned
+     *
+     * @return array{columns: list<array<string, mixed>>, rows: list<array<string, mixed>>}
+     */
+    private function activityTable(int $id, string $email, array $assigned): array
+    {
+        $intake = $this->intakeByAgent(self::INTAKE_DAYS)[$id] ?? array_fill(0, self::INTAKE_DAYS, 0);
+
+        return [
+            'columns' => [
+                ['key' => 'email', 'label' => 'Email', 'variant' => 'link', 'href' => 'mailto:{email}'],
+                ...array_map(
+                    static fn (Column $column): array => $column->jsonSerialize(),
+                    TableBuilder::make()->column('assigned', 'Assigned tickets')->build()->columns,
+                ),
+                ['key' => 'intake', 'label' => '7-day intake', 'variant' => 'sparkline'],
+            ],
+            'rows' => [[
+                'id' => $id,
+                'email' => $email,
+                'assigned' => count($assigned),
+                // per-row number[] (oldest day first) for the `sparkline` cell.
+                'intake' => $intake,
+            ]],
+        ];
     }
 
     private function findAgent(int $id): Agent

@@ -269,7 +269,7 @@
                                     {
                                         "symbol": "cell:link",
                                         "kind": "cell",
-                                        "route": "/agents",
+                                        "route": "/agents/{id}",
                                         "note": "agent email as a mailto link, href interpolates {email} (supervisor view)"
                                     },
                                     {
@@ -281,7 +281,7 @@
                                     {
                                         "symbol": "cell:sparkline",
                                         "kind": "cell",
-                                        "route": "/agents",
+                                        "route": "/agents/{id}",
                                         "note": "custom registerCellRenderer (the chart-block seam, cell edition) — 7-day intake (supervisor view)"
                                     },
                                     {

@@ -60,9 +60,10 @@ use Symfony\Component\HttpFoundation\Response;
  * Proves dual-ORM reads in ONE request: tickets come from the active-record
  * {@see Ticket} model, while the customer/agent display names are resolved through
  * the data-mapper {@see CustomerRepository}/{@see AgentRepository}. The list table
- * is hand-built with `variant`-keyed columns (status/badge/timestamp cells) — the
- * renderer the React DenseTableBlock selects by column `variant`, which CrudBuilder
- * (emitting `format`) cannot reach.
+ * is hand-built with `variant`-keyed columns (status/rich_status/timestamp cells) —
+ * the renderer the React DenseTableBlock selects by column `variant`. It stays
+ * hand-built because it also carries the host-registered `tag_chips` cell, which
+ * is not a ColumnVariant; the agents index is the CrudBuilder page.
  *
  * Login-gated by the class-level #[Auth(login: true)].
  */
