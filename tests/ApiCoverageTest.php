@@ -12,12 +12,16 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Tests;
 
+use FilesystemIterator;
 use Middag\Demo\Standalone\Tests\Coverage\ApiInventory;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use ReflectionClass;
+use SplFileInfo;
 
 /**
  * Drift guard of the `@api` map (coverage/api.php) against the installed libraries.
@@ -130,12 +134,53 @@ final class ApiCoverageTest extends TestCase
         self::assertSame([], $problems);
     }
 
+    #[Test]
+    public function theInternalListMatchesTheInternalClassesTheDemoImports(): void
+    {
+        /** @var array{internal?: array<string, string>} $manifest */
+        $manifest = require $this->root() . '/coverage/manifest.php';
+        $listed = array_keys($manifest['internal'] ?? []);
+        sort($listed);
+
+        self::assertSame($listed, $this->importedInternalClasses(), 'List in coverage/manifest.php (internal) every @internal library class the demo imports.');
+    }
+
     /**
      * @return array<string, array<string, mixed>>
      */
     private function api(): array
     {
         return self::$api ??= require $this->root() . '/coverage/api.php';
+    }
+
+    /**
+     * The middag-io/framework and middag-io/ui classes imported by a `use` statement
+     * in the demo's runtime code whose docblock has an `@internal` tag line.
+     *
+     * @return list<string>
+     */
+    private function importedInternalClasses(): array
+    {
+        $found = [];
+        foreach (['src', 'public', 'bin'] as $dir) {
+            $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->root() . '/' . $dir, FilesystemIterator::SKIP_DOTS));
+            foreach ($files as $file) {
+                if (!$file instanceof SplFileInfo || $file->getExtension() !== 'php') {
+                    continue;
+                }
+                preg_match_all('/^use (Middag\\\(?:Framework|Ui)\\\[\w\\\]+);/m', (string) file_get_contents($file->getPathname()), $matches);
+                foreach ($matches[1] as $class) {
+                    if ((class_exists($class) || interface_exists($class) || trait_exists($class))
+                        && preg_match('/^\s*\*\s*@internal\b/m', (string) (new ReflectionClass($class))->getDocComment()) === 1) {
+                        $found[$class] = true;
+                    }
+                }
+            }
+        }
+        $classes = array_keys($found);
+        sort($classes);
+
+        return $classes;
     }
 
     private function root(): string

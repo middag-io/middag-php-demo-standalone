@@ -97,9 +97,7 @@ return [
 
     'api' => require __DIR__ . '/api.php',
 
-    // Framework classes marked @internal that the demo still names, and why.
-    'internal' => [
-        'Middag\\Framework\\Http\\HttpKernel' => 'Bound as the implementation of HttpKernelInterface in DemoBootstrap: no @api seam builds the HTTP kernel.',
-        'Middag\\Framework\\Form\\FormValidator' => 'The AbstractForm constructor takes it, so every form (TicketForm, LoginForm) names it.',
-    ],
+    // Library classes marked @internal that the demo still names, and why.
+    // ApiCoverageTest keeps this list equal to the demo's imports.
+    'internal' => [],
 ];

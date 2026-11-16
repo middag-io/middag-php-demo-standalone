@@ -21,8 +21,8 @@ use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Form engine over the ticket form: AbstractForm + Field factory across types,
- * FormValidator (required + the IN-operator conditional), and rendering to the
- * canonical @middag-io/react FormFieldNode via InertiaRenderer.
+ * FormValidatorInterface (required + the IN-operator conditional), and rendering
+ * to the canonical @middag-io/react FormFieldNode through the renderer registry.
  *
  * Extends DemoTestCase (not bare TestCase) because TicketForm reads SLA options
  * the data-mapper way in schema() — it needs the container's DB connection (the

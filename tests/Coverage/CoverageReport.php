@@ -95,12 +95,17 @@ final class CoverageReport
         $out[] = '';
         $out[] = '## Internal classes the demo still names';
         $out[] = '';
-        $out[] = 'Classes the framework marks `@internal`. The demo names them only where no `@api` seam covers the need.';
+        $out[] = 'Classes the libraries mark `@internal`. The demo names them only where no `@api` seam covers the need.';
         $out[] = '';
-        $out[] = '| Class | Why |';
-        $out[] = '|---|---|';
-        foreach ($manifest['internal'] ?? [] as $class => $why) {
-            $out[] = sprintf('| `%s` | %s |', $class, self::cell($why));
+        $internal = $manifest['internal'] ?? [];
+        if ($internal === []) {
+            $out[] = 'None: every library class the demo names is `@api`.';
+        } else {
+            $out[] = '| Class | Why |';
+            $out[] = '|---|---|';
+            foreach ($internal as $class => $why) {
+                $out[] = sprintf('| `%s` | %s |', $class, self::cell($why));
+            }
         }
         $out[] = '';
         $out[] = '## Out of scope';

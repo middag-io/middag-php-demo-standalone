@@ -70,7 +70,7 @@ use Middag\Framework\Http\Contract\HttpKernelInterface;
 use Middag\Framework\Http\Contract\RetryPolicyInterface;
 use Middag\Framework\Http\Contract\SessionInterface;
 use Middag\Framework\Http\HttpClientFactory;
-use Middag\Framework\Http\HttpKernel;
+use Middag\Framework\Http\HttpKernelFactory;
 use Middag\Framework\Http\Inertia\InertiaAdapter;
 use Middag\Framework\Http\Inertia\InertiaFactory;
 use Middag\Framework\Http\Inertia\InertiaManager;
@@ -121,8 +121,6 @@ use PDO;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
-use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
-use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
@@ -291,8 +289,8 @@ final readonly class DemoBootstrap implements BootstrapInterface
         // (8) Forms + entity sources. The form pipeline (validator + Inertia
         // renderer + registry) is provided by the framework's ServiceProvider
         // defaults (registerFormDefaults), so the composition root no longer
-        // names those @internal collaborators; TaskForm autowires the
-        // FormValidator it inherits.
+        // names those @internal collaborators; the forms autowire the
+        // FormValidatorInterface that AbstractForm takes.
         $c->register(EntitySourceRegistry::class, EntitySourceRegistry::class)->setPublic(true);
         $c->register(CustomerEntitySource::class, CustomerEntitySource::class)
             ->setAutowired(true)->setPublic(true);
@@ -307,7 +305,7 @@ final readonly class DemoBootstrap implements BootstrapInterface
             ->setShared(false)
             ->setPublic(true);
 
-        // (9) HTTP plumbing — routing + PSR-7<->HttpFoundation bridges + the kernel.
+        // (9) HTTP plumbing — routing, the PSR-17 factory and the kernel.
         $c->register(RouteCollection::class, RouteCollection::class)
             ->setFactory([self::class, 'routes'])
             ->setPublic(true);
@@ -317,25 +315,16 @@ final readonly class DemoBootstrap implements BootstrapInterface
         $c->register(UrlGeneratorInterface::class, UrlGenerator::class)
             ->setArguments([new Reference(RouteCollection::class), new Reference(RequestContext::class)])
             ->setPublic(true);
-        $c->register(HttpFoundationFactory::class, HttpFoundationFactory::class)->setPublic(true);
         $c->register(Psr17Factory::class, Psr17Factory::class)->setPublic(true);
-        $c->register(PsrHttpFactory::class, PsrHttpFactory::class)
-            ->setArguments([
-                new Reference(Psr17Factory::class),
-                new Reference(Psr17Factory::class),
-                new Reference(Psr17Factory::class),
-                new Reference(Psr17Factory::class),
-            ])
-            ->setPublic(true);
-        // Service is keyed on the @api HttpKernelInterface; the concrete HttpKernel
-        // (@internal) appears only as the bound impl — the standard DI seam.
-        $c->register(HttpKernelInterface::class, HttpKernel::class)
+        // The kernel comes from the @api HttpKernelFactory: the concrete class and
+        // its PSR-7 / HttpFoundation bridges stay inside the framework.
+        $c->register(HttpKernelFactory::class, HttpKernelFactory::class);
+        $c->register(HttpKernelInterface::class, HttpKernelInterface::class)
+            ->setFactory([new Reference(HttpKernelFactory::class), 'create'])
             ->setArguments([
                 new Reference('service_container'),
                 new Reference(RouteCollection::class),
                 new Reference(RequestContext::class),
-                new Reference(HttpFoundationFactory::class),
-                new Reference(PsrHttpFactory::class),
                 $this->debug,
             ])
             ->setPublic(true);
