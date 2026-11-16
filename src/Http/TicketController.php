@@ -280,6 +280,7 @@ final class TicketController extends AbstractController
             ->actions(array_values(array_filter([
                 PageBuilder::action('edit', 'Edit', ActionTarget::link('/tickets/' . $id . '/edit'), ActionIntent::Primary, 'pencil'),
                 $ticket->status !== 'closed' ? $this->closeAction($id) : null,
+                PageBuilder::action('attachments', 'Attachments', ActionTarget::link('/tickets/' . $id . '/attachments'), ActionIntent::Secondary, 'paperclip'),
                 PageBuilder::action('back', 'All tickets', ActionTarget::link('/tickets'), ActionIntent::Secondary, 'arrow-left'),
             ])))
             // sidebar layout renders the `main` + `aside` regions (not `content`).

@@ -21,11 +21,13 @@ use Middag\Demo\Standalone\Domain\Tag;
 use Middag\Demo\Standalone\Domain\Ticket;
 use Middag\Demo\Standalone\Form\AgentEntitySource;
 use Middag\Demo\Standalone\Form\AgentPanelForm;
+use Middag\Demo\Standalone\Form\AttachmentForm;
 use Middag\Demo\Standalone\Form\CustomerEntitySource;
 use Middag\Demo\Standalone\Form\LoginForm;
 use Middag\Demo\Standalone\Form\TicketForm;
 use Middag\Demo\Standalone\Hook\TicketHooks;
 use Middag\Demo\Standalone\Http\AgentController;
+use Middag\Demo\Standalone\Http\AttachmentController;
 use Middag\Demo\Standalone\Http\AuthController;
 use Middag\Demo\Standalone\Http\CoverageController;
 use Middag\Demo\Standalone\Http\CustomerController;
@@ -303,6 +305,10 @@ final readonly class DemoBootstrap implements BootstrapInterface
             ->setShared(false)
             ->setPublic(true);
         $c->register(AgentPanelForm::class, AgentPanelForm::class)
+            ->setAutowired(true)
+            ->setShared(false)
+            ->setPublic(true);
+        $c->register(AttachmentForm::class, AttachmentForm::class)
             ->setAutowired(true)
             ->setShared(false)
             ->setPublic(true);
@@ -633,6 +639,11 @@ final readonly class DemoBootstrap implements BootstrapInterface
         $routes->add('tickets.edit', new Route('/tickets/{id}/edit', ['_controller' => TicketController::class . '::edit'], [], ['id' => '\d+'], '', [], ['GET']));
         $routes->add('tickets.close', new Route('/tickets/{id}/close', ['_controller' => TicketController::class . '::close'], [], ['id' => '\d+'], '', [], ['POST']));
         $routes->add('tickets.update', new Route('/tickets/{id}', ['_controller' => TicketController::class . '::update'], [], ['id' => '\d+'], '', [], ['PUT', 'PATCH']));
+        // Ticket attachments: upload (pending, by upload token), attach, download.
+        $routes->add('tickets.attachments', new Route('/tickets/{id}/attachments', ['_controller' => AttachmentController::class . '::index'], [], ['id' => '\d+'], '', [], ['GET']));
+        $routes->add('tickets.attachments.upload', new Route('/tickets/{id}/attachments/upload', ['_controller' => AttachmentController::class . '::upload'], [], ['id' => '\d+'], '', [], ['POST']));
+        $routes->add('tickets.attachments.attach', new Route('/tickets/{id}/attachments', ['_controller' => AttachmentController::class . '::attach'], [], ['id' => '\d+'], '', [], ['POST']));
+        $routes->add('tickets.attachments.download', new Route('/tickets/{id}/attachments/{attachment}', ['_controller' => AttachmentController::class . '::download'], [], ['id' => '\d+', 'attachment' => '\d+'], '', [], ['GET']));
 
         // Help-desk reference pages: agents (sidebar + detail, capability gate) and
         // customers (card_grid) — data-mapper-backed.

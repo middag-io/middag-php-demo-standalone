@@ -80,8 +80,9 @@ abstract class DemoTestCase extends TestCase
      *
      * @param array<string, mixed> $params
      * @param array<string, mixed> $server
+     * @param array<string, mixed> $files  uploaded files, keyed by field name
      */
-    protected function handle(string $method, string $path, array $params = [], array $server = []): Response
+    protected function handle(string $method, string $path, array $params = [], array $server = [], array $files = []): Response
     {
         // Echo a valid CSRF token for unsafe methods so VerifyCsrfMiddleware (M8)
         // lets the write through — a real client mirrors the shared csrf_token prop.
@@ -89,7 +90,7 @@ abstract class DemoTestCase extends TestCase
             $server['HTTP_X_CSRF_TOKEN'] = $this->container->get(CsrfTokenManager::class)->token();
         }
 
-        $request = Request::create($path, $method, $params, [], [], $server);
+        $request = Request::create($path, $method, $params, [], $files, $server);
 
         // Drive the full PSR-15 pipeline (StartSession → ShareFlash → VerifyCsrf →
         // kernel), bridged by StandaloneKernel — which now accepts the dispatcher

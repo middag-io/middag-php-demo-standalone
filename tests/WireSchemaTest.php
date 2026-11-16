@@ -15,6 +15,7 @@ namespace Middag\Demo\Standalone\Tests;
 use Middag\Demo\Standalone\Schema\HelpdeskSeeder;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Database\Contract\ConnectionAdapterInterface;
+use Middag\Framework\Filesystem\Contract\FilesystemInterface;
 use Middag\Framework\Http\Contract\AuthenticatorInterface;
 use Middag\Ui\Block\BlockDescriptor;
 use Middag\Ui\Region\PollConfig;
@@ -25,6 +26,7 @@ use Opis\JsonSchema\Validator;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
  * Validates what the demo emits against the JSON Schema that middag-io/ui publishes
@@ -67,7 +69,7 @@ final class WireSchemaTest extends DemoTestCase
      */
     public static function routes(): iterable
     {
-        foreach (['/', '/tickets', '/tickets/1', '/tickets/1/edit', '/tickets/new', '/tickets/new?step=1', '/agents', '/agents/1', '/customers', '/parity', '/help', '/coverage', '/ui/page'] as $route) {
+        foreach (['/', '/tickets', '/tickets/1', '/tickets/1/edit', '/tickets/1/attachments', '/tickets/new', '/tickets/new?step=1', '/agents', '/agents/1', '/customers', '/parity', '/help', '/coverage', '/ui/page'] as $route) {
             yield $route => [$route];
         }
     }
@@ -147,6 +149,30 @@ final class WireSchemaTest extends DemoTestCase
         self::assertNotEmpty($descriptor['schema'] ?? []);
         foreach ($descriptor['schema'] as $node) {
             $this->assertValid($node, self::SCHEMA_ID . '#/$defs/FormSchemaNode', 'panel node ' . ($node['id'] ?? '?'));
+        }
+    }
+
+    #[Test]
+    public function attachmentFileValueMatchesTheSchema(): void
+    {
+        $tmp = (string) tempnam(sys_get_temp_dir(), 'att');
+        file_put_contents($tmp, 'wire');
+        $upload = $this->handle('POST', '/tickets/1/attachments/upload', [], [], ['file' => new UploadedFile($tmp, 'wire.txt', null, null, true)]);
+        $location = (string) $upload->headers->get('Location');
+        self::assertStringContainsString('?token=', $location);
+
+        // The pending upload comes back as the file field's FileValue, with its token.
+        $contract = $this->contractOf($location);
+        $this->assertValid($contract, self::SCHEMA_ID, 'attachments with a pending upload');
+        $value = $this->formPanels($contract)[0]['data']['values']['file'] ?? null;
+        self::assertIsArray($value);
+        self::assertArrayHasKey('uploadToken', $value);
+        $this->assertValid($value, self::SCHEMA_ID . '#/$defs/FileValue', 'pending upload file value');
+
+        $path = 'attachments/' . $value['uploadToken'];
+        $files = $this->container->get(FilesystemInterface::class);
+        if ($files->exists($path)) {
+            $files->delete($path);
         }
     }
 
