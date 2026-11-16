@@ -27,6 +27,9 @@ use Middag\Framework\Http\Controller\AbstractController;
 use Middag\Framework\Persistence\Contract\EntityInterface;
 use Middag\Ui\Page\PageBuilder;
 use Middag\Ui\Region\RegionBuilder;
+use Middag\Ui\Shared\Enum\ColumnVariant;
+use Middag\Ui\Table\Column;
+use Middag\Ui\Table\TableBuilder;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -82,10 +85,17 @@ final class AgentController extends AbstractController implements CapabilityRequ
         );
 
         // Base columns everyone sees; supervisors additionally see contact + load.
+        // The typed table vocabulary: TableBuilder for the plain sortable name,
+        // Column with a ColumnVariant for the cells. Columns that carry keys the
+        // Column value object does not model (a link href) or a host-registered
+        // cell (sparkline) stay plain arrays.
         $columns = [
-            ['key' => 'name', 'label' => 'Name'],
-            ['key' => 'role', 'label' => 'Role', 'variant' => 'badge'],
-            ['key' => 'active', 'label' => 'Active', 'variant' => 'boolean'],
+            ...array_map(
+                static fn (Column $column): array => $column->jsonSerialize(),
+                TableBuilder::make()->column('name', 'Name', ['sortable' => true])->build()->columns,
+            ),
+            (new Column(key: 'role', label: 'Role', variant: ColumnVariant::Badge))->jsonSerialize(),
+            (new Column(key: 'active', label: 'Active', variant: ColumnVariant::Boolean))->jsonSerialize(),
         ];
         if ($canSupervise) {
             // Contact + load + activity, supervisor-only. The cell showcase that the
@@ -93,8 +103,8 @@ final class AgentController extends AbstractController implements CapabilityRequ
             // interpolates {email} from the row), availability → server-controlled
             // `html` cell, workload → `progress`, intake → the custom `sparkline` cell.
             $columns[] = ['key' => 'email', 'label' => 'Email', 'variant' => 'link', 'href' => 'mailto:{email}'];
-            $columns[] = ['key' => 'availability', 'label' => 'Availability', 'variant' => 'html'];
-            $columns[] = ['key' => 'workload', 'label' => 'Open load', 'variant' => 'progress'];
+            $columns[] = (new Column(key: 'availability', label: 'Availability', variant: ColumnVariant::Html))->jsonSerialize();
+            $columns[] = (new Column(key: 'workload', label: 'Open load', variant: ColumnVariant::Progress))->jsonSerialize();
             $columns[] = ['key' => 'intake', 'label' => '7-day intake', 'variant' => 'sparkline'];
         }
 

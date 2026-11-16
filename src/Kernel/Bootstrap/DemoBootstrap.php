@@ -41,6 +41,7 @@ use Middag\Demo\Standalone\Logging\CleanLogsHandler;
 use Middag\Demo\Standalone\Logging\LevelFilteringLogger;
 use Middag\Demo\Standalone\Mail\CaptureMailer;
 use Middag\Demo\Standalone\Mail\TicketCreatedNotifier;
+use Middag\Demo\Standalone\Navigation\DemoNavigationRegistry;
 use Middag\Demo\Standalone\Observability\DebugCollector;
 use Middag\Demo\Standalone\Schema\CommandAttemptTable;
 use Middag\Demo\Standalone\Webhook\TicketWebhookNotifier;
@@ -522,9 +523,15 @@ final readonly class DemoBootstrap implements BootstrapInterface
         // auth: anonymous visitors (only /login is public, and it uses the chromeless
         // AuthShell) carry an empty tree — the app nav is never shipped to logged-out
         // clients.
-        InertiaManager::share('navigation', static fn (): array => is_array($c->get(AuthenticatorInterface::class)->user())
-            ? self::navigationProps()
-            : ['tree' => [], 'activeKey' => '', 'footer' => []]);
+        InertiaManager::share('navigation', static function () use ($c): array {
+            $record = $c->get(AuthenticatorInterface::class)->user();
+            if (!is_array($record)) {
+                return ['tree' => [], 'activeKey' => '', 'footer' => []];
+            }
+            $capabilities = is_array($record['attributes']['capabilities'] ?? null) ? array_values(array_map(strval(...), $record['attributes']['capabilities'])) : [];
+
+            return self::navigationProps($c->get(UrlGeneratorInterface::class), $capabilities);
+        });
         InertiaManager::share('version', InertiaVersionManager::getVersion());
         // `theme`/`locale` complete the @middag-io/react SharedProps contract (both
         // type-required, though the lib's providers default them); emitting them
@@ -629,6 +636,7 @@ final readonly class DemoBootstrap implements BootstrapInterface
         $routes->add('tickets.store', new Route('/tickets', ['_controller' => TicketController::class . '::store'], [], [], '', [], ['POST']));
         $routes->add('tickets.show', new Route('/tickets/{id}', ['_controller' => TicketController::class . '::show'], [], ['id' => '\d+'], '', [], ['GET']));
         $routes->add('tickets.edit', new Route('/tickets/{id}/edit', ['_controller' => TicketController::class . '::edit'], [], ['id' => '\d+'], '', [], ['GET']));
+        $routes->add('tickets.close', new Route('/tickets/{id}/close', ['_controller' => TicketController::class . '::close'], [], ['id' => '\d+'], '', [], ['POST']));
         $routes->add('tickets.update', new Route('/tickets/{id}', ['_controller' => TicketController::class . '::update'], [], ['id' => '\d+'], '', [], ['PUT', 'PATCH']));
 
         // Help-desk reference pages: agents (sidebar + detail, capability gate) and
@@ -668,38 +676,41 @@ final readonly class DemoBootstrap implements BootstrapInterface
      *
      * @return array{tree: list<array<string, mixed>>, activeKey: string, footer: list<array<string, mixed>>}
      */
-    private static function navigationProps(): array
+    /**
+     * The NavigationTreePayload of the app shell, built by the demo's
+     * NavigationRegistryInterface implementation. The active node follows the
+     * first path segment of the request (the kernel seeds the routing context's
+     * method, host and scheme, not its path).
+     *
+     * @param list<string> $capabilities held by the session user
+     *
+     * @return array{tree: list<array<string, mixed>>, activeKey: string, footer: list<array<string, mixed>>}
+     */
+    private static function navigationProps(UrlGeneratorInterface $urls, array $capabilities): array
     {
         $path = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/';
-        $segment = explode('/', trim($path, '/'))[0] ?? '';
-        $activeKey = match ($segment) {
-            '', 'dashboard' => 'dashboard',
-            'tickets' => 'tickets',
-            'agents' => 'agents',
-            'customers' => 'customers',
-            'parity' => 'parity',
-            'coverage' => 'coverage',
-            'help' => 'help',
-            default => 'dashboard',
+        $activeRoute = match (explode('/', trim($path, '/'))[0] ?? '') {
+            'tickets' => 'tickets.index',
+            'agents' => 'agents.index',
+            'customers' => 'customers.index',
+            'parity' => 'parity.index',
+            'coverage' => 'coverage.index',
+            'help' => 'help.index',
+            default => 'dashboard.index',
         };
 
-        return [
-            'tree' => [
-                // Dashboard lives at '/' (route dashboard.index); the nav must point
-                // there, not '/dashboard' (no such route → 404 in prod / blank in the
-                // react-router dev app).
-                ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'layout-dashboard', 'href' => '/', 'children' => []],
-                ['key' => 'tickets', 'label' => 'Tickets', 'icon' => 'inbox', 'href' => '/tickets', 'children' => []],
-                ['key' => 'agents', 'label' => 'Agents', 'icon' => 'users', 'href' => '/agents', 'children' => []],
-                ['key' => 'customers', 'label' => 'Customers', 'icon' => 'building', 'href' => '/customers', 'children' => []],
-                ['key' => 'parity', 'label' => 'Dual-ORM parity', 'icon' => 'columns', 'href' => '/parity', 'children' => []],
-                ['key' => 'coverage', 'label' => 'Coverage', 'icon' => 'shield-check', 'href' => '/coverage', 'children' => []],
-                ['key' => 'help', 'label' => 'Help', 'icon' => 'help-circle', 'href' => '/help', 'children' => []],
-            ],
-            'activeKey' => $activeKey,
-            // NavigationTreePayload.footer is a required (if empty) node list.
-            'footer' => [],
-        ];
+        return (new DemoNavigationRegistry(
+            static fn (string $route, array $params): string => $urls->generate($route, $params),
+            $capabilities,
+        ))
+            ->item('dashboard', 'Dashboard', 'dashboard.index', icon: 'layout-dashboard', weight: 10)
+            ->item('tickets', 'Tickets', 'tickets.index', icon: 'inbox', weight: 20)
+            ->item('agents', 'Agents', 'agents.index', icon: 'users', weight: 30)
+            ->item('customers', 'Customers', 'customers.index', icon: 'building', weight: 40)
+            ->item('parity', 'Dual-ORM parity', 'parity.index', icon: 'columns', weight: 50)
+            ->item('coverage', 'Coverage', 'coverage.index', icon: 'shield-check', weight: 60)
+            ->item('help', 'Help', 'help.index', icon: 'help-circle', weight: 70)
+            ->build($activeRoute);
     }
 
     /**

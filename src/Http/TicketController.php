@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace Middag\Demo\Standalone\Http;
 
 use Middag\Demo\Standalone\Command\CreateTicketCommand;
+use Middag\Demo\Standalone\Command\TransitionTicketCommand;
 use Middag\Demo\Standalone\Command\UpdateTicketCommand;
 use Middag\Demo\Standalone\Domain\Comment;
 use Middag\Demo\Standalone\Domain\Doctrine\AgentRepository;
@@ -32,13 +33,21 @@ use Middag\Framework\Http\Controller\AbstractController;
 use Middag\Framework\Shared\Util\Arr;
 use Middag\Framework\Shared\Util\Inflector;
 use Middag\Framework\Shared\ValueObject\Uuid;
+use Middag\Ui\Action\Action;
+use Middag\Ui\Action\ActionResult;
 use Middag\Ui\Action\ActionTarget;
+use Middag\Ui\Action\Confirmation;
 use Middag\Ui\Block\BlockBuilder;
+use Middag\Ui\Navigation\Contract\BreadcrumbListBuilderInterface;
 use Middag\Ui\Page\PageBuilder;
 use Middag\Ui\Page\Tab;
 use Middag\Ui\Region\RegionBuilder;
 use Middag\Ui\Shared\Enum\ActionIntent;
+use Middag\Ui\Shared\Enum\HttpMethod;
+use Middag\Ui\Shared\Enum\NotificationLevel;
 use Middag\Ui\Shared\Enum\RenderTarget;
+use Middag\Ui\Shared\ValueObject\Notification;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -247,10 +256,14 @@ final class TicketController extends AbstractController
             ->layout('sidebar')
             ->title('#' . $id . ' · ' . $ticket->subject)
             ->subtitle('Ticket detail — status lifecycle + tabbed detail/activity/SLA')
-            ->actions([
+            ->breadcrumbs(static function (BreadcrumbListBuilderInterface $trail) use ($id): void {
+                $trail->item('Tickets', '/tickets')->current('#' . $id);
+            })
+            ->actions(array_values(array_filter([
                 PageBuilder::action('edit', 'Edit', ActionTarget::link('/tickets/' . $id . '/edit'), ActionIntent::Primary, 'pencil'),
+                $ticket->status !== 'closed' ? $this->closeAction($id) : null,
                 PageBuilder::action('back', 'All tickets', ActionTarget::link('/tickets'), ActionIntent::Secondary, 'arrow-left'),
-            ])
+            ])))
             // sidebar layout renders the `main` + `aside` regions (not `content`).
             ->region('main', function (RegionBuilder $region) use ($ticket, $section, $entries, $sla): void {
                 // status_strip: the ticket's place in the status lifecycle, one
@@ -472,6 +485,43 @@ final class TicketController extends AbstractController
      * SLA tab markdown — the policy reached the data-mapper way (SlaPolicyRepository),
      * rendered alongside the ticket's own due/resolved timestamps.
      */
+    /**
+     * POST /tickets/{id}/close — the "Close ticket" action. A browser gets the
+     * flash and a redirect back to the detail; a JSON client gets an ActionResult.
+     */
+    public function close(int $id): Response
+    {
+        Ticket::findOrFail($id);
+        $this->bus->dispatch(new TransitionTicketCommand($id, 'closed'));
+
+        if (in_array('application/json', $this->request->getAcceptableContentTypes(), true)) {
+            return new JsonResponse(new ActionResult(
+                success: true,
+                notifications: [new Notification(NotificationLevel::Success, 'Ticket closed.')],
+                redirect: '/tickets/' . $id,
+            ));
+        }
+
+        $this->flash('success', 'Ticket closed.');
+
+        return $this->redirect('/tickets/' . $id, Response::HTTP_SEE_OTHER);
+    }
+
+    /**
+     * Close is a request action (POST, no page of its own) behind a confirmation.
+     */
+    private function closeAction(int $id): Action
+    {
+        return new Action(
+            id: 'close',
+            label: 'Close ticket',
+            target: ActionTarget::request('/tickets/' . $id . '/close', HttpMethod::Post),
+            intent: ActionIntent::Danger,
+            icon: 'circle-check',
+            confirmation: new Confirmation('Close this ticket?', 'The ticket moves to closed. You can reopen it from the edit form.', 'Close ticket'),
+        );
+    }
+
     /**
      * One status_strip item per lifecycle state: states before the current one are
      * done, the current one is highlighted, later ones are pending.

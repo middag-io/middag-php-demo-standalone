@@ -16,7 +16,7 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | Library | `@api` | covered | host | gap |
 |---|---|---|---|---|
 | `middag-io/framework` | 223 | 199 | 14 | 10 |
-| `middag-io/ui` | 94 | 50 | 0 | 44 |
+| `middag-io/ui` | 94 | 68 | 0 | 26 |
 
 ## `middag-io/framework`
 
@@ -320,14 +320,14 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 
 ## `middag-io/ui`
 
-### Action — 5 `@api`: 3 covered, 0 host, 2 gap
+### Action — 5 `@api`: 5 covered, 0 host, 0 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
 | `Action\Action` | covered | Reached through PageBuilder::action(). | `TicketContractTest::showRendersStatusLifecycleAndTabbedDetailActivitySla` | — |
-| `Action\ActionResult` | gap | Not exercised by the demo. | — | — |
+| `Action\ActionResult` | covered | `src/Http/TicketController.php` | `UiSeamsTest::closeAnswersAJsonClientWithAnActionResult`<br>`WireSchemaTest::closeActionResultMatchesActionResult` | — |
 | `Action\ActionTarget` | covered | `src/Http/TicketController.php` | `HttpTest::showExistingIdSucceedsWhenAuthenticated`<br>`KernelContainerTest::serviceProviderAutoDiscoveredDemoServices` | — |
-| `Action\Confirmation` | gap | Not exercised by the demo. | — | — |
+| `Action\Confirmation` | covered | `src/Http/TicketController.php` | `UiSeamsTest::detailCarriesBreadcrumbsAndAConfirmedCloseAction` | — |
 | `Action\Contract\ActionInterface` | covered | Reached through Action. | `TicketContractTest::showRendersStatusLifecycleAndTabbedDetailActivitySla` | — |
 
 ### Block — 8 `@api`: 6 covered, 0 host, 2 gap
@@ -339,9 +339,9 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | `Block\ChartSeries` | covered | `src/Http/DashboardController.php` | `DashboardContractTest::dashboardRendersMetricsStatusStripChartAndOpenQueue` | — |
 | `Block\Contract\BlockDescriptorInterface` | covered | Reached through BlockDescriptor. | `UiContractTest::pageEndpointEmitsFullPageContract` | — |
 | `Block\Contract\LayoutDescriptorInterface` | covered | Reached through PageBuilder. | `UiContractTest::pageEndpointEmitsFullPageContract` | — |
-| `Block\Contract\LayoutElementInterface` | gap | Not exercised by the demo. | — | — |
+| `Block\Contract\LayoutElementInterface` | gap | Named only in the schema() return type of the forms; no layout element (Section, Group) is used, see Section. | — | — |
 | `Block\LayoutDescriptor` | covered | Reached through PageBuilder::build(). | `UiContractTest::pageEndpointEmitsFullPageContract` | — |
-| `Block\Section` | gap | Not exercised by the demo. | — | — |
+| `Block\Section` | gap | The ticket form is flat: the create wizard picks its fields by key, which a sectioned schema would nest. | — | — |
 
 ### Condition — 1 `@api`: 1 covered, 0 host, 0 gap
 
@@ -353,8 +353,8 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
-| `EditablePanel\Contract\EditablePanelDescriptorInterface` | gap | Not exercised by the demo. | — | — |
-| `EditablePanel\EditablePanelDescriptor` | gap | Not exercised by the demo. | — | — |
+| `EditablePanel\Contract\EditablePanelDescriptorInterface` | gap | No free shell mounts the editable panel; see EditablePanelDescriptor. | `WireSchemaTest::pollAndEditablePanelDescriptorsMatchTheSchema` | — |
+| `EditablePanel\EditablePanelDescriptor` | gap | No free shell mounts the editable panel (the renderer exports the provider and the inline panel only), and the demo does not mount them or serve a panel endpoint; the test proves the descriptor is valid. | `WireSchemaTest::pollAndEditablePanelDescriptorsMatchTheSchema` | — |
 
 ### Envelope — 1 `@api`: 1 covered, 0 host, 0 gap
 
@@ -362,14 +362,14 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 |---|---|---|---|---|
 | `Envelope\Contract\ContractEnvelopeInterface` | covered | `src/Shared/Concerns/RendersPages.php` | `UiContractTest::pageEndpointEmitsFullPageContract` | — |
 
-### Form — 22 `@api`: 12 covered, 0 host, 10 gap
+### Form — 22 `@api`: 14 covered, 0 host, 8 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
 | `Form\Contract\FieldInterface` | covered | Reached through AbstractField. | `FormTest::rendersToInertiaProps` | — |
 | `Form\Contract\FormInterface` | covered | Reached through AbstractForm. | `FormTest::rendersToInertiaProps` | — |
 | `Form\Contract\FormRendererInterface` | covered | Reached through InertiaRenderer. | `FormTest::rendersToInertiaProps` | — |
-| `Form\Contract\FormSchemaNodeInterface` | gap | Not exercised by the demo. | — | — |
+| `Form\Contract\FormSchemaNodeInterface` | covered | Reached through FormHeaderNode, which the login form_panel serializes. | `UiSeamsTest::loginFormStartsWithAHeaderNode` | — |
 | `Form\FieldConstraints` | covered | Reached through AbstractField::toDefinition(). | `FormTest::rendersToInertiaProps` | — |
 | `Form\FieldDefinition` | covered | Reached through AbstractField::toDefinition(). | `FormTest::rendersToInertiaProps` | — |
 | `Form\FieldError` | gap | The shapes disagree: the framework flashes each field error as a structured object (message, key, domain, params), while the ui schema types a field error as a string or a list of strings. | — | — |
@@ -380,13 +380,13 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | `Form\FormFieldDocumentMask` | gap | A national document mask has no place in the help-desk domain. | — | — |
 | `Form\FormFieldNode` | covered | The InertiaRenderer emits field nodes in this shape; every node is validated against the definition. | `WireSchemaTest::formPanelNodesMatchFormSchemaNode` | — |
 | `Form\FormFieldValidation` | covered | Schema-only: the validation props of the ticket form nodes are validated against it. | `WireSchemaTest::formPanelNodesMatchFormSchemaNode` | — |
-| `Form\FormGroupNode` | gap | Not exercised by the demo. | — | — |
-| `Form\FormHeaderNode` | gap | Not exercised by the demo. | — | — |
+| `Form\FormGroupNode` | gap | See Section: the ticket form is flat. | — | — |
+| `Form\FormHeaderNode` | covered | `src/Http/AuthController.php` | `UiSeamsTest::loginFormStartsWithAHeaderNode`<br>`WireSchemaTest::loginPageContractMatchesThePublishedSchema` | — |
 | `Form\FormSchemaNode` | covered | Schema-only: the InertiaRenderer emits the form nodes as arrays, validated against this definition. | `WireSchemaTest::formPanelNodesMatchFormSchemaNode` | — |
-| `Form\FormSectionNode` | gap | Not exercised by the demo. | — | — |
+| `Form\FormSectionNode` | gap | See Section: the ticket form is flat. | — | — |
 | `Form\FormState` | covered | Reached through AbstractForm. | `FormTest::rendersToInertiaProps` | — |
 | `Form\FormStep` | gap | The free FormPanelBlock does not read steps; the wizard drives its steps through layout.meta.steps and the WizardLayout. | — | — |
-| `Form\Group` | gap | Not exercised by the demo. | — | — |
+| `Form\Group` | gap | See Section: the ticket form is flat. | — | — |
 | `Form\OptionFieldProps` | covered | Schema-only: the select and entity picker nodes of the ticket form are validated against it. | `WireSchemaTest::formPanelNodesMatchFormSchemaNode` | — |
 
 ### Inspector — 2 `@api`: 0 covered, 0 host, 2 gap
@@ -396,32 +396,32 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | `Inspector\Contract\InspectorDescriptorInterface` | gap | The free renderer has the inspector context and drawer, but the provider that fetches the descriptor endpoint is PRO. | — | — |
 | `Inspector\InspectorDescriptor` | gap | The free renderer has the inspector context and drawer, but the provider that fetches the descriptor endpoint is PRO. | — | — |
 
-### Navigation — 6 `@api`: 0 covered, 0 host, 6 gap
+### Navigation — 6 `@api`: 6 covered, 0 host, 0 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
-| `Navigation\Breadcrumb` | gap | Not exercised by the demo. | — | — |
-| `Navigation\BreadcrumbListBuilder` | gap | Not exercised by the demo. | — | — |
-| `Navigation\Contract\BreadcrumbInterface` | gap | Not exercised by the demo. | — | — |
-| `Navigation\Contract\BreadcrumbListBuilderInterface` | gap | Not exercised by the demo. | — | — |
-| `Navigation\Contract\NavigationRegistryInterface` | gap | Not exercised by the demo. | — | — |
-| `Navigation\NavigationNode` | gap | Not exercised by the demo. | — | — |
+| `Navigation\Breadcrumb` | covered | Reached through BreadcrumbListBuilder, which PageBuilder::breadcrumbs() hands to the ticket detail. | `UiSeamsTest::detailCarriesBreadcrumbsAndAConfirmedCloseAction` | — |
+| `Navigation\BreadcrumbListBuilder` | covered | Reached through PageBuilder::breadcrumbs() on the ticket detail. | `UiSeamsTest::detailCarriesBreadcrumbsAndAConfirmedCloseAction` | — |
+| `Navigation\Contract\BreadcrumbInterface` | covered | Reached through Breadcrumb. | `UiSeamsTest::detailCarriesBreadcrumbsAndAConfirmedCloseAction` | — |
+| `Navigation\Contract\BreadcrumbListBuilderInterface` | covered | `src/Http/TicketController.php` | `UiSeamsTest::detailCarriesBreadcrumbsAndAConfirmedCloseAction` | — |
+| `Navigation\Contract\NavigationRegistryInterface` | covered | `src/Navigation/DemoNavigationRegistry.php` | `UiSeamsTest::navigationComesFromTheRegistry`<br>`UiSeamsTest::registryNestsGatesAndBadgesNodes` | — |
+| `Navigation\NavigationNode` | covered | `src/Navigation/DemoNavigationRegistry.php` | `UiSeamsTest::registryNestsGatesAndBadgesNodes` | — |
 
-### Page — 13 `@api`: 7 covered, 0 host, 6 gap
+### Page — 13 `@api`: 11 covered, 0 host, 2 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
-| `Page\AbstractPage` | gap | Not exercised by the demo. | — | — |
+| `Page\AbstractPage` | covered | `src/Page/HelpPage.php` | `UiSeamsTest::helpIsAPageClass`<br>`HelpContractTest::helpPageRendersImmersiveShellWithMarkdownEmptyStateAndActionGrid` | — |
 | `Page\Branding` | gap | No free shell reads the branding (the free auth shell leaves branding to the host). | — | — |
 | `Page\Contract\PageBuilderInterface` | covered | Reached through PageBuilder. | `UiContractTest::pageEndpointEmitsFullPageContract` | — |
 | `Page\Contract\PageContractInterface` | covered | Reached through PageContract. | `UiContractTest::pageEndpointEmitsFullPageContract` | — |
-| `Page\Contract\PageInterface` | gap | Not exercised by the demo. | — | — |
+| `Page\Contract\PageInterface` | covered | Reached through AbstractPage, which HelpPage extends. | `UiSeamsTest::helpIsAPageClass` | — |
 | `Page\Contract\PageMetaInterface` | covered | Reached through PageMeta. | `UiContractTest::pageEndpointEmitsFullPageContract` | — |
-| `Page\Contract\PageResourcesInterface` | gap | Not exercised by the demo. | — | — |
+| `Page\Contract\PageResourcesInterface` | covered | Reached through PageResources. | `UiSeamsTest::pagesCarryResourcesWithTheSessionIdentity` | — |
 | `Page\PageBuilder` | covered | `src/Http/TicketController.php` | `HttpTest::showExistingIdSucceedsWhenAuthenticated`<br>`KernelContainerTest::serviceProviderAutoDiscoveredDemoServices` | — |
 | `Page\PageContract` | covered | Reached through PageBuilder::build(). | `UiContractTest::pageEndpointEmitsFullPageContract` | — |
 | `Page\PageMeta` | covered | Reached through PageBuilder::build(). | `UiContractTest::pageEndpointEmitsFullPageContract` | — |
-| `Page\PageResources` | gap | Not exercised by the demo. | — | — |
+| `Page\PageResources` | covered | `src/Shared/Concerns/RendersPages.php` | `UiSeamsTest::pagesCarryResourcesWithTheSessionIdentity` | — |
 | `Page\ResourcePatch` | gap | No consumer in the free renderer. | — | — |
 | `Page\Tab` | covered | `src/Http/TicketController.php` | `HttpTest::showExistingIdSucceedsWhenAuthenticated`<br>`KernelContainerTest::serviceProviderAutoDiscoveredDemoServices` | — |
 
@@ -431,46 +431,46 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 |---|---|---|---|---|
 | `Region\Contract\RegionBuilderInterface` | covered | Reached through RegionBuilder. | `DashboardContractTest::dashboardRendersMetricsStatusStripChartAndOpenQueue` | — |
 | `Region\Fragment` | covered | `src/Http/UiController.php` | `UiContractTest::fragmentEndpointEmitsPartialTableFragment` | — |
-| `Region\PollConfig` | gap | Not exercised by the demo. | — | — |
+| `Region\PollConfig` | gap | RegionBuilder cannot attach a poll config to a block, so no page polls; the test proves the descriptor emits a valid poll. | `WireSchemaTest::pollAndEditablePanelDescriptorsMatchTheSchema` | — |
 | `Region\RegionBuilder` | covered | `src/Http/TicketController.php` | `HttpTest::showExistingIdSucceedsWhenAuthenticated`<br>`KernelContainerTest::serviceProviderAutoDiscoveredDemoServices` | — |
 | `Region\RegionUpdate` | gap | No consumer in the free renderer. | — | — |
 
-### Shared — 21 `@api`: 14 covered, 0 host, 7 gap
+### Shared — 21 `@api`: 17 covered, 0 host, 4 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
 | `Shared\Enum\ActionIntent` | covered | `src/Http/TicketController.php` | `HttpTest::showExistingIdSucceedsWhenAuthenticated`<br>`KernelContainerTest::serviceProviderAutoDiscoveredDemoServices` | — |
 | `Shared\Enum\ActionTargetKind` | covered | Reached through ActionTarget::link(). | `TicketContractTest::showRendersStatusLifecycleAndTabbedDetailActivitySla` | — |
 | `Shared\Enum\ChartType` | covered | `src/Http/DashboardController.php` | `DashboardContractTest::dashboardRendersMetricsStatusStripChartAndOpenQueue` | — |
-| `Shared\Enum\ColumnVariant` | gap | Not exercised by the demo. | — | — |
+| `Shared\Enum\ColumnVariant` | covered | `src/Http/AgentController.php` | `AgentContractTest::listShowsSupervisorColumnsWhenCapabilityHeld`<br>`CoverageManifestTest::everyCoveredCellSymbolIsEmittedByItsRoute` | — |
 | `Shared\Enum\ConditionOperator` | covered | `src/Form/TicketForm.php` | `FormTest::conditionalRequiredWhenPriorityHighOrUrgent` | — |
 | `Shared\Enum\FieldType` | covered | `src/Http/Dto/TicketDto.php` | `HttpTest::apiStoreDtoValidatesAndReturns201` | — |
-| `Shared\Enum\FilterType` | gap | Not exercised by the demo. | — | — |
+| `Shared\Enum\FilterType` | gap | See FilterDefinition. | — | — |
 | `Shared\Enum\FormComponent` | covered | The component of every emitted form node is validated against the enum in the schema. | `WireSchemaTest::formPanelNodesMatchFormSchemaNode` | — |
 | `Shared\Enum\FragmentKind` | covered | Reached through Fragment::table(). | `UiContractTest::fragmentEndpointEmitsPartialTableFragment` | — |
-| `Shared\Enum\HttpMethod` | gap | Not exercised by the demo. | — | — |
+| `Shared\Enum\HttpMethod` | covered | `src/Http/TicketController.php` | `UiSeamsTest::detailCarriesBreadcrumbsAndAConfirmedCloseAction` | — |
 | `Shared\Enum\NotificationLevel` | covered | `src/Http/UiController.php` | `UiContractTest::pageEndpointEmitsFullPageContract` | — |
 | `Shared\Enum\RegionUpdateMode` | gap | No consumer in the free renderer. | — | — |
 | `Shared\Enum\RenderTarget` | covered | `src/Http/TicketController.php` | `FormTest::rendersToInertiaProps` | — |
 | `Shared\Enum\ThemeMode` | gap | The free renderer does not apply a server-sent preference; the theme is client-side only. | — | — |
 | `Shared\Enum\ValueFormat` | covered | `src/Http/UiController.php` | `UiContractTest::pageEndpointEmitsFullPageContract` | — |
-| `Shared\ValueObject\Identity` | gap | Not exercised by the demo. | — | — |
+| `Shared\ValueObject\Identity` | covered | `src/Shared/Concerns/RendersPages.php` | `UiSeamsTest::pagesCarryResourcesWithTheSessionIdentity` | — |
 | `Shared\ValueObject\Label` | covered | Reached through Tab. | `UiContractTest::pageEndpointEmitsFullPageContract` | — |
 | `Shared\ValueObject\Notification` | covered | `src/Http/UiController.php` | `UiContractTest::pageEndpointEmitsFullPageContract` | — |
 | `Shared\ValueObject\RendererOutput` | covered | Reached through InertiaRenderer. | `FormTest::rendersToInertiaProps` | — |
 | `Shared\ValueObject\Translatable` | covered | Reached through AbstractField::toDefinition(). | `FormTest::rendersToInertiaProps` | — |
 | `Shared\ValueObject\UserPreferences` | gap | The free renderer does not apply a server-sent preference; the theme is client-side only. | — | — |
 
-### Table — 8 `@api`: 3 covered, 0 host, 5 gap
+### Table — 8 `@api`: 4 covered, 0 host, 4 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
 | `Table\Column` | covered | `src/Http/UiController.php` | `UiContractTest::fragmentEndpointEmitsPartialTableFragment` | — |
-| `Table\Contract\CrudBuilderInterface` | gap | Not exercised by the demo. | — | — |
-| `Table\CrudBuilder` | gap | Not exercised by the demo. | — | — |
-| `Table\FilterDefinition` | gap | Not exercised by the demo. | — | — |
-| `Table\Pagination` | gap | Not exercised by the demo. | — | — |
-| `Table\TableBuilder` | gap | Not exercised by the demo. | — | — |
+| `Table\Contract\CrudBuilderInterface` | gap | See CrudBuilder. | — | — |
+| `Table\CrudBuilder` | gap | The demo builds its list pages region by region; CrudBuilder generates a whole CRUD page from an entity class, which no demo page uses. | — | — |
+| `Table\FilterDefinition` | gap | The ticket queue searches, sorts and paginates in the browser (clientSide); there is no server-side filter. | — | — |
+| `Table\Pagination` | gap | The ticket queue paginates in the browser (clientSide); there is no server-side pagination. | — | — |
+| `Table\TableBuilder` | covered | `src/Http/AgentController.php` | `AgentContractTest::listRendersRosterAndGatesSupervisorColumnsByDefault` | — |
 | `Table\TableConfig` | covered | `src/Http/UiController.php` | `UiContractTest::fragmentEndpointEmitsPartialTableFragment` | — |
 | `Table\TableDisplayOptions` | covered | `src/Http/UiController.php` | `UiContractTest::fragmentEndpointEmitsPartialTableFragment` | — |
 

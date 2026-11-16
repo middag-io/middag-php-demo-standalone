@@ -15,6 +15,10 @@ namespace Middag\Demo\Standalone\Tests;
 use Middag\Demo\Standalone\Schema\HelpdeskSeeder;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Database\Contract\ConnectionAdapterInterface;
+use Middag\Ui\Block\BlockDescriptor;
+use Middag\Ui\EditablePanel\EditablePanelDescriptor;
+use Middag\Ui\Region\PollConfig;
+use Middag\Ui\Shared\Enum\HttpMethod;
 use Opis\JsonSchema\Errors\ErrorFormatter;
 use Opis\JsonSchema\Errors\ValidationError;
 use Opis\JsonSchema\Resolvers\SchemaResolver;
@@ -107,6 +111,27 @@ final class WireSchemaTest extends DemoTestCase
         self::assertContains('entity_picker', $components);
         self::assertNotEmpty(array_filter($nodes, static fn (array $node): bool => isset($node['props']['validation'])), 'FormFieldValidation is covered');
         self::assertNotEmpty(array_filter($nodes, static fn (array $node): bool => isset($node['props']['required_when']) || isset($node['props']['visible_when'])), 'FormCondition is covered');
+    }
+
+    #[Test]
+    public function closeActionResultMatchesActionResult(): void
+    {
+        $result = $this->json($this->handle('POST', '/tickets/1/close', [], ['HTTP_ACCEPT' => 'application/json']));
+
+        $this->assertValid($result, self::SCHEMA_ID . '#/$defs/ActionResult', 'close action result');
+    }
+
+    #[Test]
+    public function pollAndEditablePanelDescriptorsMatchTheSchema(): void
+    {
+        // Emission only: RegionBuilder cannot attach a poll config to a block,
+        // and no free shell mounts the editable panel.
+        $block = new BlockDescriptor('dense_table', 'queue', ['columns' => [], 'rows' => []], poll: new PollConfig('/tickets', 15000));
+        $this->assertValid($block->jsonSerialize(), self::SCHEMA_ID . '#/$defs/BlockDescriptor', 'polled block');
+        self::assertSame(15000, $block->jsonSerialize()['poll']['intervalMs'] ?? null);
+
+        $panel = new EditablePanelDescriptor('/tickets/1/panel', '/tickets/1', HttpMethod::Put);
+        $this->assertValid($panel->jsonSerialize(), self::SCHEMA_ID . '#/$defs/EditablePanelDescriptor', 'editable panel');
     }
 
     /**
