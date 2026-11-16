@@ -32,6 +32,8 @@ jobs:
       # check:coverage-md regenerates COVERAGE.md from the coverage manifest and
       # the installed libraries, and fails on any diff.
       composer-scripts: check:vendor, check:coverage-md
+      # Parse lint on the first PHP of the list (8.3), the minimum supported.
+      lint-script: check:lint
       tool-cache-paths: .cache
       audit-blocking-severities: critical, high
 
