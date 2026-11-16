@@ -92,9 +92,8 @@ Longer body when the "why" isn't obvious.
 - One scope per commit, lowercase — the `commit-msg` hook rejects comma-separated
   multi-scope subjects. Do **not** mark a breaking change with `!` or a `BREAKING CHANGE:`
   footer outside a family MAJOR window: the hook accepts both, but the version family
-  check refuses them. On `0.x` a break ships as `feat:` with the break and the migration
-  described in the commit body. See [Versioning](#versioning) for when a `feat` or a
-  breaking change can land.
+  check refuses them. On `0.x` a break ships as `feat:`. See [Versioning](#versioning)
+  for when a `feat` or a breaking change can land.
 - **Never** add `Co-Authored-By` trailers.
 - The branch base is **`main`**.
 
@@ -105,12 +104,10 @@ The demo belongs to the `middag-php-*` version family
 each release from the commit types on `main`.
 
 - **Now (`0.x`).** `feat:` and `fix:` cut a release as before. A breaking change ships
-  as `feat:` with the break and the migration described in the commit body; `!` or a
-  `BREAKING CHANGE:` footer fails the version family check unless a family MAJOR window
-  is open. The `1.x` framework
-  and ui may still break inside a MINOR until 2026-11-30. From 2026-12-01 no break
-  lands on `1.x` until the cut.
-- **The cut.** The family ships `2.0.0` before 2026-11-30, through a coordinated
+  as `feat:`; `!` or a `BREAKING CHANGE:` footer fails the version family check unless
+  a family MAJOR window is open.
+- The 1.x line is pre-stable and unsupported: it gets no backports or security fixes, and the move to 2.0.0 is a clean cut.
+- **The cut.** The family ships `2.0.0` through a coordinated
   `Release-As: 2.0.0` in every family repo. The demo jumps from `0.x` to `2.0.0`.
 - **From `2.0.0`.** release-please cuts PATCH releases only. A PATCH carries fixes
   only. A `feat` waits for a family MINOR window. A breaking change waits for a family

@@ -58,7 +58,7 @@ or the proprietary core: that boundary is the whole point of the harness.
   owner decides every family MINOR and MAJOR. The PR check
   `php-version-family-check / check` reads the window from the org variable
   `PHP_LIBS_OPEN_RELEASE`; `!`/`BREAKING CHANGE` fail now unless a MAJOR window is open, so
-  on `0.x` a break ships as `feat:` described in the commit body. A window counts as open only
+  on `0.x` a break ships as `feat:`. A window counts as open only
   when it is ahead of the demo's version; while one is open, merge the Release PR only at the
   coordinated `X.Y.0`.
   A waiting PR is kept current by merging `main` into it, never by rebase or force-push.

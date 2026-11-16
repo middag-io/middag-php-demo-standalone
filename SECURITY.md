@@ -16,9 +16,10 @@ The demo is a member of the `middag-php-*` version family
 | Latest `0.x` release, from `main` | Yes, until the family `2.0.0` cut |
 | Older `0.x` releases | No |
 
-From `2.0.0`, the latest family MINOR, released from `main`, is supported. When a
-later family MAJOR ships, the last MINOR of the previous MAJOR receives security
-fixes only, for 6 months. Today there are no release branches.
+From `2.0.0`, the latest family MINOR, released from `main`, is supported. Today there
+are no release branches.
+
+The 1.x line is pre-stable and unsupported: it gets no backports or security fixes, and the move to 2.0.0 is a clean cut.
 
 Security-relevant behaviour the demo exercises (session auth, the `#[Auth]` gate,
 CSRF, validated requests) is provided by `middag-io/framework`. A vulnerability in
