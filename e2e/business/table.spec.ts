@@ -6,9 +6,9 @@ import { test, expect } from '@playwright/test';
  * answers with one filtered, sorted page. The tag search uses seeded tags that
  * no other spec edits: billing is on three tickets.
  *
- * The pager of the free renderer sends only the page number, so a click on it
- * starts from the default queue; the search, sort and size are proved through
- * the URL the table reads.
+ * This spec drives the server through the URL the table reads. That each
+ * control keeps the rest of the query when clicked is proved in
+ * ticket-queue.spec.ts.
  */
 test('filters and pages the ticket queue on the server', async ({ page, isMobile }) => {
   await page.goto('/tickets?search=billing&sort=subject&direction=asc&per_page=2');
