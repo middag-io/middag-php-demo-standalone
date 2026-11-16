@@ -30,6 +30,7 @@ use Middag\Demo\Standalone\Http\CoverageController;
 use Middag\Demo\Standalone\Http\CustomerController;
 use Middag\Demo\Standalone\Http\DashboardController;
 use Middag\Demo\Standalone\Http\ErrorPageRenderer;
+use Middag\Demo\Standalone\Http\FaultController;
 use Middag\Demo\Standalone\Http\HelpController;
 use Middag\Demo\Standalone\Http\Middleware\ApiRequestIdMiddleware;
 use Middag\Demo\Standalone\Http\Middleware\MaintenanceMiddleware;
@@ -633,6 +634,12 @@ final readonly class DemoBootstrap implements BootstrapInterface
         $routes->add('agents.index', new Route('/agents', ['_controller' => AgentController::class . '::index'], [], [], '', [], ['GET']));
         $routes->add('agents.show', new Route('/agents/{id}', ['_controller' => AgentController::class . '::show'], [], ['id' => '\d+'], '', [], ['GET']));
         $routes->add('customers.index', new Route('/customers', ['_controller' => CustomerController::class . '::index'], [], [], '', [], ['GET']));
+
+        // Fault mode only: a route that throws, for the 500 error page. Without
+        // DEMO_FAULT_MODE the path does not exist and answers 404.
+        if (DemoEnv::flag('DEMO_FAULT_MODE')) {
+            $routes->add('fault.crash', new Route('/_test/crash', ['_controller' => FaultController::class . '::crash'], [], [], '', [], ['GET']));
+        }
 
         // Dual-ORM parity proof + help/about (immersive shell).
         $routes->add('parity.index', new Route('/parity', ['_controller' => ParityController::class . '::index'], [], [], '', [], ['GET']));

@@ -82,4 +82,13 @@ final class FaultModeTest extends DemoTestCase
         unlink($this->flag);
         self::assertSame(200, $this->handle('GET', '/help')->getStatusCode());
     }
+
+    #[Test]
+    public function crashRouteAnswersWithTheServerErrorPage(): void
+    {
+        $response = $this->handle('GET', '/_test/crash');
+
+        self::assertSame(500, $response->getStatusCode());
+        self::assertStringContainsString('data-testid="error-page-title"', (string) $response->getContent());
+    }
 }

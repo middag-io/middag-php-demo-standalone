@@ -147,7 +147,7 @@ Generated from `middag-io/framework` v1.20.2 and `middag-io/ui` v1.8.2, as insta
 | `Http\Contract\SessionInterface` | covered | `src/Http/TicketController.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`HttpTest::showExistingIdSucceedsWhenAuthenticated` | — |
 | `Http\Controller\AbstractApiController` | covered | `src/Http/TicketApiController.php` | `HttpTest::apiRejectsUnauthenticatedWith401` | — |
 | `Http\Controller\AbstractController` | covered | `src/Http/TicketController.php` | `HttpTest::showExistingIdSucceedsWhenAuthenticated`<br>`KernelContainerTest::serviceProviderAutoDiscoveredDemoServices` | — |
-| `Http\DefaultExceptionRenderer` | covered | `src/Http/ErrorPageRenderer.php` | `HttpSeamsTest::unknownRouteRendersTheNotFoundPage`<br>`HttpSeamsTest::serverErrorsAreReportedAndClientErrorsAreNot` | — |
+| `Http\DefaultExceptionRenderer` | covered | `src/Http/ErrorPageRenderer.php` | `HttpSeamsTest::unknownRouteRendersTheNotFoundPage`<br>`HttpSeamsTest::serverErrorsAreReportedAndClientErrorsAreNot`<br>`FaultModeTest::crashRouteAnswersWithTheServerErrorPage` | `errors/not-found.spec.ts › an unknown route renders the 404 error page`<br>`fault/server-error.spec.ts › a crash renders the 500 error page` |
 | `Http\FatalErrorHandler` | covered | `public/index.php` | `HttpSeamsTest::fatalErrorHandlerAnswersWithThe500Envelope` | — |
 | `Http\HttpClientFactory` | covered | `src/Webhook/TicketWebhookNotifier.php` | `SecurityTest::webhookIsSignedSentAndRetriedOnce` | — |
 | `Http\HttpKernelFactory` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `KernelContainerTest::containerResolvesFrameworkContractsToOssDefaults`<br>`HttpTest::indexFirstVisitRendersInertiaHtmlShell` | — |
@@ -230,8 +230,8 @@ Generated from `middag-io/framework` v1.20.2 and `middag-io/ui` v1.8.2, as insta
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
 | `Mail\Address` | covered | `src/Mail/TicketCreatedNotifier.php` | `MailFilesSchemaTest::newTicketMailCarriesTheSummaryAsAnAttachment` | — |
-| `Mail\Attachment` | covered | `src/Mail/TicketCreatedNotifier.php` | `MailFilesSchemaTest::newTicketMailCarriesTheSummaryAsAnAttachment` | — |
-| `Mail\Contract\MailerInterface` | covered | `src/Mail/CaptureMailer.php` | `MailFilesSchemaTest::newTicketMailCarriesTheSummaryAsAnAttachment` | — |
+| `Mail\Attachment` | covered | `src/Mail/TicketCreatedNotifier.php` | `MailFilesSchemaTest::newTicketMailCarriesTheSummaryAsAnAttachment` | `fault/mail-outbox.spec.ts › a new ticket sends the captured mail with its attachment` |
+| `Mail\Contract\MailerInterface` | covered | `src/Mail/CaptureMailer.php` | `MailFilesSchemaTest::newTicketMailCarriesTheSummaryAsAnAttachment` | `fault/mail-outbox.spec.ts › a new ticket sends the captured mail with its attachment` |
 | `Mail\Mail` | covered | `src/Mail/TicketCreatedNotifier.php` | `MailFilesSchemaTest::newTicketMailCarriesTheSummaryAsAnAttachment` | — |
 | `Mail\NullMailer` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `MailFilesSchemaTest::newTicketMailCarriesTheSummaryAsAnAttachment` | — |
 

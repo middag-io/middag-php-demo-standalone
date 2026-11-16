@@ -86,7 +86,7 @@ Read through one reader (`$_ENV`, then `$_SERVER`, then `getenv()`):
 | `LOG_LEVEL` | minimum log level; default `debug` |
 | `MAIL_CAPTURE` | `1` writes each mail as JSON under `var/mail/` instead of the null mailer |
 | `DEMO_WEBHOOK_URL`, `DEMO_WEBHOOK_SECRET` | a signed POST per created ticket, retried with backoff |
-| `DEMO_FAULT_MODE` | `1` boots a module that fails (isolated, shown on the dashboard), a maintenance gate driven by `var/maintenance.flag`, and mail capture. Used by the E2E fault server |
+| `DEMO_FAULT_MODE` | `1` boots a module that fails (isolated, shown on the dashboard), a maintenance gate driven by `var/maintenance.flag`, mail capture, and `GET /_test/crash`, which answers with the 500 error page. Used by the E2E fault server |
 
 ## Renderer extensions
 
