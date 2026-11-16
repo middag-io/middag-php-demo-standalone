@@ -52,9 +52,11 @@ jobs:
       dependency-versions: highest
       unset-platform-php: true
       test-script: test:highest
+      tool-cache-paths: .cache
       expect-majors: >-
         symfony/dotenv:8,
         symfony/console:8,
+        symfony/doctrine-messenger:8,
         symfony/event-dispatcher:8,
         symfony/filesystem:8,
         symfony/finder:8,
