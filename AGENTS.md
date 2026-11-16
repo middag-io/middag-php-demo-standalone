@@ -9,21 +9,22 @@
 
 The **standalone proof harness** for the MIDDAG OSS stack. A real, runnable
 **help-desk** application that boots `middag-io/framework` + `middag-io/ui` with **no
-host (Moodle/WordPress) and no proprietary `middag-io/core`**. Every OSS `@api` area is
-exercised here and pinned by a test, so the demo fails loudly the moment the framework
-or ui drifts. The full area → artifact → test matrix lives in
-[`COVERAGE.md`](COVERAGE.md).
+host (Moodle/WordPress) and no proprietary `middag-io/core`**. Each `@api` symbol of the
+framework and ui is mapped in [`COVERAGE.md`](COVERAGE.md): covered by a demo test or E2E
+spec, proved by the host adapters, or a gap with its reason. `ApiCoverageTest` fails the
+moment the installed framework or ui drifts from that map.
 
-This is a **demonstration, not a library**. It is `composer type: "project"`; it is not
-published to Packagist as a dependency.
+Example application: not a library, no public API, do not require it as a dependency.
+It is `composer type: "project"`; the supported libraries are documented in the hub
+(https://docs.middag.dev/libraries/).
 
 ## The one rule: behaviour belongs upstream
 
 The demo **uses** the OSS packages; it does not reimplement them. A bug in the kernel,
 bus, forms, validation, or contracts is a `middag-io/framework` / `middag-io/ui` issue —
-fix it there. If you hit an upstream gap, **note it** (see the README's upstream notes /
-`COVERAGE.md`) rather than working around it silently here. And never import a host API
-or the proprietary core: that boundary is the whole point of the harness.
+fix it there. If you hit an upstream gap, **record it** in the coverage map
+(`coverage/api.php`, rendered into `COVERAGE.md`) rather than working around it
+silently here. And never import a host API or the proprietary core: that boundary is the whole point of the harness.
 
 ## How it's wired
 
@@ -83,5 +84,4 @@ composer check          # style + rector + phpstan L6
 ## Refs
 
 - This repo's coverage matrix: [`COVERAGE.md`](COVERAGE.md).
-- Framework architecture + ui contracts: published at **docs.middag.dev** (and in the
-  `middag-io/framework` / `middag-io/ui` repos' `docs/`).
+- Framework architecture and ui contracts: https://docs.middag.dev/framework/.

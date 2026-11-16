@@ -4,23 +4,23 @@
 
 A runnable help-desk application that boots **`middag-io/framework`** and **`middag-io/ui`**
 with no Moodle or WordPress host and no proprietary code: a PSR-15 web app rendered by
-`@middag-io/react`, and a console worker, over SQLite. It exercises the `@api` surface of
-both libraries and proves each symbol with a test.
+`@middag-io/react`, and a console worker, over SQLite.
+
+Example application: not a library, no public API, do not require it as a dependency; see the [hub](https://docs.middag.dev/libraries/) for the supported libraries.
 
 What it shows and how to run it: [docs.middag.dev — Demo Application](https://docs.middag.dev/framework/reference/demo-standalone/).
 
-## Status
+## Help and status
 
-- **An application, not a library.** `composer type: project`; nothing here is meant to
-  be required by another package. The demo has no `@api` of its own: everything in
-  `src/` is internal.
-- **Coverage.** [`COVERAGE.md`](COVERAGE.md) lists every `@api` symbol of the installed
-  framework and ui, with the demo artifact, the tests and the E2E specs that prove it, or
-  the reason it is a host contract or a gap. It is generated (`composer coverage:md`);
-  CI regenerates it and fails on any difference, and `ApiCoverageTest` fails when the map
-  and the installed libraries drift apart.
-- **Help.** Questions and bugs: [issues](https://github.com/middag-io/middag-php-demo-standalone/issues).
-  Security reports: [`SECURITY.md`](SECURITY.md).
+- **Status of the example app.** It is maintained with the framework and ui: each
+  release builds against their current versions. [`COVERAGE.md`](COVERAGE.md) lists every
+  `@api` symbol of the installed framework and ui as covered by a demo test or E2E spec,
+  proved by the host adapters, or a gap with its reason. It is generated
+  (`composer coverage:md`); CI regenerates it and fails on any difference, and
+  `ApiCoverageTest` fails when the map and the installed libraries drift apart.
+- **Questions and bugs:** https://github.com/middag-io/middag-php-demo-standalone/issues
+- **Security reports:** [`SECURITY.md`](SECURITY.md)
+- **Changes:** [`CHANGELOG.md`](CHANGELOG.md)
 
 ## Supported versions
 
@@ -28,10 +28,10 @@ What it shows and how to run it: [docs.middag.dev — Demo Application](https://
 |---|---|
 | PHP | `^8.3`: 8.3, 8.4 and 8.5, with `pdo` and `pdo_sqlite`. `config.platform.php` is `8.3.0`, so `composer.lock` resolves at the floor |
 | Symfony | `^7.4 \|\| ^8.1` for every Symfony component the demo requires. The lock resolves 7.4; a CI job without the platform pin proves 8.x |
-| `middag-io/framework` | `^1.19` |
-| `middag-io/ui` | `^1.7` |
-| `@middag-io/react` (renderer, `ui/`) | `^0.44.1` |
-| Host | none |
+| `middag-io/framework` | `^1.20` |
+| `middag-io/ui` | `^1.8` |
+| `@middag-io/react` (renderer, `ui/`) | `^0.45.0` |
+| Host | none: no Moodle or WordPress. The adapters `middag-io/moodle` and `middag-io/wordpress` are not part of the demo |
 | Database | SQLite, in a file or in memory |
 | Docker image | PHP 8.4 (see [`DOCKER.md`](DOCKER.md)) |
 
