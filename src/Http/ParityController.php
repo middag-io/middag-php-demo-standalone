@@ -12,8 +12,8 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Http;
 
-use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
-use Middag\Demo\Standalone\Http\Concern\RendersPages;
+use Middag\Demo\Standalone\Domain\Ticket;
+use Middag\Demo\Standalone\Shared\Concerns\RendersPages;
 use Middag\Framework\Database\Contract\ConnectionAdapterInterface;
 use Middag\Framework\Http\Attribute\Auth;
 use Middag\Framework\Http\Controller\AbstractController;

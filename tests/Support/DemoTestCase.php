@@ -12,8 +12,8 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Tests\Support;
 
-use Middag\Demo\Standalone\Bootstrap\DemoKernel;
-use Middag\Demo\Standalone\Domain\Eloquent\User;
+use Middag\Demo\Standalone\Domain\User;
+use Middag\Demo\Standalone\Kernel\Bootstrap\DemoKernel;
 use Middag\Framework\Database\Contract\SchemaBuilderAdapterInterface;
 use Middag\Framework\Database\Schema\SchemaBuilder;
 use Middag\Framework\Http\Contract\AuthenticatorInterface;

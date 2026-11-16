@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @license     Apache-2.0
  */
 
-namespace Middag\Demo\Standalone\Http\Concern;
+namespace Middag\Demo\Standalone\Shared\Concerns;
 
 /**
  * Builds an `id => display-label` map from a list of data-mapper entities.

@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Http;
 
-use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
+use Middag\Demo\Standalone\Domain\Ticket;
 use Middag\Framework\Http\Controller\AbstractController;
 use Middag\Framework\Kernel\Facade\HookFacade;
 use Middag\Ui\Page\PageBuilder;

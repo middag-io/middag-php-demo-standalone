@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @license     Apache-2.0
  */
 
-namespace Middag\Demo\Standalone\Bootstrap;
+namespace Middag\Demo\Standalone\Kernel\Bootstrap;
 
 use Middag\Framework\Kernel\Contract\HostComponentContextInterface;
 
@@ -40,8 +40,8 @@ final readonly class DemoComponentContext implements HostComponentContextInterfa
 
     public function basePath(): string
     {
-        // src/Bootstrap/ -> repository root: the demo's bundled-resource base.
+        // src/Kernel/Bootstrap/ -> repository root: the demo's bundled-resource base.
         // Narrowed from the interface's ?string: the demo always has a base path.
-        return \dirname(__DIR__, 2);
+        return \dirname(__DIR__, 3);
     }
 }

@@ -27,7 +27,7 @@ or the proprietary core: that boundary is the whole point of the harness.
 
 ## How it's wired
 
-- **Composition root:** `src/Bootstrap/` — `DemoBootstrap` builds the container/routes,
+- **Composition root:** `src/Kernel/Bootstrap/` — `DemoBootstrap` builds the container/routes,
   `DemoServiceProvider` drives suffix auto-discovery, `DemoKernel::boot()` is the entry
   point used by `public/index.php`, `bin/console`, and the tests.
 - **Two validation styles, kept side by side** (this is intentional, do not collapse):
@@ -35,7 +35,7 @@ or the proprietary core: that boundary is the whole point of the harness.
   `POST /api/tickets`) **and** the typed-DTO `#[ValidatedDto]` path
   (`src/Http/Dto/TicketDto.php`, `POST /api/tickets/dto`). They demonstrate the framework's
   two equivalent request-validation approaches.
-- **Two persistence paradigms on one SQLite engine:** Active Record (`src/Domain/Eloquent/`)
+- **Two persistence paradigms on one SQLite engine:** Active Record (the models at the root of `src/Domain/`)
   and Data Mapper (`src/Domain/Doctrine/`); `/parity` shows them together.
 - **Tests** (`tests/`) boot the **real** `DemoKernel` against in-memory SQLite — no mocks.
   `DemoTestCase` installs the schema, seeds the demo user, and authenticates by default.

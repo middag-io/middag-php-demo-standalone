@@ -14,8 +14,8 @@ if (PHP_SAPI === 'cli-server') {
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use Middag\Demo\Standalone\Bootstrap\DemoKernel;
-use Middag\Demo\Standalone\Framework\DebugCollector;
+use Middag\Demo\Standalone\Kernel\Bootstrap\DemoKernel;
+use Middag\Demo\Standalone\Observability\DebugCollector;
 use Middag\Framework\Http\Middleware\MiddlewareDispatcher;
 use Middag\Framework\Http\StandaloneKernel;
 use Symfony\Component\HttpFoundation\Request;

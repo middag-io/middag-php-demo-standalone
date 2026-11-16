@@ -12,14 +12,14 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Schema;
 
+use Middag\Demo\Standalone\Domain\Comment;
 use Middag\Demo\Standalone\Domain\Doctrine\Agent;
 use Middag\Demo\Standalone\Domain\Doctrine\AgentRepository;
 use Middag\Demo\Standalone\Domain\Doctrine\Customer;
 use Middag\Demo\Standalone\Domain\Doctrine\CustomerRepository;
 use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicy;
 use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicyRepository;
-use Middag\Demo\Standalone\Domain\Eloquent\Comment;
-use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
+use Middag\Demo\Standalone\Domain\Ticket;
 use Middag\Framework\Database\Contract\ConnectionAdapterInterface;
 
 /**

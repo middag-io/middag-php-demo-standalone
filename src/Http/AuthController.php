@@ -12,9 +12,9 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Http;
 
-use Middag\Demo\Standalone\Domain\Eloquent\User;
+use Middag\Demo\Standalone\Domain\User;
 use Middag\Demo\Standalone\Form\LoginForm;
-use Middag\Demo\Standalone\Http\Concern\RendersPages;
+use Middag\Demo\Standalone\Shared\Concerns\RendersPages;
 use Middag\Framework\Form\Renderer\RendererRegistry;
 use Middag\Framework\Http\Contract\AuthenticatorInterface;
 use Middag\Framework\Http\Controller\AbstractController;

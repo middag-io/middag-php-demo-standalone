@@ -6,7 +6,7 @@ declare(strict_types=1);
  * Schema descriptor for the Active-Record `demo_comments` table (help-desk demo).
  *
  * A comment on a ticket — the append-heavy feed rendered as activity_timeline.
- * Reached via {@see \Middag\Demo\Standalone\Domain\Eloquent\Comment}.
+ * Reached via {@see \Middag\Demo\Standalone\Domain\Comment}.
  */
 return [
     'name' => 'demo_comments',

@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Console;
 
-use Middag\Demo\Standalone\Domain\Eloquent\User;
+use Middag\Demo\Standalone\Domain\User;
 use Middag\Demo\Standalone\Schema\DemoMigrationRunner;
 use Middag\Demo\Standalone\Schema\HelpdeskSeeder;
 use Middag\Framework\Database\Contract\ConnectionAdapterInterface;

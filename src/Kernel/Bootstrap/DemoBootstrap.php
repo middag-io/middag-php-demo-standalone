@@ -10,16 +10,15 @@ declare(strict_types=1);
  * @license     Apache-2.0
  */
 
-namespace Middag\Demo\Standalone\Bootstrap;
+namespace Middag\Demo\Standalone\Kernel\Bootstrap;
 
 use Closure;
 use Middag\Demo\Standalone\Command\EscalateSlaCommand;
-use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
+use Middag\Demo\Standalone\Domain\Ticket;
 use Middag\Demo\Standalone\Form\AgentEntitySource;
 use Middag\Demo\Standalone\Form\CustomerEntitySource;
 use Middag\Demo\Standalone\Form\LoginForm;
 use Middag\Demo\Standalone\Form\TicketForm;
-use Middag\Demo\Standalone\Framework\DebugCollector;
 use Middag\Demo\Standalone\Hook\TicketHooks;
 use Middag\Demo\Standalone\Http\AgentController;
 use Middag\Demo\Standalone\Http\AuthController;
@@ -32,6 +31,7 @@ use Middag\Demo\Standalone\Http\TicketApiController;
 use Middag\Demo\Standalone\Http\TicketController;
 use Middag\Demo\Standalone\Http\UiController;
 use Middag\Demo\Standalone\Logging\CleanLogsHandler;
+use Middag\Demo\Standalone\Observability\DebugCollector;
 use Middag\Framework\Bus\Command\CommandWorker;
 use Middag\Framework\Bus\Contract\MessageBusInterface;
 use Middag\Framework\Bus\Contract\UserContextResolverInterface;

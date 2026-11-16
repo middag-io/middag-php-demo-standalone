@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Http;
 
-use Middag\Demo\Standalone\Http\Concern\RendersPages;
+use Middag\Demo\Standalone\Shared\Concerns\RendersPages;
 use Middag\Framework\Http\Attribute\Auth;
 use Middag\Framework\Http\Controller\AbstractController;
 use Middag\Ui\Page\PageBuilder;

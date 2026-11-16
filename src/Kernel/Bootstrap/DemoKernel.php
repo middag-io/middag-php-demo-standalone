@@ -10,9 +10,9 @@ declare(strict_types=1);
  * @license     Apache-2.0
  */
 
-namespace Middag\Demo\Standalone\Bootstrap;
+namespace Middag\Demo\Standalone\Kernel\Bootstrap;
 
-use Middag\Demo\Standalone\Module\DemoModule;
+use Middag\Demo\Standalone\Kernel\Module\DemoModule;
 use Middag\Framework\Kernel\ContainerFactory;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Dotenv\Dotenv;

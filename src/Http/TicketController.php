@@ -14,15 +14,15 @@ namespace Middag\Demo\Standalone\Http;
 
 use Middag\Demo\Standalone\Command\CreateTicketCommand;
 use Middag\Demo\Standalone\Command\UpdateTicketCommand;
+use Middag\Demo\Standalone\Domain\Comment;
 use Middag\Demo\Standalone\Domain\Doctrine\AgentRepository;
 use Middag\Demo\Standalone\Domain\Doctrine\CustomerRepository;
 use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicy;
 use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicyRepository;
-use Middag\Demo\Standalone\Domain\Eloquent\Comment;
-use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
+use Middag\Demo\Standalone\Domain\Ticket;
 use Middag\Demo\Standalone\Form\TicketForm;
-use Middag\Demo\Standalone\Http\Concern\RendersPages;
 use Middag\Demo\Standalone\Http\Request\CreateTicketRequest;
+use Middag\Demo\Standalone\Shared\Concerns\RendersPages;
 use Middag\Framework\Bus\Contract\MessageBusInterface;
 use Middag\Framework\Form\Renderer\RendererRegistry;
 use Middag\Framework\Http\Attribute\Auth;

@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Command;
 
-use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
+use Middag\Demo\Standalone\Domain\Ticket;
 use Middag\Framework\Kernel\Facade\HookFacade;
 use Psr\Log\LoggerInterface;
 

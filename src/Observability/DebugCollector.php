@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @license     Apache-2.0
  */
 
-namespace Middag\Demo\Standalone\Framework;
+namespace Middag\Demo\Standalone\Observability;
 
 use Middag\Framework\Observability\Contract\ProfileCollectorInterface;
 use Middag\Ui\Envelope\Contract\ContractEnvelopeInterface;

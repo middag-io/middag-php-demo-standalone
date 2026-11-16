@@ -28,7 +28,7 @@ use Symfony\Component\Messenger\Stamp\HandledStamp;
  * Turns the coverage manifest from a claim into a CI-enforced fact: every covered
  * block/cell symbol must actually be emitted by its proof route, no PRO symbol may
  * leak, and no catalogued-gap symbol may be silently shipped. The /coverage page
- * and this test read the same src/Coverage/manifest.php, so they cannot drift.
+ * and this test read the same coverage/manifest.php, so they cannot drift.
  *
  * @internal
  */

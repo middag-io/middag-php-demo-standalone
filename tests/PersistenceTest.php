@@ -14,7 +14,7 @@ namespace Middag\Demo\Standalone\Tests;
 
 use Middag\Demo\Standalone\Domain\Doctrine\Customer;
 use Middag\Demo\Standalone\Domain\Doctrine\CustomerRepository;
-use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
+use Middag\Demo\Standalone\Domain\Ticket;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Database\Contract\ConnectionAdapterInterface;
 use Middag\Framework\Persistence\Query\Page;

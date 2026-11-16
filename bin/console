@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use Middag\Demo\Standalone\Bootstrap\DemoKernel;
+use Middag\Demo\Standalone\Kernel\Bootstrap\DemoKernel;
 use Middag\Demo\Standalone\Console\DebugRequestCommand;
 use Middag\Demo\Standalone\Console\InstallCommand;
 use Middag\Demo\Standalone\Console\LogsCleanCommand;

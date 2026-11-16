@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Tests;
 
-use Middag\Demo\Standalone\Module\DemoModule;
+use Middag\Demo\Standalone\Kernel\Module\DemoModule;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Kernel\Contract\HookManagerInterface;
 use Middag\Framework\Kernel\Manager\HookManager;

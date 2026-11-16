@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @license     Apache-2.0
  */
 
-namespace Middag\Demo\Standalone\Domain\Eloquent;
+namespace Middag\Demo\Standalone\Domain;
 
 use Middag\Framework\Persistence\Model;
 

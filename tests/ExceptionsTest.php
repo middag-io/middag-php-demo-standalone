@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Tests;
 
-use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
+use Middag\Demo\Standalone\Domain\Ticket;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Database\Contract\ConnectionInterface;
 use Middag\Framework\Exception\MiddagAuthenticationException;

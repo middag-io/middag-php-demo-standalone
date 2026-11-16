@@ -10,9 +10,9 @@ declare(strict_types=1);
  * @license     Apache-2.0
  */
 
-namespace Middag\Demo\Standalone\Http\Concern;
+namespace Middag\Demo\Standalone\Shared\Concerns;
 
-use Middag\Demo\Standalone\Framework\DebugCollector;
+use Middag\Demo\Standalone\Observability\DebugCollector;
 use Middag\Framework\Http\Inertia\InertiaFactory;
 use Middag\Ui\Envelope\Contract\ContractEnvelopeInterface;
 use Symfony\Component\HttpFoundation\Response;

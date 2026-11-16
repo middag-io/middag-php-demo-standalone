@@ -14,9 +14,9 @@ namespace Middag\Demo\Standalone\Http;
 
 use Middag\Demo\Standalone\Domain\Doctrine\AgentRepository;
 use Middag\Demo\Standalone\Domain\Doctrine\CustomerRepository;
-use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
-use Middag\Demo\Standalone\Http\Concern\MapsEntityLabels;
-use Middag\Demo\Standalone\Http\Concern\RendersPages;
+use Middag\Demo\Standalone\Domain\Ticket;
+use Middag\Demo\Standalone\Shared\Concerns\MapsEntityLabels;
+use Middag\Demo\Standalone\Shared\Concerns\RendersPages;
 use Middag\Framework\Http\Attribute\Auth;
 use Middag\Framework\Http\Controller\AbstractController;
 use Middag\Ui\Block\ChartSeries;

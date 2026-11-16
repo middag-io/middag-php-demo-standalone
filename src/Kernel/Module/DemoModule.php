@@ -10,9 +10,9 @@ declare(strict_types=1);
  * @license     Apache-2.0
  */
 
-namespace Middag\Demo\Standalone\Module;
+namespace Middag\Demo\Standalone\Kernel\Module;
 
-use Middag\Demo\Standalone\Bootstrap\DemoServiceProvider;
+use Middag\Demo\Standalone\Kernel\Bootstrap\DemoServiceProvider;
 use Middag\Framework\Kernel\Facade\HookFacade;
 use Middag\Framework\Kernel\Module\AbstractModule;
 
