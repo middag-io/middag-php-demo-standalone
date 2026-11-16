@@ -90,18 +90,26 @@ final class AgentController extends AbstractController implements CapabilityRequ
     {
         $agents = $this->agents->latest();
         $canSupervise = $this->canSupervise();
-        $openByAgent = $this->openCountByAgent();
         $roster = AgentRosterQuery::fromQuery($this->request?->query->all() ?? []);
 
+        // Supervisor-only fields are built only for a supervisor: hiding the
+        // columns is not enough, the rows themselves must not carry them.
+        $openByAgent = $canSupervise ? $this->openCountByAgent() : [];
         $rows = array_map(
-            static function (Agent $a) use ($openByAgent): array {
+            static function (Agent $a) use ($canSupervise, $openByAgent): array {
                 $d = $a->toArray();
-
-                return [
+                $row = [
                     'id' => (int) $d['id'],
                     'name' => (string) $d['name'],
                     'role' => (string) $d['role'],
                     'active' => (bool) $d['active'],
+                ];
+                if (!$canSupervise) {
+                    return $row;
+                }
+
+                return [
+                    ...$row,
                     // server-CONTROLLED HTML for the `html` cell (role escaped).
                     'availability' => self::availabilityHtml((bool) $d['active'], (string) $d['role']),
                     'workload' => $openByAgent[(int) $d['id']] ?? 0,

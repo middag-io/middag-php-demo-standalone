@@ -53,6 +53,10 @@ final class AgentContractTest extends DemoTestCase
         self::assertSame('/agents/{id}', $table['data']['rowHref'] ?? null);
         self::assertSame(['name', 'role', 'active'], array_column($table['data']['columns'], 'key'), 'availability and workload are supervisor-gated');
         self::assertArrayNotHasKey('rowActions', $table['data']);
+        self::assertNotSame([], $table['data']['rows']);
+        foreach ($table['data']['rows'] as $row) {
+            self::assertSame(['id', 'name', 'role', 'active'], array_keys($row), 'rows carry no supervisor-only field');
+        }
 
         self::assertNotNull($this->blockByKey($contract['layout']['regions']['metrics'] ?? [], 'agent_count'), 'metrics metric_card');
     }

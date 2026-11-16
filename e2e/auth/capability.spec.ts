@@ -12,6 +12,16 @@ import { csrfToken } from '../helpers/csrf';
  */
 const DENIED_NAME = 'Denied rename';
 
+/** The roster rows of /agents as the server sent them (the page's initial JSON). */
+async function rosterRows(page: Page): Promise<Record<string, unknown>[]> {
+  await page.goto('/agents');
+  const json = await page.locator('script[data-page="middag-app"]').textContent();
+  const content = JSON.parse(json ?? '{}').props?.contract?.layout?.regions?.content ?? [];
+  const table = content.find((block: { key?: string }) => block.key === 'agents.table');
+
+  return table?.data?.rows ?? [];
+}
+
 async function expectNoSupervisorSurface(page: Page): Promise<void> {
   await page.goto('/agents');
   // The roster itself is open to every agent.
@@ -19,6 +29,13 @@ async function expectNoSupervisorSurface(page: Page): Promise<void> {
   await expect(page.getByRole('button', { name: 'Edit' })).toHaveCount(0);
   await expect(page.getByText('Open load', { exact: true })).toHaveCount(0);
   await expect(page.getByText('Availability', { exact: true })).toHaveCount(0);
+
+  // The rows themselves carry no supervisor-only field, not only the columns.
+  const rows = await rosterRows(page);
+  expect(rows.length).toBeGreaterThan(0);
+  for (const row of rows) {
+    expect(Object.keys(row).sort()).toEqual(['active', 'id', 'name', 'role']);
+  }
 
   // The agent detail is open too, without the supervisor contact and activity table.
   await page.goto('/agents/1');
@@ -58,6 +75,11 @@ test.describe('supervisor capability', () => {
     const read = await page.request.get('/agents/1/panel', { headers: { Accept: 'application/json' } });
     expect(read.status()).toBe(200);
     expect((await read.json()).submitLabel).toBe('Save agent');
+
+    const rows = await rosterRows(page);
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows[0]).toHaveProperty('availability');
+    expect(rows[0]).toHaveProperty('workload');
   });
 });
 
