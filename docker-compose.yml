@@ -9,8 +9,6 @@ services:
   app:
     build:
       context: .
-      secrets:
-        - github_token     # @middag-io/react comes from GitHub Packages
     image: middag-demo-standalone:dev
     command: serve
     ports:
@@ -28,8 +26,6 @@ services:
   worker:
     build:
       context: .
-      secrets:
-        - github_token     # @middag-io/react comes from GitHub Packages
     image: middag-demo-standalone:dev
     command: worker
     environment:
@@ -54,8 +50,6 @@ services:
   # `up` (only `docker compose --profile ui up`). Runs `npm run dev` (Vite, port
   # 5176 per ui/vite.config.ts). node_modules is reinstalled inside the container
   # because the host install is macOS-native (esbuild/rollup binaries differ).
-  # @middag-io/* come from GitHub Packages, so the host ~/.npmrc (auth) is mounted
-  # read-only just for `npm install` — never baked into any image.
   ui:
     image: node:22-bookworm-slim
     profiles: ["ui"]
@@ -66,11 +60,4 @@ services:
     volumes:
       - .:/app
       - /app/ui/node_modules
-      - ${NPMRC_FILE:-${HOME}/.npmrc}:/root/.npmrc:ro
 
-# BuildKit secret for the image's ui stage (npm ci of @middag-io/react from
-# GitHub Packages). Export GITHUB_TOKEN (a token with read:packages) before
-# `docker compose up --build`; the token is never baked into a layer.
-secrets:
-  github_token:
-    environment: GITHUB_TOKEN

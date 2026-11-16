@@ -9,7 +9,6 @@ styled app. A profile-gated Node service runs the Vite dev server for frontend w
 ## TL;DR
 
 ```bash
-export GITHUB_TOKEN=...           # read:packages, for @middag-io/react (build only)
 docker compose up --build         # web (8080) + worker
 open http://localhost:8080        # demo login (seeded in demo_users)
 ```
@@ -21,9 +20,7 @@ install (guarded on the `var/demo.sqlite` file).
 ## Dockerfile only (no compose)
 
 ```bash
-# @middag-io/react is installed from GitHub Packages: pass a token with
-# read:packages as a BuildKit secret (it is never stored in a layer).
-docker build --secret id=github_token,env=GITHUB_TOKEN -t middag-demo-standalone:dev .
+docker build -t middag-demo-standalone:dev .
 docker run --rm -p 8080:8080 middag-demo-standalone:dev          # serve
 docker run --rm middag-demo-standalone:dev worker                # worker
 docker run --rm middag-demo-standalone:dev composer test         # phpunit
@@ -57,12 +54,10 @@ docker compose --profile ui up         # + Vite dev server (HMR) for ui/
 
 ## Notes
 
-- **Credentials.** The PHP side needs none: `middag-io/framework` and
-  `middag-io/ui` are on Packagist (Apache-2.0) and composer resolves them from the
-  committed `composer.lock`. The `ui` stage installs `@middag-io/react` from GitHub
-  Packages, so `docker build` needs the `github_token` BuildKit secret (a token with
-  `read:packages`); the token is read only inside that `RUN` and never baked into a
-  layer.
+- **Credentials.** None. `middag-io/framework` and `middag-io/ui` are on
+  Packagist (Apache-2.0) and composer resolves them from the committed
+  `composer.lock`; the `ui` stage installs `@middag-io/react` from the public npm
+  registry.
 - **dev = bind mount.** `.:/app` in compose: editing code reflects immediately.
   `vendor` and `ui/node_modules` are anonymous volumes (so they don't shadow what
   the image installed).

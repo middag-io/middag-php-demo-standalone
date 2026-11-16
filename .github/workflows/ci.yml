@@ -76,22 +76,17 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: read # @middag-io/react is published to GitHub Packages
     steps:
       - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v7
         with:
           node-version: '22'
-          registry-url: https://npm.pkg.github.com
-          scope: '@middag-io'
           cache: npm
           cache-dependency-path: ui/package-lock.json
 
       - name: Install the UI dependencies (from the lockfile)
         working-directory: ui
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm ci
 
       - name: Type check
@@ -103,8 +98,7 @@ jobs:
         run: npm run lint
 
   # Specific to this repository, so it stays inline. Build the release image
-  # WITHOUT pushing, so the Dockerfile (incl. the UI build stage + GitHub
-  # Packages auth) is exercised on every PR — not only at release time.
+  # WITHOUT pushing, so the Dockerfile (incl. the UI build stage) is exercised on every PR — not only at release time.
   # Single native arch for speed; the release job does the multi-arch push.
   # Catches a broken Dockerfile before a release is cut.
   docker-build:
@@ -112,7 +106,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: read # UI stage pulls @middag-io/react from GitHub Packages
     steps:
       - uses: actions/checkout@v7
 
@@ -124,8 +117,6 @@ jobs:
           push: false
           load: true
           tags: middag-demo-standalone:ci
-          secrets: |
-            github_token=${{ secrets.GITHUB_TOKEN }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

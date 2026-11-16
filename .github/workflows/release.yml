@@ -57,7 +57,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: read # the UI build stage pulls @middag-io/react from GitHub Packages
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -93,9 +92,5 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # GITHUB_TOKEN (packages:read) auths the UI stage's npm ci against
-          # GitHub Packages for @middag-io/react. Same token the e2e workflow uses.
-          secrets: |
-            github_token=${{ secrets.GITHUB_TOKEN }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

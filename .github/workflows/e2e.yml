@@ -8,7 +8,6 @@ on:
 
 permissions:
   contents: read
-  packages: read # @middag-io/react is published to GitHub Packages
 
 concurrency:
   group: e2e-${{ github.event.pull_request.number || github.ref }}
@@ -46,16 +45,9 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: '22'
-          registry-url: https://npm.pkg.github.com
-          scope: '@middag-io'
 
       - name: Build the React bundle into public/build
         working-directory: ui
-        env:
-          # @middag-io/react lives on GitHub Packages; GITHUB_TOKEN + packages:read
-          # authenticates for org-accessible packages. If this 401s, supply a PAT
-          # secret with read:packages instead.
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           npm ci
           npm run build:host
@@ -88,7 +80,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: read
       issues: write
     steps:
       - uses: actions/checkout@v7
@@ -109,13 +100,9 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: '22'
-          registry-url: https://npm.pkg.github.com
-          scope: '@middag-io'
 
       - name: Build the React bundle on the latest renderer
         working-directory: ui
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           npm ci
           npm install --no-save @middag-io/react@latest
