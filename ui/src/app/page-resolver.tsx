@@ -1,7 +1,7 @@
-import type {PageContract} from "@middag-io/react";
-import {ContractPage} from "@middag-io/react";
-import {usePage} from "@inertiajs/react";
-import type {ComponentType} from "react";
+import type { EditablePanelConfig, PageContract } from "@middag-io/react";
+import { ContractPage, EditablePanelProvider, InlineEditablePanel } from "@middag-io/react";
+import { usePage } from "@inertiajs/react";
+import type { ComponentType } from "react";
 
 // Direct pages — eager loaded (custom React pages in pages/)
 const directPages = import.meta.glob("../pages/**/*.tsx", { eager: true }) as Record<
@@ -12,11 +12,25 @@ const directPages = import.meta.glob("../pages/**/*.tsx", { eager: true }) as Re
 /**
  * Fallback component — reads PageContract from Inertia props and renders
  * it via the lib's ContractPage. Used when no direct page matches.
+ *
+ * No free shell mounts the editable side panel, so the demo does: when the page
+ * ships an `editablePanel` config, the free provider wraps the page (a dense
+ * table's `panel` row action opens it) and InlineEditablePanel draws the drawer.
  */
 // eslint-disable-next-line react-refresh/only-export-components
 function InertiaContractPage() {
-  const { props } = usePage<{ contract: PageContract }>();
-  return <ContractPage contract={props.contract} />;
+  const { props } = usePage<{ contract: PageContract; editablePanel?: EditablePanelConfig }>();
+  const page = <ContractPage contract={props.contract} />;
+  if (!props.editablePanel) {
+    return page;
+  }
+
+  return (
+    <EditablePanelProvider config={props.editablePanel}>
+      {page}
+      <InlineEditablePanel />
+    </EditablePanelProvider>
+  );
 }
 
 const contractPageModule: { default: ComponentType } = { default: InertiaContractPage };

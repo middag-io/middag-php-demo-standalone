@@ -20,6 +20,7 @@ use Middag\Demo\Standalone\Domain\Comment;
 use Middag\Demo\Standalone\Domain\Tag;
 use Middag\Demo\Standalone\Domain\Ticket;
 use Middag\Demo\Standalone\Form\AgentEntitySource;
+use Middag\Demo\Standalone\Form\AgentPanelForm;
 use Middag\Demo\Standalone\Form\CustomerEntitySource;
 use Middag\Demo\Standalone\Form\LoginForm;
 use Middag\Demo\Standalone\Form\TicketForm;
@@ -298,6 +299,10 @@ final readonly class DemoBootstrap implements BootstrapInterface
         $c->register(AgentEntitySource::class, AgentEntitySource::class)
             ->setAutowired(true)->setPublic(true);
         $c->register(LoginForm::class, LoginForm::class)
+            ->setAutowired(true)
+            ->setShared(false)
+            ->setPublic(true);
+        $c->register(AgentPanelForm::class, AgentPanelForm::class)
             ->setAutowired(true)
             ->setShared(false)
             ->setPublic(true);
@@ -633,6 +638,8 @@ final readonly class DemoBootstrap implements BootstrapInterface
         // customers (card_grid) — data-mapper-backed.
         $routes->add('agents.index', new Route('/agents', ['_controller' => AgentController::class . '::index'], [], [], '', [], ['GET']));
         $routes->add('agents.show', new Route('/agents/{id}', ['_controller' => AgentController::class . '::show'], [], ['id' => '\d+'], '', [], ['GET']));
+        $routes->add('agents.panel', new Route('/agents/{id}/panel', ['_controller' => AgentController::class . '::panel'], [], ['id' => '\d+'], '', [], ['GET']));
+        $routes->add('agents.panel.save', new Route('/agents/{id}/panel', ['_controller' => AgentController::class . '::savePanel'], [], ['id' => '\d+'], '', [], ['POST']));
         $routes->add('customers.index', new Route('/customers', ['_controller' => CustomerController::class . '::index'], [], [], '', [], ['GET']));
 
         // Fault mode only: a route that throws, for the 500 error page, and the

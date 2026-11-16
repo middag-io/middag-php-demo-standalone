@@ -15,21 +15,33 @@ namespace Middag\Demo\Standalone\Http;
 use Middag\Demo\Standalone\Domain\Doctrine\Agent;
 use Middag\Demo\Standalone\Domain\Doctrine\AgentRepository;
 use Middag\Demo\Standalone\Domain\Ticket;
+use Middag\Demo\Standalone\Form\AgentPanelForm;
 use Middag\Demo\Standalone\Security\SuperviseCapability;
 use Middag\Demo\Standalone\Shared\Concerns\RendersPages;
+use Middag\Framework\Exception\MiddagAuthorizationException;
 use Middag\Framework\Exception\MiddagNotFoundException;
+use Middag\Framework\Form\Renderer\RendererRegistry;
 use Middag\Framework\Http\Attribute\Auth;
 use Middag\Framework\Http\Auth\CapabilityRequirement;
 use Middag\Framework\Http\Contract\AuthenticatorInterface;
 use Middag\Framework\Http\Contract\CapabilityDefinitionInterface;
 use Middag\Framework\Http\Contract\CapabilityRequirementAwareInterface;
 use Middag\Framework\Http\Controller\AbstractController;
-use Middag\Framework\Persistence\Contract\EntityInterface;
+use Middag\Ui\Action\Action;
+use Middag\Ui\Action\ActionTarget;
+use Middag\Ui\Form\FormFieldNode;
+use Middag\Ui\Form\FormGroupNode;
+use Middag\Ui\Form\FormSectionNode;
 use Middag\Ui\Page\PageBuilder;
 use Middag\Ui\Region\RegionBuilder;
 use Middag\Ui\Shared\Enum\ColumnVariant;
+use Middag\Ui\Shared\Enum\FormComponent;
+use Middag\Ui\Shared\Enum\HttpMethod;
+use Middag\Ui\Shared\Enum\RenderTarget;
 use Middag\Ui\Table\Column;
 use Middag\Ui\Table\TableBuilder;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -43,11 +55,19 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * `/agents/{id}` is the detail page: a detail_panel (agent fields), a metric_card
  * (open-workload aggregate) and a link_list (the agent's open tickets).
+ *
+ * Supervisors also get the editable side panel: an "Edit" row action with the
+ * `panel` target opens it, the client reads the form from `GET /agents/{id}/panel`
+ * and saves it to `POST /agents/{id}/panel`. Both endpoints answer 403 without
+ * the capability.
  */
 #[Auth(login: true, requirements: [SuperviseCapability::class])]
 final class AgentController extends AbstractController implements CapabilityRequirementAwareInterface
 {
     use RendersPages;
+
+    /** Panel width that still fits a phone viewport. */
+    private const int PANEL_WIDTH = 380;
 
     /** @var list<CapabilityRequirement> */
     private array $requirements = [];
@@ -55,6 +75,8 @@ final class AgentController extends AbstractController implements CapabilityRequ
     public function __construct(
         private readonly AgentRepository $agents,
         private readonly AuthenticatorInterface $auth,
+        private readonly RendererRegistry $renderers,
+        private readonly AgentPanelForm $panelForm,
     ) {}
 
     public function index(): Response
@@ -110,7 +132,16 @@ final class AgentController extends AbstractController implements CapabilityRequ
 
         $supervisors = count(array_filter($agents, static fn (Agent $a): bool => $a->isSupervisor()));
 
-        $contract = PageBuilder::page('demo.agents')
+        // Supervisors edit an agent in the side panel: the row action carries the
+        // `panel` target, the page declares where the panel reads and saves.
+        $tableData = ['rowHref' => '/agents/{id}'];
+        if ($canSupervise) {
+            $tableData['rowActions'] = [
+                new Action(id: 'edit', label: 'Edit', target: ActionTarget::panel(), icon: 'pencil'),
+            ];
+        }
+
+        $builder = PageBuilder::page('demo.agents')
             ->shell('basic')
             // Dashboard layout (not sidebar): the roster is a wide rich-cell table
             // (7 supervisor columns) that a sidebar's fixed 320px aside squeezes —
@@ -126,22 +157,89 @@ final class AgentController extends AbstractController implements CapabilityRequ
                 $region->metricCard('agent_count', count($agents), 'Agents', icon: 'users');
                 $region->metricCard('supervisors', $supervisors, 'Supervisors', icon: 'shield');
             })
-            ->region('content', function (RegionBuilder $region) use ($columns, $rows): void {
-                $region->denseTable('agents', $columns, $rows, ['rowHref' => '/agents/{id}'], ['clientSide' => true]);
-            })
-            ->build();
+            ->region('content', function (RegionBuilder $region) use ($columns, $rows, $tableData): void {
+                $region->denseTable('agents', $columns, $rows, $tableData, ['clientSide' => true]);
+            });
+        if ($canSupervise) {
+            $builder->editablePanel('/agents/{id}/panel', null, HttpMethod::Post, self::PANEL_WIDTH);
+        }
 
-        return $this->page($contract);
+        // toProps() carries the editablePanel config next to the contract.
+        $props = $builder->toProps();
+        $contract = $props['contract'];
+        unset($props['contract']);
+
+        return $this->page($contract, $props);
+    }
+
+    /**
+     * GET /agents/{id}/panel — the form the editable panel shows: the agent form's
+     * fields, rendered by the framework, placed in a section and a group built
+     * from the middag-io/ui form nodes.
+     */
+    public function panel(int $id): JsonResponse
+    {
+        $this->requireSupervisor();
+        $agent = $this->findAgent($id);
+
+        $fields = [];
+        foreach ($this->renderers->get(RenderTarget::Props)->render($this->panelForm)->props['schema'] ?? [] as $node) {
+            $fields[(string) $node['key']] = new FormFieldNode((string) $node['key'], FormComponent::from((string) $node['component']), (array) ($node['props'] ?? []));
+        }
+
+        return new JsonResponse([
+            'title' => $agent->name,
+            'subtitle' => 'Agent #' . $id,
+            'schema' => [
+                new FormSectionNode('agent', 'Agent', [
+                    new FormGroupNode('identity', [$fields['name'], $fields['role']]),
+                    $fields['active'],
+                ]),
+            ],
+            'values' => ['name' => $agent->name, 'role' => $agent->role, 'active' => $agent->active],
+            'submitLabel' => 'Save agent',
+        ]);
+    }
+
+    /**
+     * POST /agents/{id}/panel — the panel's save, validated by the same form. The
+     * client submits through the Inertia router, so the answer is a redirect.
+     */
+    public function savePanel(int $id): RedirectResponse
+    {
+        $this->requireSupervisor();
+        $agent = $this->findAgent($id);
+
+        $payload = $this->request->getPayload()->all();
+        $this->panelForm->hydrate([
+            'name' => (string) ($payload['name'] ?? ''),
+            'role' => (string) ($payload['role'] ?? ''),
+            'active' => filter_var($payload['active'] ?? false, FILTER_VALIDATE_BOOLEAN),
+        ]);
+        $this->panelForm->validate();
+        if (!$this->panelForm->isSubmittedAndValid()) {
+            $this->flash('error', 'The agent was not saved: check the name and the role.');
+
+            return $this->redirectToRoute('agents.index');
+        }
+
+        $data = $this->panelForm->validated();
+        $this->agents->save(new Agent(
+            $agent->getId(),
+            (string) $data['name'],
+            $agent->email,
+            (string) $data['role'],
+            (bool) ($data['active'] ?? false),
+            $agent->createdAt,
+        ));
+        $this->flash('success', 'Agent saved.');
+
+        return $this->redirectToRoute('agents.index');
     }
 
     public function show(int $id): Response
     {
-        $agent = $this->agents->find($id);
-        if (!$agent instanceof EntityInterface) {
-            throw new MiddagNotFoundException('Agent not found.');
-        }
-
-        $d = $agent->toArray();
+        $d = $this->findAgent($id)->toArray();
 
         /** @var list<Ticket> $assigned */
         $assigned = Ticket::query()->where('agent_id', $id)->orderBy('created_at', 'desc')->get();
@@ -199,6 +297,27 @@ final class AgentController extends AbstractController implements CapabilityRequ
     public function setRequireCapabilityRequirements(array $requirements): void
     {
         $this->requirements = $requirements;
+    }
+
+    private function findAgent(int $id): Agent
+    {
+        $agent = $this->agents->find($id);
+        if (!$agent instanceof Agent) {
+            throw new MiddagNotFoundException('Agent not found.');
+        }
+
+        return $agent;
+    }
+
+    /**
+     * The standalone kernel enforces only the login; the demo, as the host,
+     * enforces the capability on its supervisor-only endpoints.
+     */
+    private function requireSupervisor(): void
+    {
+        if (!$this->canSupervise()) {
+            throw new MiddagAuthorizationException('The helpdesk:supervise capability is required.');
+        }
     }
 
     /**

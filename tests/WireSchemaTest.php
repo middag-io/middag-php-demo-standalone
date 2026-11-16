@@ -15,10 +15,9 @@ namespace Middag\Demo\Standalone\Tests;
 use Middag\Demo\Standalone\Schema\HelpdeskSeeder;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Database\Contract\ConnectionAdapterInterface;
+use Middag\Framework\Http\Contract\AuthenticatorInterface;
 use Middag\Ui\Block\BlockDescriptor;
-use Middag\Ui\EditablePanel\EditablePanelDescriptor;
 use Middag\Ui\Region\PollConfig;
-use Middag\Ui\Shared\Enum\HttpMethod;
 use Opis\JsonSchema\Errors\ErrorFormatter;
 use Opis\JsonSchema\Errors\ValidationError;
 use Opis\JsonSchema\Resolvers\SchemaResolver;
@@ -125,16 +124,30 @@ final class WireSchemaTest extends DemoTestCase
     }
 
     #[Test]
-    public function pollAndEditablePanelDescriptorsMatchTheSchema(): void
+    public function pollConfigMatchesTheSchema(): void
     {
-        // Emission only: RegionBuilder cannot attach a poll config to a block,
-        // and no free shell mounts the editable panel.
+        // Emission only: RegionBuilder cannot attach a poll config to a block.
         $block = new BlockDescriptor('dense_table', 'queue', ['columns' => [], 'rows' => []], poll: new PollConfig('/tickets', 15000));
         $this->assertValid($block->jsonSerialize(), self::SCHEMA_ID . '#/$defs/BlockDescriptor', 'polled block');
         self::assertSame(15000, $block->jsonSerialize()['poll']['intervalMs'] ?? null);
+    }
 
-        $panel = new EditablePanelDescriptor('/tickets/1/panel', '/tickets/1', HttpMethod::Put);
-        $this->assertValid($panel->jsonSerialize(), self::SCHEMA_ID . '#/$defs/EditablePanelDescriptor', 'editable panel');
+    #[Test]
+    public function agentEditablePanelMatchesTheSchema(): void
+    {
+        $this->container->get(AuthenticatorInterface::class)->login(1, ['name' => 'Supervisor', 'capabilities' => ['helpdesk:supervise']]);
+
+        // The page config the agents page ships next to its contract.
+        $props = $this->json($this->handle('GET', '/agents', [], ['HTTP_X_INERTIA' => 'true']))['props'];
+        $this->assertValid($props['editablePanel'] ?? null, self::SCHEMA_ID . '#/$defs/EditablePanelDescriptor', 'agents editable panel');
+
+        // The form the panel endpoint serves: FormSectionNode, FormGroupNode and
+        // FormFieldNode, each valid as a FormSchemaNode.
+        $descriptor = $this->json($this->handle('GET', '/agents/1/panel', [], ['HTTP_ACCEPT' => 'application/json']));
+        self::assertNotEmpty($descriptor['schema'] ?? []);
+        foreach ($descriptor['schema'] as $node) {
+            $this->assertValid($node, self::SCHEMA_ID . '#/$defs/FormSchemaNode', 'panel node ' . ($node['id'] ?? '?'));
+        }
     }
 
     /**

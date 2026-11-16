@@ -12,8 +12,14 @@
  */
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router";
-import { ContractPage, I18nProvider, ProgressProvider } from "@middag-io/react";
-import type { PageContract } from "@middag-io/react";
+import {
+  ContractPage,
+  EditablePanelProvider,
+  I18nProvider,
+  InlineEditablePanel,
+  ProgressProvider,
+} from "@middag-io/react";
+import type { EditablePanelConfig, PageContract } from "@middag-io/react";
 import { PageProvider } from "@mock/adapters/inertia-react";
 import { setMockNavigate } from "@mock/adapters/inertia-core";
 import { fixtures } from "@mock/fixtures";
@@ -37,9 +43,19 @@ function FixturePage({ name }: { name: string }) {
       </PageProvider>
     );
   }
+  const page = <ContractPage contract={fx.props.contract as PageContract} />;
+  const panel = fx.props.editablePanel as EditablePanelConfig | undefined;
   return (
     <PageProvider value={{ props: fx.props, url: fx.url }}>
-      <ContractPage contract={fx.props.contract as PageContract} />
+      {panel ? (
+        // Same mount as the production resolver (app/page-resolver.tsx).
+        <EditablePanelProvider config={panel}>
+          {page}
+          <InlineEditablePanel />
+        </EditablePanelProvider>
+      ) : (
+        page
+      )}
     </PageProvider>
   );
 }
