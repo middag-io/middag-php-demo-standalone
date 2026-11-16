@@ -64,9 +64,7 @@
         "theme": {
             "appearance": "light"
         },
-        "flash": {
-            "success": "Welcome, Demo User."
-        },
+        "flash": [],
         "errors": [],
         "csrf_token": "dev-csrf-token",
         "contract": {
