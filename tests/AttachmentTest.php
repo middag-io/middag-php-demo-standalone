@@ -15,6 +15,7 @@ namespace Middag\Demo\Standalone\Tests;
 use Middag\Demo\Standalone\Domain\Attachment;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Filesystem\Contract\FilesystemInterface;
+use Middag\Framework\Http\Contract\AuthenticatorInterface;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -31,6 +32,12 @@ use Symfony\Component\HttpFoundation\Response;
 final class AttachmentTest extends DemoTestCase
 {
     private const string CONTENTS = "line one\nline two\n";
+
+    /** The session user DemoTestCase logs in. */
+    private const int UPLOADER = 1;
+
+    /** Another user of the demo. */
+    private const int OTHER_USER = 2;
 
     private int $ticketId = 0;
 
@@ -113,6 +120,25 @@ final class AttachmentTest extends DemoTestCase
     }
 
     #[Test]
+    public function anotherUsersTokenNeitherShowsNorAttachesThePendingUpload(): void
+    {
+        $pending = $this->upload('notes.txt', self::CONTENTS);
+        self::assertSame(self::UPLOADER, $pending->user_id);
+        $value = $this->formPanel('?token=' . $pending->token)['values']['file'];
+
+        $this->container->get(AuthenticatorInterface::class)->login(self::OTHER_USER, ['name' => 'Other', 'capabilities' => []]);
+
+        $form = $this->formPanel('?token=' . $pending->token);
+        self::assertArrayNotHasKey('file', $form['values'] ?? []);
+        self::assertSame('/tickets/' . $this->ticketId . '/attachments/upload', $form['action']);
+
+        $response = $this->handle('POST', '/tickets/' . $this->ticketId . '/attachments', ['file' => $value]);
+        self::assertSame(303, $response->getStatusCode());
+        self::assertSame([], Attachment::attachedTo($this->ticketId));
+        self::assertSame(Attachment::PENDING, Attachment::query()->where('id', $pending->id)->first()?->status);
+    }
+
+    #[Test]
     public function uploadRefusesAnUnlistedTypeAndAnOversizedFile(): void
     {
         $this->post('script.php', '<?php echo 1;');
@@ -135,7 +161,7 @@ final class AttachmentTest extends DemoTestCase
         $location = (string) $response->headers->get('Location');
         self::assertStringStartsWith('/tickets/' . $this->ticketId . '/attachments?token=', $location);
 
-        $pending = Attachment::findForTicket($this->ticketId, substr($location, (int) strpos($location, '=') + 1));
+        $pending = Attachment::findPending($this->ticketId, self::UPLOADER, substr($location, (int) strpos($location, '=') + 1));
         self::assertInstanceOf(Attachment::class, $pending);
         $this->written[] = $pending->path();
 

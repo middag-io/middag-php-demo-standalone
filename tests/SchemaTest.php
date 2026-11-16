@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace Middag\Demo\Standalone\Tests;
 
 use Doctrine\DBAL\DriverManager;
+use Middag\Demo\Standalone\Domain\Attachment;
 use Middag\Demo\Standalone\Schema\DemoMigrationRunner;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Database\Contract\ConnectionInterface;
@@ -51,6 +52,34 @@ final class SchemaTest extends DemoTestCase
         self::assertTrue($adapter->tableExists('demo_tickets'));
         self::assertTrue($adapter->columnExists('demo_tickets', 'priority'));
         self::assertFalse($adapter->columnExists('demo_tickets', 'nonexistent_column'));
+    }
+
+    #[Test]
+    public function upgradeGivesExistingAttachmentsAnUploaderThatMatchesNoUser(): void
+    {
+        $builder = $this->container->get(SchemaBuilder::class);
+        $adapter = $this->container->get(SchemaBuilderAdapterInterface::class);
+        $connection = $this->container->get(ConnectionInterface::class);
+
+        // The demo_attachments table as installed before the uploader column.
+        $descriptor = $builder->all()['demo_attachments'];
+        $adapter->dropTable('demo_attachments');
+        $adapter->createTable([
+            ...$descriptor,
+            'columns' => array_values(array_filter($descriptor['columns'], static fn (array $c): bool => $c['name'] !== 'user_id')),
+        ]);
+        self::assertFalse($adapter->columnExists('demo_attachments', 'user_id'));
+        $token = str_repeat('a', 32);
+        $connection->execute(
+            'INSERT INTO demo_attachments (ticket_id, token, name, type, size, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [1, $token, 'old.txt', 'text/plain', 3, Attachment::PENDING, time()],
+        );
+
+        (new DemoMigrationRunner($builder, $adapter, new MysqlVersionTracker($connection, 'demo_schema_test')))->upgrade(2026111601);
+
+        self::assertTrue($adapter->columnExists('demo_attachments', 'user_id'));
+        self::assertSame(0, Attachment::query()->where('token', $token)->first()?->user_id);
+        self::assertNull(Attachment::findPending(1, 1, $token), 'a pending upload from before the column has no owner');
     }
 
     #[Test]

@@ -20,6 +20,7 @@ use Middag\Framework\Exception\MiddagNotFoundException;
 use Middag\Framework\Filesystem\Contract\FilesystemInterface;
 use Middag\Framework\Form\Renderer\RendererRegistry;
 use Middag\Framework\Http\Attribute\Auth;
+use Middag\Framework\Http\Contract\AuthenticatorInterface;
 use Middag\Framework\Http\Controller\AbstractController;
 use Middag\Ui\Action\ActionTarget;
 use Middag\Ui\Form\FileValue;
@@ -40,6 +41,7 @@ use Symfony\Component\HttpFoundation\Response;
  * random upload token and renders the form again with the stored file as a
  * FileValue that carries the token. Submitting that form sends the FileValue
  * back untouched; the token finds the pending upload, which becomes attached.
+ * A pending upload belongs to its uploader: another user's token finds nothing.
  * Attached files are listed with a download link.
  */
 #[Auth(login: true)]
@@ -51,6 +53,7 @@ final class AttachmentController extends AbstractController
         private readonly RendererRegistry $renderers,
         private readonly AttachmentForm $form,
         private readonly FilesystemInterface $files,
+        private readonly AuthenticatorInterface $auth,
     ) {}
 
     /**
@@ -60,10 +63,7 @@ final class AttachmentController extends AbstractController
     public function index(int $id): Response
     {
         $ticket = Ticket::findOrFail($id);
-        $pending = Attachment::findForTicket($id, (string) $this->request->query->get('token', ''));
-        if ($pending instanceof Attachment && $pending->status !== Attachment::PENDING) {
-            $pending = null;
-        }
+        $pending = Attachment::findPending($id, $this->userId(), (string) $this->request->query->get('token', ''));
 
         $schema = $this->renderers->get(RenderTarget::Props)->render($this->form)->props['schema'] ?? [];
         $values = $pending instanceof Attachment ? ['file' => $this->fileValue($pending)] : [];
@@ -130,6 +130,7 @@ final class AttachmentController extends AbstractController
 
         $attachment = new Attachment([
             'ticket_id' => $id,
+            'user_id' => $this->userId(),
             'token' => bin2hex(random_bytes(16)),
             'name' => $this->displayName($file->getClientOriginalName()),
             'type' => AttachmentForm::TYPES[strtolower($file->getClientOriginalExtension())],
@@ -153,9 +154,9 @@ final class AttachmentController extends AbstractController
         Ticket::findOrFail($id);
         $value = $this->request->getPayload()->all()['file'] ?? null;
         $token = is_array($value) && is_string($value['uploadToken'] ?? null) ? $value['uploadToken'] : '';
-        $attachment = Attachment::findForTicket($id, $token);
+        $attachment = Attachment::findPending($id, $this->userId(), $token);
 
-        if (!$attachment instanceof Attachment || $attachment->status !== Attachment::PENDING) {
+        if (!$attachment instanceof Attachment) {
             $this->flash('error', 'Upload a file first.');
 
             return $this->redirect('/tickets/' . $id . '/attachments', Response::HTTP_SEE_OTHER);
@@ -189,6 +190,12 @@ final class AttachmentController extends AbstractController
         ));
 
         return $response;
+    }
+
+    /** The session user's id; the route is login-gated, so it is set. */
+    private function userId(): int
+    {
+        return (int) $this->auth->id();
     }
 
     /** The stored upload as the file field's value, upload token included. */

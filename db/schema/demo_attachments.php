@@ -14,6 +14,8 @@ return [
     'columns' => [
         ['name' => 'id', 'type' => 'bigint', 'notnull' => true, 'sequence' => true],
         ['name' => 'ticket_id', 'type' => 'bigint', 'notnull' => true],
+        // The uploader (demo_users.id): only that user can see or attach a pending upload.
+        ['name' => 'user_id', 'type' => 'bigint', 'notnull' => true, 'default' => 0],
         ['name' => 'token', 'type' => 'varchar', 'length' => 32, 'notnull' => true],
         ['name' => 'name', 'type' => 'varchar', 'length' => 190, 'notnull' => true],
         ['name' => 'type', 'type' => 'varchar', 'length' => 100, 'notnull' => true],

@@ -21,6 +21,7 @@ use Middag\Framework\Persistence\Model;
  *
  * @property null|int $id
  * @property int      $ticket_id  demo_tickets.id
+ * @property int      $user_id    demo_users.id of the uploader
  * @property string   $token      upload token (32 hex characters)
  * @property string   $name       client file name, for display and download only
  * @property string   $type       media type served on download
@@ -40,17 +41,18 @@ final class Attachment extends Model
     protected string $table = 'demo_attachments';
 
     /** @var list<string> */
-    protected array $fillable = ['ticket_id', 'token', 'name', 'type', 'size', 'status', 'created_at'];
+    protected array $fillable = ['ticket_id', 'user_id', 'token', 'name', 'type', 'size', 'status', 'created_at'];
 
     /** @var array<string, string> */
-    protected array $casts = ['id' => 'int', 'ticket_id' => 'int', 'size' => 'int', 'created_at' => 'int'];
+    protected array $casts = ['id' => 'int', 'ticket_id' => 'int', 'user_id' => 'int', 'size' => 'int', 'created_at' => 'int'];
 
     /**
-     * The ticket's attachment with this upload token, or null. The token is
-     * checked against its pattern first, so a malformed value never reaches a
-     * query or a file path.
+     * The ticket's pending upload with this token, made by this user, or null.
+     * The token is checked against its pattern first, so a malformed value never
+     * reaches a query or a file path; a token alone, without its uploader, finds
+     * nothing.
      */
-    public static function findForTicket(int $ticketId, string $token): ?self
+    public static function findPending(int $ticketId, int $userId, string $token): ?self
     {
         if (preg_match(self::TOKEN_PATTERN, $token) !== 1) {
             return null;
@@ -58,7 +60,10 @@ final class Attachment extends Model
 
         $attachment = self::query()->where('token', $token)->first();
 
-        return $attachment instanceof self && $attachment->ticket_id === $ticketId ? $attachment : null;
+        return $attachment instanceof self
+            && $attachment->ticket_id === $ticketId
+            && $attachment->user_id === $userId
+            && $attachment->status === self::PENDING ? $attachment : null;
     }
 
     /**
