@@ -22,6 +22,7 @@ use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicyRepository;
 use Middag\Demo\Standalone\Domain\Tag;
 use Middag\Demo\Standalone\Domain\Ticket;
 use Middag\Framework\Database\Contract\ConnectionAdapterInterface;
+use Middag\Framework\Shared\Dto\SyncResult;
 use Middag\Framework\Shared\ValueObject\Uuid;
 
 /**
@@ -34,11 +35,11 @@ use Middag\Framework\Shared\ValueObject\Uuid;
  */
 final class HelpdeskSeeder
 {
-    public static function seed(ConnectionAdapterInterface $adapter): void
+    public static function seed(ConnectionAdapterInterface $adapter): SyncResult
     {
         $agents = new AgentRepository($adapter);
         if ($agents->findAll() !== []) {
-            return; // already seeded
+            return new SyncResult(0, 0); // already seeded
         }
 
         $sla = new SlaPolicyRepository($adapter);
@@ -158,5 +159,7 @@ final class HelpdeskSeeder
 
             ++$i;
         }
+
+        return new SyncResult($i, 0);
     }
 }

@@ -13,6 +13,8 @@ declare(strict_types=1);
 namespace Middag\Demo\Standalone\Kernel\Bootstrap;
 
 use Closure;
+use Middag\Demo\Standalone\Bus\FileWorkerHeartbeat;
+use Middag\Demo\Standalone\Bus\SqliteAttemptStore;
 use Middag\Demo\Standalone\Command\EscalateSlaCommand;
 use Middag\Demo\Standalone\Domain\Comment;
 use Middag\Demo\Standalone\Domain\Tag;
@@ -37,13 +39,18 @@ use Middag\Demo\Standalone\Http\TicketController;
 use Middag\Demo\Standalone\Http\UiController;
 use Middag\Demo\Standalone\Logging\CleanLogsHandler;
 use Middag\Demo\Standalone\Logging\LevelFilteringLogger;
+use Middag\Demo\Standalone\Mail\CaptureMailer;
+use Middag\Demo\Standalone\Mail\TicketCreatedNotifier;
 use Middag\Demo\Standalone\Observability\DebugCollector;
+use Middag\Demo\Standalone\Schema\CommandAttemptTable;
 use Middag\Demo\Standalone\Webhook\TicketWebhookNotifier;
 use Middag\Framework\Bus\Command\CommandWorker;
 use Middag\Framework\Bus\Contract\MessageBusInterface;
 use Middag\Framework\Bus\Contract\UserContextResolverInterface;
 use Middag\Framework\Bus\MessageBusFactory;
 use Middag\Framework\Bus\Middleware\ProfilingMiddleware;
+use Middag\Framework\Bus\Retry\MultiplierRetryPolicy;
+use Middag\Framework\Bus\Retry\RetryPolicyInterface as BusRetryPolicyInterface;
 use Middag\Framework\Bus\Transport\InMemoryTransport;
 use Middag\Framework\Database\Contract\ConnectionAdapterInterface;
 use Middag\Framework\Database\Contract\ConnectionInterface;
@@ -51,6 +58,8 @@ use Middag\Framework\Database\Contract\SchemaBuilderAdapterInterface;
 use Middag\Framework\Database\PdoConnectionAdapter;
 use Middag\Framework\Database\Schema\SchemaBuilder;
 use Middag\Framework\Database\Schema\SqliteSchemaBuilderAdapter;
+use Middag\Framework\Filesystem\Contract\FilesystemInterface;
+use Middag\Framework\Filesystem\LocalFilesystem;
 use Middag\Framework\Form\EntitySourceRegistry;
 use Middag\Framework\Http\Auth\SessionAuthenticator;
 use Middag\Framework\Http\Auth\SessionUserContextResolver;
@@ -87,6 +96,8 @@ use Middag\Framework\Logging\Contract\OriginResolverInterface;
 use Middag\Framework\Logging\LoggerFactory;
 use Middag\Framework\Logging\NullActorResolver;
 use Middag\Framework\Logging\NullOriginResolver;
+use Middag\Framework\Mail\Contract\MailerInterface;
+use Middag\Framework\Mail\NullMailer;
 use Middag\Framework\Observability\Contract\ErrorReporterInterface;
 use Middag\Framework\Observability\Contract\ProfileCollectorInterface;
 use Middag\Framework\Observability\NullErrorReporter;
@@ -112,6 +123,7 @@ use RuntimeException;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
 use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\Transport\Sender\SendersLocator;
@@ -231,12 +243,43 @@ final readonly class DemoBootstrap implements BootstrapInterface
             ->setFactory([self::class, 'createMessageBus'])
             ->setArguments([new Reference('service_container')])
             ->setPublic(true);
+        // Retry bookkeeping (demo_command_attempts), backoff policy and heartbeat
+        // of the async worker.
+        $c->register(SqliteAttemptStore::class, SqliteAttemptStore::class)
+            ->setArguments([new Reference(ConnectionAdapterInterface::class)])
+            ->setPublic(true);
+        $c->register(BusRetryPolicyInterface::class, MultiplierRetryPolicy::class)
+            ->setArguments([100, 2.0, 5000, false])
+            ->setPublic(true);
+        $c->register(FileWorkerHeartbeat::class, FileWorkerHeartbeat::class)
+            ->setArguments([$this->projectRoot . '/var/worker-heartbeat.json'])
+            ->setPublic(true);
         $c->register(CommandWorker::class, CommandWorker::class)
             ->setArguments([
                 new Reference(InMemoryTransport::class),
                 new Reference(MessageBusInterface::class),
                 self::ASYNC_TRANSPORT,
+                new Reference(BusRetryPolicyInterface::class),
+                new Reference(SqliteAttemptStore::class),
+                new Reference(FileWorkerHeartbeat::class),
+                new Reference(LoggerInterface::class),
             ])
+            ->setPublic(true);
+
+        // Files and mail: tickets keep files under var/files; MAIL_CAPTURE=1 (or
+        // fault mode) captures mail as JSON in var/mail, else the NullMailer.
+        $c->register(FilesystemInterface::class, LocalFilesystem::class)
+            ->setArguments([$this->projectRoot . '/var/files'])
+            ->setPublic(true);
+        if (DemoEnv::flag('MAIL_CAPTURE') || DemoEnv::flag('DEMO_FAULT_MODE')) {
+            $c->register(MailerInterface::class, CaptureMailer::class)
+                ->setArguments([new Definition(LocalFilesystem::class, [$this->projectRoot . '/var/mail'])])
+                ->setPublic(true);
+        } else {
+            $c->register(MailerInterface::class, NullMailer::class)->setPublic(true);
+        }
+        $c->register(TicketCreatedNotifier::class, TicketCreatedNotifier::class)
+            ->setArguments([new Reference(MailerInterface::class), new Reference(FilesystemInterface::class), $this->projectRoot . '/var/files'])
             ->setPublic(true);
 
         // (7) Handler for the framework's CleanLogsCommand, under the convention id.
@@ -408,6 +451,13 @@ final readonly class DemoBootstrap implements BootstrapInterface
         // async SLA escalation (high/urgent) onto the in-memory transport.
         TicketHooks::register($hooks, $c->get(MessageBusInterface::class), $c->get(LoggerInterface::class));
 
+        if (DemoEnv::flag('MAIL_CAPTURE') || DemoEnv::flag('DEMO_FAULT_MODE')) {
+            $mailNotifier = $c->get(TicketCreatedNotifier::class);
+            $hooks->addAction('demo.ticket.created', static function (int $id) use ($mailNotifier): void {
+                $mailNotifier->notify($id);
+            }, 30, 1);
+        }
+
         (new EntityTypeRegistrar($c->get(EntityTypeRegistryInterface::class)))
             ->register([Ticket::class, Comment::class, Tag::class]);
 
@@ -515,7 +565,9 @@ final readonly class DemoBootstrap implements BootstrapInterface
 
     public static function schemaBuilderFactory(string $projectRoot): SchemaBuilder
     {
-        return (new SchemaBuilder())->loadFromDirectory($projectRoot . '/db/schema');
+        return (new SchemaBuilder())
+            ->loadFromDirectory($projectRoot . '/db/schema')
+            ->registerClass(CommandAttemptTable::class);
     }
 
     /**

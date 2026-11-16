@@ -80,6 +80,7 @@ return [
         'engine:message_bus' => ['kind' => 'engine', 'route' => null, 'note' => 'sync command dispatch (create/update/transition/comment)'],
         'engine:async_signal' => ['kind' => 'engine', 'route' => null, 'note' => 'demo.ticket.created -> EscalateSlaCommand on the async transport'],
         'engine:dual_orm_parity' => ['kind' => 'engine', 'route' => '/parity', 'note' => 'data-mapper QueryBuilder vs active-record ModelQuery, identical counts'],
+        'engine:persistent_bus' => ['kind' => 'engine', 'route' => null, 'note' => 'Doctrine transport: a command queued by one runtime kernel is drained by another on the same database (RuntimeKernelTest)'],
         'engine:entity_source' => ['kind' => 'engine', 'route' => '/tickets/new', 'note' => 'EntitySourceRegistry: demo_customers + demo_agents'],
         'engine:capability_gate' => ['kind' => 'provider', 'route' => '/agents', 'note' => 'helpdesk:supervise gates the supervisor columns'],
         'engine:register_host' => ['kind' => 'engine', 'route' => '/login', 'note' => 'host registerShell("auth") replaces the package auth shell; host registerCellRenderer("sparkline") and ("tag_chips") add cells'],
@@ -92,7 +93,6 @@ return [
         'field:duration' => ['reason' => 'emittable via FieldDefinition::duration() but no free React field renderer (would hit "Unknown field component")', 'filed' => 'react: duration renderer'],
         'field:otp_slider_native_select_tags' => ['reason' => 'React-renderable but no FieldDefinition factory method', 'filed' => 'framework: field factories'],
         'field:currency_rating_slug_color_phone_document' => ['reason' => 'React-renderable but absent from the PHP FieldType enum entirely', 'filed' => 'framework: field types'],
-        'transport:persistent_bus' => ['reason' => 'only InMemoryTransport ships; bus-routed async cannot cross processes (the demo uses the in-memory worker, not a cross-process outbox)', 'filed' => 'framework: persistent transport'],
     ],
 
     'api' => require __DIR__ . '/api.php',

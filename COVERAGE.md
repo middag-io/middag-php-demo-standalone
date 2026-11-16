@@ -15,55 +15,55 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 
 | Library | `@api` | covered | host | gap |
 |---|---|---|---|---|
-| `middag-io/framework` | 223 | 166 | 15 | 42 |
+| `middag-io/framework` | 223 | 199 | 14 | 10 |
 | `middag-io/ui` | 94 | 50 | 0 | 44 |
 
 ## `middag-io/framework`
 
-### Bus — 31 `@api`: 11 covered, 2 host, 18 gap
+### Bus — 31 `@api`: 28 covered, 2 host, 1 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
-| `Bus\Attribute\AsCommandHandler` | gap | Not exercised by the demo. | — | — |
+| `Bus\Attribute\AsCommandHandler` | covered | `src/Command/WorkerPingCommandHandler.php` | `RuntimeKernelTest::attributeLocatorFindsTheHandlerByItsDeclaration` | — |
 | `Bus\Attribute\Schedule` | covered | `tests/BusTest.php` | `BusTest::scheduleAttributeIsDeclaredOnCleanLogsCommand` | — |
 | `Bus\Command\AbstractCommand` | covered | `src/Command/TransitionTicketCommand.php` | `BusTest::directAsyncDispatchIsQueuedNotHandledInline` | — |
-| `Bus\Command\AttributeHandlersLocator` | gap | Not exercised by the demo. | — | — |
+| `Bus\Command\AttributeHandlersLocator` | covered | `tests/RuntimeKernelTest.php` | `RuntimeKernelTest::attributeLocatorFindsTheHandlerByItsDeclaration` | — |
 | `Bus\Command\CommandSerializer` | covered | `tests/BusTest.php` | `BusTest::commandSerializerRoundTripsViaPayload` | — |
 | `Bus\Command\CommandWorker` | covered | `src/Command/EscalateSlaCommand.php` | `BusTest::directAsyncDispatchIsQueuedNotHandledInline`<br>`EscalationTest::normalTicketDoesNotEscalate`<br>`EscalationTest::urgentTicketEnqueuesSlaEscalationThenDrainWritesInternalComment` | — |
 | `Bus\Command\ConventionHandlersLocator` | covered | Reached through MessageBusFactory. | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
-| `Bus\Command\WorkerHeartbeatInterface` | gap | Not exercised by the demo. | — | — |
-| `Bus\Command\WorkerLimits` | gap | Not exercised by the demo. | — | — |
-| `Bus\Context\UserContextStamp` | gap | Not exercised by the demo. | — | — |
+| `Bus\Command\WorkerHeartbeatInterface` | covered | `src/Bus/FileWorkerHeartbeat.php` | `BusSeamsTest::workerBeatsAndStopsAtItsMessageLimit` | — |
+| `Bus\Command\WorkerLimits` | covered | `src/Console/WorkerConsumeCommand.php` | `BusSeamsTest::workerBeatsAndStopsAtItsMessageLimit` | — |
+| `Bus\Context\UserContextStamp` | covered | `tests/RuntimeKernelTest.php` | `RuntimeKernelTest::syncByDefaultAndAsyncWhenRouted` | — |
 | `Bus\Contract\CommandInterface` | covered | Reached through AbstractCommand. | `BusTest::syncDispatchPersistsTicketAndReturnsIdViaHandledStamp` | — |
 | `Bus\Contract\MessageBusInterface` | covered | `src/Http/TicketController.php` | `KernelContainerTest::containerResolvesFrameworkContractsToOssDefaults`<br>`LoggingTest::cleanLogsRunsThroughTheBus` | — |
-| `Bus\Contract\ScheduleReaderInterface` | gap | Not exercised by the demo. | — | — |
+| `Bus\Contract\ScheduleReaderInterface` | covered | Reached through ScheduleReader, which ScheduleRunCommand hands to the ScheduleRunner. | `BusSeamsTest::scheduleRunnerDispatchesTheCommandsDueThisMinute` | — |
 | `Bus\Contract\SignalDispatcherInterface` | gap | No OSS implementation in framework, moodle or wordpress; its docblock points standalone apps to hooks plus async commands, which the demo uses. The proprietary core implements it. | — | — |
 | `Bus\Contract\TransportInterface` | covered | Reached through InMemoryTransport. | `BusTest::directAsyncDispatchIsQueuedNotHandledInline`<br>`EscalationTest::normalTicketDoesNotEscalate`<br>`EscalationTest::urgentTicketEnqueuesSlaEscalationThenDrainWritesInternalComment` | — |
 | `Bus\Contract\UserContextResolverInterface` | host | OSS default SessionUserContextResolver (used by the demo); moodle and wordpress implement their own. | — | — |
 | `Bus\MessageBusFactory` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
 | `Bus\Middleware\ProfilingMiddleware` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
 | `Bus\NullUserContextResolver` | host | OSS default of UserContextResolverInterface; moodle and wordpress implement their own. | — | — |
-| `Bus\Retry\AttemptStamp` | gap | Not exercised by the demo. | — | — |
-| `Bus\Retry\AttemptStoreInterface` | gap | Not exercised by the demo. | — | — |
-| `Bus\Retry\AttemptableInterface` | gap | Not exercised by the demo. | — | — |
-| `Bus\Retry\MultiplierRetryPolicy` | gap | Not exercised by the demo. | — | — |
-| `Bus\Retry\RetryPolicyInterface` | gap | Not exercised by the demo. | — | — |
-| `Bus\Schedule\CronFieldMatcher` | gap | Not exercised by the demo. | — | — |
-| `Bus\Schedule\ScheduleReader` | gap | Not exercised by the demo. | — | — |
-| `Bus\Schedule\ScheduleRunner` | gap | Not exercised by the demo. | — | — |
-| `Bus\Transport\DoctrineTransportFactory` | gap | Not exercised by the demo. | — | — |
+| `Bus\Retry\AttemptStamp` | covered | `tests/BusSeamsTest.php` | `BusSeamsTest::failedCommandIsRecordedThenSucceedsOnTheNextDrain`<br>`BusSeamsTest::exhaustedCommandIsMarkedDead` | — |
+| `Bus\Retry\AttemptStoreInterface` | covered | `src/Bus/SqliteAttemptStore.php` | `BusSeamsTest::failedCommandIsRecordedThenSucceedsOnTheNextDrain`<br>`BusSeamsTest::exhaustedCommandIsMarkedDead` | — |
+| `Bus\Retry\AttemptableInterface` | covered | `src/Bus/CommandAttempt.php` | `BusSeamsTest::failedCommandIsRecordedThenSucceedsOnTheNextDrain` | — |
+| `Bus\Retry\MultiplierRetryPolicy` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `BusSeamsTest::failedCommandIsRecordedThenSucceedsOnTheNextDrain` | — |
+| `Bus\Retry\RetryPolicyInterface` | covered | `src/Console/WorkerConsumeCommand.php` | `BusSeamsTest::failedCommandIsRecordedThenSucceedsOnTheNextDrain` | — |
+| `Bus\Schedule\CronFieldMatcher` | covered | `src/Console/ScheduleRunCommand.php` | `BusSeamsTest::scheduleRunnerDispatchesTheCommandsDueThisMinute` | — |
+| `Bus\Schedule\ScheduleReader` | covered | `src/Console/ScheduleRunCommand.php` | `BusSeamsTest::scheduleRunnerDispatchesTheCommandsDueThisMinute` | — |
+| `Bus\Schedule\ScheduleRunner` | covered | `src/Console/ScheduleRunCommand.php` | `BusSeamsTest::scheduleRunnerDispatchesTheCommandsDueThisMinute` | — |
+| `Bus\Transport\DoctrineTransportFactory` | covered | `tests/RuntimeKernelTest.php` | `RuntimeKernelTest::doctrineTransportCarriesACommandAcrossKernels` | — |
 | `Bus\Transport\InMemoryTransport` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `BusTest::directAsyncDispatchIsQueuedNotHandledInline`<br>`EscalationTest::normalTicketDoesNotEscalate`<br>`EscalationTest::urgentTicketEnqueuesSlaEscalationThenDrainWritesInternalComment` | — |
-| `Bus\Transport\MiddagDoctrineTransport` | gap | Not exercised by the demo. | — | — |
-| `Bus\Transport\TransportLocator` | gap | Not exercised by the demo. | — | — |
+| `Bus\Transport\MiddagDoctrineTransport` | covered | Reached through DoctrineTransportFactory, which builds it over the DBAL connection. | `RuntimeKernelTest::doctrineTransportCarriesACommandAcrossKernels` | — |
+| `Bus\Transport\TransportLocator` | covered | Reached through Runtime\StandaloneKernel::transports(). | `RuntimeKernelTest::syncByDefaultAndAsyncWhenRouted` | — |
 
-### Database — 24 `@api`: 14 covered, 1 host, 9 gap
+### Database — 24 `@api`: 20 covered, 1 host, 3 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
-| `Database\Attribute\Column` | gap | Not exercised by the demo. | — | — |
-| `Database\Attribute\Index` | gap | Not exercised by the demo. | — | — |
-| `Database\Attribute\Key` | gap | Not exercised by the demo. | — | — |
-| `Database\Attribute\Table` | gap | Not exercised by the demo. | — | — |
+| `Database\Attribute\Column` | covered | `src/Schema/CommandAttemptTable.php` | `MailFilesSchemaTest::attemptTableIsDeclaredByAttributeAndInstalled` | — |
+| `Database\Attribute\Index` | covered | `src/Schema/CommandAttemptTable.php` | `MailFilesSchemaTest::attemptTableIsDeclaredByAttributeAndInstalled` | — |
+| `Database\Attribute\Key` | covered | `src/Schema/CommandAttemptTable.php` | `MailFilesSchemaTest::attemptTableIsDeclaredByAttributeAndInstalled` | — |
+| `Database\Attribute\Table` | covered | `src/Schema/CommandAttemptTable.php` | `MailFilesSchemaTest::attemptTableIsDeclaredByAttributeAndInstalled` | — |
 | `Database\Contract\ConnectionAdapterInterface` | covered | `src/Schema/HelpdeskSeeder.php` | `CustomerContractTest::customersRenderAsCardGridWithEmptyStateFallback`<br>`HttpTest::entitiesEndpointServesEntitySource`<br>`KernelContainerTest::containerResolvesFrameworkContractsToOssDefaults` | — |
 | `Database\Contract\ConnectionInterface` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `ExceptionsTest::badSqlThrowsPersistenceException`<br>`KernelContainerTest::containerResolvesFrameworkContractsToOssDefaults`<br>`SchemaTest::migrationRunnerInstallsTablesAndTracksVersion` | — |
 | `Database\Contract\RecordConnectionInterface` | covered | Reached through ConnectionAdapterInterface. | `CustomerContractTest::customersRenderAsCardGridWithEmptyStateFallback`<br>`HttpTest::entitiesEndpointServesEntitySource`<br>`KernelContainerTest::containerResolvesFrameworkContractsToOssDefaults` | — |
@@ -74,13 +74,13 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | `Database\Enum\Capability` | covered | Reached through PdoConnectionAdapter. | `PersistenceTest::paradigmParityActiveRecordWriteDataMapperRead` | — |
 | `Database\MysqlSqlDialect` | gap | MySQL does not run on the demo's SQLite. | — | — |
 | `Database\PdoConnectionAdapter` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
-| `Database\PrefixingSqlDialect` | gap | Not exercised by the demo. | — | — |
+| `Database\PrefixingSqlDialect` | covered | `tests/MailFilesSchemaTest.php` | `MailFilesSchemaTest::prefixedDialectQualifiesEveryTable` | — |
 | `Database\Schema\DbalSchemaBuilderAdapter` | covered | `tests/SchemaTest.php` | `SchemaTest::dbalAdapterTargetsAnotherEngineFromTheSameDescriptor` | — |
 | `Database\Schema\MigrationRunner` | covered | `src/Schema/DemoMigrationRunner.php` | `SchemaTest::migrationRunnerInstallsTablesAndTracksVersion` | — |
 | `Database\Schema\MysqlMigrationRunner` | gap | MySQL does not run on the demo's SQLite. | — | — |
 | `Database\Schema\MysqlSchemaBuilderAdapter` | gap | MySQL does not run on the demo's SQLite. | — | — |
 | `Database\Schema\MysqlVersionTracker` | covered | `src/Console/InstallCommand.php` | `SchemaTest::migrationRunnerInstallsTablesAndTracksVersion` | — |
-| `Database\Schema\SchemaAttributeReader` | gap | Not exercised by the demo. | — | — |
+| `Database\Schema\SchemaAttributeReader` | covered | Reached through SchemaBuilder::registerClass(), which reads CommandAttemptTable with it. | `MailFilesSchemaTest::attemptTableIsDeclaredByAttributeAndInstalled` | — |
 | `Database\Schema\SchemaBuilder` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `SchemaTest::migrationRunnerInstallsTablesAndTracksVersion`<br>`SchemaTest::schemaBuilderLoadsDescriptors` | — |
 | `Database\Schema\SqliteSchemaBuilderAdapter` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
 | `Database\StandardSqlDialect` | covered | Reached through PdoConnectionAdapter. | `SchemaTest::migrationRunnerInstallsTablesAndTracksVersion`<br>`PersistenceTest::dataMapperQueryBuilderPaginatesIntoPage` | — |
@@ -98,13 +98,13 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | `Exception\MiddagPersistenceException` | covered | `tests/ExceptionsTest.php` | `ExceptionsTest::badSqlThrowsPersistenceException`<br>`ExceptionsTest::hierarchyExtendsBaseAndMapsStatusCodes` | — |
 | `Exception\MiddagValidationException` | covered | `tests/ExceptionsTest.php` | `ExceptionsTest::hierarchyExtendsBaseAndMapsStatusCodes`<br>`ExceptionsTest::validationExceptionCarriesFieldErrors`<br>`FrontendContractTest::invalidCreateRedirectsBackWithFlashedErrors` | — |
 
-### Filesystem — 3 `@api`: 0 covered, 0 host, 3 gap
+### Filesystem — 3 `@api`: 2 covered, 0 host, 1 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
-| `Filesystem\Contract\FilesystemInterface` | gap | Not exercised by the demo. | — | — |
+| `Filesystem\Contract\FilesystemInterface` | covered | `src/Mail/TicketCreatedNotifier.php` | `MailFilesSchemaTest::newTicketMailCarriesTheSummaryAsAnAttachment` | — |
 | `Filesystem\FlysystemFilesystem` | gap | The attachment flow proves FilesystemInterface with LocalFilesystem; Flysystem would add a dependency to prove the same contract. | — | — |
-| `Filesystem\LocalFilesystem` | gap | Not exercised by the demo. | — | — |
+| `Filesystem\LocalFilesystem` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `MailFilesSchemaTest::newTicketMailCarriesTheSummaryAsAnAttachment` | — |
 
 ### Form — 7 `@api`: 7 covered, 0 host, 0 gap
 
@@ -223,15 +223,15 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | `Logging\Processor\RedactionProcessor` | covered | Reached through LoggerFactory, which pushes it on every channel logger. | `LoggingSeamsTest::channelLoggerRedactsSecretsFromTheContext` | — |
 | `Logging\Redactor\DefaultSecretRedactor` | covered | `tests/LoggingSeamsTest.php` | `LoggingSeamsTest::channelLoggerRedactsSecretsFromTheContext` | — |
 
-### Mail — 5 `@api`: 0 covered, 1 host, 4 gap
+### Mail — 5 `@api`: 5 covered, 0 host, 0 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
-| `Mail\Address` | gap | Not exercised by the demo. | — | — |
-| `Mail\Attachment` | gap | Not exercised by the demo. | — | — |
-| `Mail\Contract\MailerInterface` | gap | Not exercised by the demo. | — | — |
-| `Mail\Mail` | gap | Not exercised by the demo. | — | — |
-| `Mail\NullMailer` | host | OSS default of MailerInterface; moodle and wordpress implement their own. | — | — |
+| `Mail\Address` | covered | `src/Mail/TicketCreatedNotifier.php` | `MailFilesSchemaTest::newTicketMailCarriesTheSummaryAsAnAttachment` | — |
+| `Mail\Attachment` | covered | `src/Mail/TicketCreatedNotifier.php` | `MailFilesSchemaTest::newTicketMailCarriesTheSummaryAsAnAttachment` | — |
+| `Mail\Contract\MailerInterface` | covered | `src/Mail/CaptureMailer.php` | `MailFilesSchemaTest::newTicketMailCarriesTheSummaryAsAnAttachment` | — |
+| `Mail\Mail` | covered | `src/Mail/TicketCreatedNotifier.php` | `MailFilesSchemaTest::newTicketMailCarriesTheSummaryAsAnAttachment` | — |
+| `Mail\NullMailer` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `MailFilesSchemaTest::newTicketMailCarriesTheSummaryAsAnAttachment` | — |
 
 ### Observability — 5 `@api`: 4 covered, 0 host, 1 gap
 
@@ -275,12 +275,12 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | `Persistence\Repository\AbstractRepository` | covered | `src/Domain/Doctrine/CustomerRepository.php` | `CustomerContractTest::customersRenderAsCardGridWithEmptyStateFallback`<br>`HttpTest::entitiesEndpointServesEntitySource`<br>`KernelContainerTest::serviceProviderAutoDiscoveredDemoServices` | — |
 | `Persistence\SingleConnectionResolver` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
 
-### Runtime — 2 `@api`: 0 covered, 0 host, 2 gap
+### Runtime — 2 `@api`: 2 covered, 0 host, 0 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
-| `Runtime\ServiceMap` | gap | Not exercised by the demo. | — | — |
-| `Runtime\StandaloneKernel` | gap | Not exercised by the demo. | — | — |
+| `Runtime\ServiceMap` | covered | `tests/RuntimeKernelTest.php` | `RuntimeKernelTest::syncByDefaultAndAsyncWhenRouted` | — |
+| `Runtime\StandaloneKernel` | covered | `tests/RuntimeKernelTest.php` | `RuntimeKernelTest::syncByDefaultAndAsyncWhenRouted`<br>`RuntimeKernelTest::doctrineTransportCarriesACommandAcrossKernels` | — |
 
 ### Security — 5 `@api`: 5 covered, 0 host, 0 gap
 
@@ -292,14 +292,14 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | `Security\HmacSignatureVerifier` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `SecurityTest::webhookIsSignedSentAndRetriedOnce`<br>`SecurityTest::base64EncodingSignsTheSamePayloadDifferently` | — |
 | `Security\NativePasswordHasher` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `SecurityTest::seededUserVerifiesThroughThePasswordHasher` | — |
 
-### Shared — 12 `@api`: 11 covered, 0 host, 1 gap
+### Shared — 12 `@api`: 12 covered, 0 host, 0 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
 | `Shared\Attribute\TrustedOutput` | covered | `src/Shortcode/TicketSummary.php` | `ShortcodeTest::trustedOutputAttributeMarksRenderMethod` | — |
 | `Shared\Contract\DtoInterface` | covered | Reached through AbstractDto, which CreatedTicketResource extends. | `HttpSeamsTest::createdTicketCarriesItsVisualReference` | — |
 | `Shared\Dto\AbstractDto` | covered | `src/Http/Dto/CreatedTicketResource.php` | `HttpSeamsTest::createdTicketCarriesItsVisualReference` | — |
-| `Shared\Dto\SyncResult` | gap | Not exercised by the demo. | — | — |
+| `Shared\Dto\SyncResult` | covered | `src/Schema/HelpdeskSeeder.php` | `MailFilesSchemaTest::seedReportsWhatItWroteAsASyncResult` | — |
 | `Shared\Enum\DebugMode` | covered | `bin/debug.php` | `DebugToolsTest::debugScriptReportsEnvironmentTypingAndDebugMode` | — |
 | `Shared\Enum\Operator` | covered | `src/Http/ParityController.php` | `PersistenceTest::paradigmParityActiveRecordWriteDataMapperRead` | — |
 | `Shared\Util\Arr` | covered | `src/Http/TicketController.php` | `TicketContractTest::wizardAdvancesThroughStepsAndCreatesWithMergedData` | — |
@@ -374,7 +374,7 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | `Form\FieldDefinition` | covered | Reached through AbstractField::toDefinition(). | `FormTest::rendersToInertiaProps` | — |
 | `Form\FieldError` | gap | The shapes disagree: the framework flashes each field error as a structured object (message, key, domain, params), while the ui schema types a field error as a string or a list of strings. | — | — |
 | `Form\FieldPropsBase` | covered | Schema-only: the props of every emitted form node are validated against it. | `WireSchemaTest::formPanelNodesMatchFormSchemaNode` | — |
-| `Form\FileValue` | gap | Not exercised by the demo. | — | — |
+| `Form\FileValue` | gap | No upload flow in the demo: the free FileUploadField needs a host upload endpoint, and the file value's pending-upload field is being renamed upstream (draftitemid to uploadToken). | — | — |
 | `Form\FormCondition` | covered | The assignee required_when condition of the ticket form is validated against the definition. | `WireSchemaTest::formPanelNodesMatchFormSchemaNode`<br>`FormTest::conditionalRequiredWhenPriorityHighOrUrgent` | — |
 | `Form\FormErrors` | gap | The shapes disagree: the framework flashes each field error as a structured object (message, key, domain, params), while the ui schema types a field error as a string or a list of strings. | — | — |
 | `Form\FormFieldDocumentMask` | gap | A national document mask has no place in the help-desk domain. | — | — |
@@ -517,6 +517,7 @@ Block, cell, field, layout and shell types the PHP contract emits and the free R
 | `engine:message_bus` | — | sync command dispatch (create/update/transition/comment) |
 | `engine:async_signal` | — | demo.ticket.created -> EscalateSlaCommand on the async transport |
 | `engine:dual_orm_parity` | `/parity` | data-mapper QueryBuilder vs active-record ModelQuery, identical counts |
+| `engine:persistent_bus` | — | Doctrine transport: a command queued by one runtime kernel is drained by another on the same database (RuntimeKernelTest) |
 | `engine:entity_source` | `/tickets/new` | EntitySourceRegistry: demo_customers + demo_agents |
 | `engine:capability_gate` | `/agents` | helpdesk:supervise gates the supervisor columns |
 | `engine:register_host` | `/login` | host registerShell("auth") replaces the package auth shell; host registerCellRenderer("sparkline") and ("tag_chips") add cells |
@@ -529,7 +530,6 @@ Block, cell, field, layout and shell types the PHP contract emits and the free R
 | `field:duration` | emittable via FieldDefinition::duration() but no free React field renderer (would hit "Unknown field component") |
 | `field:otp_slider_native_select_tags` | React-renderable but no FieldDefinition factory method |
 | `field:currency_rating_slug_color_phone_document` | React-renderable but absent from the PHP FieldType enum entirely |
-| `transport:persistent_bus` | only InMemoryTransport ships; bus-routed async cannot cross processes (the demo uses the in-memory worker, not a cross-process outbox) |
 
 ## Out of scope
 

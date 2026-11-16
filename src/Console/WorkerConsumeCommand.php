@@ -12,10 +12,18 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Console;
 
+use Middag\Demo\Standalone\Bus\FileWorkerHeartbeat;
+use Middag\Demo\Standalone\Bus\SqliteAttemptStore;
 use Middag\Demo\Standalone\Command\EscalateSlaCommand;
+use Middag\Demo\Standalone\Kernel\Bootstrap\DemoBootstrap;
 use Middag\Framework\Bus\Command\CommandWorker;
+use Middag\Framework\Bus\Command\WorkerLimits;
 use Middag\Framework\Bus\Contract\MessageBusInterface;
+use Middag\Framework\Bus\Retry\RetryPolicyInterface as BusRetryPolicyInterface;
+use Middag\Framework\Bus\Transport\InMemoryTransport;
+use Middag\Framework\Kernel\ShutdownCleanup;
 use Psr\Container\ContainerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -45,7 +53,10 @@ final class WorkerConsumeCommand extends Command
     {
         $this->setName('worker:consume')
             ->setDescription('Drain async commands from the in-memory transport (symfony/lock guarded)')
-            ->addOption('seed', null, InputOption::VALUE_REQUIRED, 'Enqueue N sample async commands first', '0');
+            ->addOption('seed', null, InputOption::VALUE_REQUIRED, 'Enqueue N sample async commands first', '0')
+            ->addOption('limit', null, InputOption::VALUE_REQUIRED, 'Stop after handling N commands')
+            ->addOption('time-limit', null, InputOption::VALUE_REQUIRED, 'Stop after N seconds')
+            ->addOption('memory-limit', null, InputOption::VALUE_REQUIRED, 'Stop above this memory use (e.g. 128M)');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -69,8 +80,27 @@ final class WorkerConsumeCommand extends Command
                 $output->writeln(sprintf('<info>seeded %d async command(s)</info>', $seed));
             }
 
-            /** @var CommandWorker $worker */
-            $worker = $this->container->get(CommandWorker::class);
+            $heartbeat = $this->container->get(FileWorkerHeartbeat::class);
+            // The heartbeat file says a worker is alive; remove it when the
+            // process ends, however it ends.
+            $cleanup = new ShutdownCleanup($this->container->get(LoggerInterface::class));
+            $cleanup->addCleanup($heartbeat->clear(...), 'worker heartbeat');
+            $cleanup->register();
+
+            $worker = new CommandWorker(
+                $this->container->get(InMemoryTransport::class),
+                $this->container->get(MessageBusInterface::class),
+                DemoBootstrap::ASYNC_TRANSPORT,
+                $this->container->get(BusRetryPolicyInterface::class),
+                $this->container->get(SqliteAttemptStore::class),
+                $heartbeat,
+                $this->container->get(LoggerInterface::class),
+                WorkerLimits::fromCliOptions(
+                    $this->intOption($input, 'limit'),
+                    $this->intOption($input, 'time-limit'),
+                    \is_string($input->getOption('memory-limit')) ? $input->getOption('memory-limit') : null,
+                ),
+            );
             $drained = $worker->drain();
 
             $output->writeln(sprintf('<info>drained %d command(s)</info>', $drained));
@@ -79,5 +109,12 @@ final class WorkerConsumeCommand extends Command
         }
 
         return Command::SUCCESS;
+    }
+
+    private function intOption(InputInterface $input, string $name): ?int
+    {
+        $value = $input->getOption($name);
+
+        return is_numeric($value) ? (int) $value : null;
     }
 }

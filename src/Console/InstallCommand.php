@@ -80,8 +80,12 @@ final class InstallCommand extends Command
         // tickets/comments (active-record). Idempotent.
         /** @var ConnectionAdapterInterface $connAdapter */
         $connAdapter = $this->container->get(ConnectionAdapterInterface::class);
-        HelpdeskSeeder::seed($connAdapter);
-        $output->writeln('<info>help-desk:</info> agents + customers + SLA + tickets + comments seeded');
+        $seeded = HelpdeskSeeder::seed($connAdapter);
+        $output->writeln(sprintf(
+            '<info>help-desk:</info> %d ticket(s) seeded with agents, customers, SLA and comments%s',
+            $seeded->successCount,
+            $seeded->isFullSuccess() ? '' : sprintf(' (%d failed)', $seeded->failureCount),
+        ));
 
         return Command::SUCCESS;
     }

@@ -10,6 +10,7 @@ use Middag\Demo\Standalone\Console\DebugRequestCommand;
 use Middag\Demo\Standalone\Console\InstallCommand;
 use Middag\Demo\Standalone\Console\LogsCleanCommand;
 use Middag\Demo\Standalone\Console\MigrateDiscoverCommand;
+use Middag\Demo\Standalone\Console\ScheduleRunCommand;
 use Middag\Demo\Standalone\Console\WorkerConsumeCommand;
 use Symfony\Component\Console\Application;
 
@@ -22,6 +23,7 @@ $app->addCommands([
     new InstallCommand($container),
     new MigrateDiscoverCommand($projectRoot),
     new WorkerConsumeCommand($container),
+    new ScheduleRunCommand($container),
     new LogsCleanCommand($container),
     new DebugRequestCommand($container),
 ]);
