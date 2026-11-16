@@ -106,4 +106,29 @@ abstract class DemoTestCase extends TestCase
     {
         return (array) json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
     }
+
+    /**
+     * The field nodes of a rendered form schema, flattened out of the section and
+     * group nodes that hold them, in document order.
+     *
+     * @param array<int, mixed> $schema
+     *
+     * @return list<array<string, mixed>>
+     */
+    protected static function fieldNodes(array $schema): array
+    {
+        $fields = [];
+        foreach ($schema as $node) {
+            if (!is_array($node)) {
+                continue;
+            }
+            if (is_array($node['children'] ?? null)) {
+                $fields = [...$fields, ...self::fieldNodes($node['children'])];
+            } elseif (($node['kind'] ?? null) === 'field') {
+                $fields[] = $node;
+            }
+        }
+
+        return $fields;
+    }
 }

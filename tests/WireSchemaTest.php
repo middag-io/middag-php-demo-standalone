@@ -106,11 +106,14 @@ final class WireSchemaTest extends DemoTestCase
             $this->assertValid($node, self::SCHEMA_ID . '#/$defs/FormSchemaNode', 'form node ' . ($node['key'] ?? '?'));
         }
 
-        $components = array_column($nodes, 'component');
+        $kinds = array_column($nodes, 'kind');
+        self::assertContains('section', $kinds, 'the ticket form is laid out in sections');
+        $fields = self::fieldNodes($nodes);
+        $components = array_column($fields, 'component');
         self::assertContains('select', $components, 'option fields (OptionFieldProps) are covered');
         self::assertContains('entity_picker', $components);
-        self::assertNotEmpty(array_filter($nodes, static fn (array $node): bool => isset($node['props']['validation'])), 'FormFieldValidation is covered');
-        self::assertNotEmpty(array_filter($nodes, static fn (array $node): bool => isset($node['props']['required_when']) || isset($node['props']['visible_when'])), 'FormCondition is covered');
+        self::assertNotEmpty(array_filter($fields, static fn (array $node): bool => isset($node['props']['validation'])), 'FormFieldValidation is covered');
+        self::assertNotEmpty(array_filter($fields, static fn (array $node): bool => isset($node['props']['required_when']) || isset($node['props']['visible_when'])), 'FormCondition is covered');
     }
 
     #[Test]
