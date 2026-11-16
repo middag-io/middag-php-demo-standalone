@@ -38,7 +38,7 @@ final class ParityContractTest extends DemoTestCase
         self::assertSame('Page', $payload['component']);
         $blocks = $payload['props']['contract']['layout']['regions']['content'] ?? [];
 
-        // tabbed_panel groups the two read paths.
+        // tabs groups the two read paths.
         $sources = $this->blockByKey($blocks, 'sources');
         self::assertNotNull($sources);
         self::assertSame('tabs', $sources['type']);

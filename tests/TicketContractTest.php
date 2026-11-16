@@ -13,7 +13,8 @@ declare(strict_types=1);
 namespace Middag\Demo\Standalone\Tests;
 
 use Middag\Demo\Standalone\Command\CreateTicketCommand;
-use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
+use Middag\Demo\Standalone\Domain\Ticket;
+use Middag\Demo\Standalone\Http\TicketQueueQuery;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Bus\Contract\MessageBusInterface;
 use PHPUnit\Framework\Attributes\CoversNothing;
@@ -56,22 +57,23 @@ final class TicketContractTest extends DemoTestCase
     }
 
     #[Test]
-    public function showRendersWorkflowProgressAndTabbedDetailActivitySla(): void
+    public function showRendersStatusLifecycleAndTabbedDetailActivitySla(): void
     {
         $id = $this->createTicket('Cannot reset password');
 
         $blocks = $this->contentBlocks('/tickets/' . $id);
 
-        // workflow_progress (generic block escape hatch) reflects the ticket state.
+        // status_strip reflects the ticket's place in the status lifecycle.
         $state = $this->blockByKey($blocks, 'state');
-        self::assertNotNull($state, 'ticket detail must contain the workflow_progress block');
-        self::assertSame('workflow_progress', $state['type']);
-        self::assertSame('new', $state['data']['currentState'] ?? null);
-        self::assertNotEmpty($state['data']['states'] ?? [], 'workflow states populated');
+        self::assertNotNull($state, 'ticket detail must contain the status_strip block');
+        self::assertSame('status_strip', $state['type']);
+        $values = array_column($state['data']['items'] ?? [], 'value', 'key');
+        self::assertSame('Current', $values['new'] ?? null, 'a new ticket is at the first state');
+        self::assertSame('Pending', $values['closed'] ?? null);
 
-        // tabbed_panel (wire type `tabs`) groups the detail/activity/sla blocks.
+        // tabs groups the detail/activity/sla blocks.
         $tabs = $this->blockByKey($blocks, 'tabs');
-        self::assertNotNull($tabs, 'ticket detail must contain the tabbed_panel (tabs) block');
+        self::assertNotNull($tabs, 'ticket detail must contain the tabs block');
         self::assertSame('tabs', $tabs['type']);
 
         $nested = $this->tabsNestedBlocks($tabs);
@@ -224,6 +226,64 @@ final class TicketContractTest extends DemoTestCase
             self::assertArrayHasKey('data', $payload);
             self::assertIsArray($payload['data']);
         }
+    }
+
+    #[Test]
+    public function queueFiltersSortsAndPaginatesOnTheServer(): void
+    {
+        $this->createTicket('Printer jam', 'urgent');
+        $this->createTicket('Password reset', 'normal');
+        $this->createTicket('Projector cable', 'normal');
+
+        $first = $this->blockByKey($this->contentBlocks('/tickets?filter[priority]=normal&sort=subject&direction=asc&per_page=1'), 'tickets');
+        self::assertNotNull($first);
+        self::assertSame(['page' => 1, 'perPage' => 1, 'total' => 2, 'lastPage' => 2], $first['data']['pagination']);
+        self::assertSame(['column' => 'subject', 'direction' => 'asc'], $first['data']['sort']);
+        self::assertSame(['priority' => 'normal'], $first['data']['filters']['applied']);
+        self::assertSame(['status', 'priority'], array_column($first['data']['filters']['available'], 'key'));
+        self::assertSame('select', $first['data']['filters']['available'][0]['type']);
+        self::assertSame(['Password reset'], array_column($first['data']['rows'], 'subject'));
+        self::assertSame('contract', $first['meta']['partialReloadKey'] ?? null);
+
+        $second = $this->blockByKey($this->contentBlocks('/tickets?filter[priority]=normal&sort=subject&direction=asc&per_page=1&page=2'), 'tickets');
+        self::assertNotNull($second);
+        self::assertSame(['Projector cable'], array_column($second['data']['rows'], 'subject'));
+
+        // The metric cards still count the whole queue, not the page.
+        $total = $this->blockByKey($this->contentBlocks('/tickets?filter[priority]=normal&per_page=1'), 'total');
+        self::assertSame(3, $total['data']['value'] ?? null);
+    }
+
+    #[Test]
+    public function queueSearchesAndIgnoresParametersOutsideItsLists(): void
+    {
+        $this->createTicket('Printer jam');
+        $this->createTicket('Password reset');
+
+        $table = $this->blockByKey($this->contentBlocks('/tickets?search=printer&sort=password_hash&direction=sideways&per_page=999&page=x&filter[status]=deleted&filter[secret]=1'), 'tickets');
+        self::assertNotNull($table);
+        self::assertSame(['Printer jam'], array_column($table['data']['rows'], 'subject'));
+        self::assertSame(['column' => 'created', 'direction' => 'desc'], $table['data']['sort']);
+        self::assertSame(['page' => 1, 'perPage' => TicketQueueQuery::MAX_PER_PAGE, 'total' => 1, 'lastPage' => 1], $table['data']['pagination']);
+        self::assertSame([], $table['data']['filters']['applied']);
+    }
+
+    #[Test]
+    public function queuePartialReloadOfTheContractReturnsTheNewPage(): void
+    {
+        $this->createTicket('Printer jam');
+        $this->createTicket('Password reset');
+
+        $payload = $this->json($this->handle('GET', '/tickets?per_page=1&page=2&sort=subject&direction=asc', [], [
+            'HTTP_X_INERTIA' => 'true',
+            'HTTP_X_INERTIA_PARTIAL_COMPONENT' => 'Page',
+            'HTTP_X_INERTIA_PARTIAL_DATA' => 'contract',
+        ]));
+
+        $content = $payload['props']['contract']['layout']['regions']['content'] ?? [];
+        $table = $this->blockByKey($content, 'tickets');
+        self::assertNotNull($table, 'the partial reload of `contract` carries the table');
+        self::assertSame(['Printer jam'], array_column($table['data']['rows'], 'subject'));
     }
 
     private function createTicket(string $subject, string $priority = 'normal'): int

@@ -14,7 +14,7 @@ namespace Middag\Demo\Standalone\Http;
 
 use Middag\Demo\Standalone\Domain\Doctrine\Customer;
 use Middag\Demo\Standalone\Domain\Doctrine\CustomerRepository;
-use Middag\Demo\Standalone\Http\Concern\RendersPages;
+use Middag\Demo\Standalone\Shared\Concerns\RendersPages;
 use Middag\Framework\Http\Attribute\Auth;
 use Middag\Framework\Http\Controller\AbstractController;
 use Middag\Ui\Page\PageBuilder;
@@ -41,6 +41,7 @@ final class CustomerController extends AbstractController
     public function index(): Response
     {
         $customers = $this->customers->latest();
+        $withOpenTickets = \count($this->customers->withOpenTickets());
 
         $rows = array_map(
             static function (Customer $c): array {
@@ -68,8 +69,9 @@ final class CustomerController extends AbstractController
             ->layout('stack')
             ->title('Customers')
             ->subtitle('Reporters — data-mapper read rendered as a card_grid')
-            ->region('content', function (RegionBuilder $region) use ($columns, $rows): void {
+            ->region('content', function (RegionBuilder $region) use ($columns, $rows, $withOpenTickets): void {
                 $region->metricCard('customer_count', count($rows), 'Customers', icon: 'building');
+                $region->metricCard('with_open_tickets', $withOpenTickets, 'With open tickets', icon: 'inbox');
                 $region->cardGrid('customers', $columns, $rows, null, [
                     'emptyState' => [
                         'icon' => 'building',

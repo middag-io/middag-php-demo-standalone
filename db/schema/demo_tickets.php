@@ -6,13 +6,14 @@ declare(strict_types=1);
  * Schema descriptor for the Active-Record `demo_tickets` table (help-desk demo).
  *
  * The central entity: a support ticket. Reached the Eloquent way via
- * {@see \Middag\Demo\Standalone\Domain\Eloquent\Ticket}. Relates to
+ * {@see \Middag\Demo\Standalone\Domain\Ticket}. Relates to
  * demo_customers (reporter), demo_agents (assignee) and demo_sla_policies.
  */
 return [
     'name' => 'demo_tickets',
     'columns' => [
         ['name' => 'id', 'type' => 'bigint', 'notnull' => true, 'sequence' => true],
+        ['name' => 'ref', 'type' => 'varchar', 'length' => 36, 'notnull' => false],
         ['name' => 'subject', 'type' => 'varchar', 'length' => 200, 'notnull' => true],
         ['name' => 'body', 'type' => 'text', 'notnull' => false],
         ['name' => 'status', 'type' => 'varchar', 'length' => 20, 'notnull' => true, 'default' => 'new'],

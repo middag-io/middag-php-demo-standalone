@@ -23,8 +23,11 @@ test.describe('ticket lifecycle', () => {
   test('edits a seeded ticket and persists the change', async ({ page }) => {
     const subject = `E2E edited ${Date.now()}`;
 
-    await page.goto('/tickets/1/edit');
-    await expect(page.getByText(/Edit ticket #1/i)).toBeVisible();
+    // Ticket #3 is open and assigned. The seeded #1 is urgent and unassigned, so
+    // the renderer blocks its save client-side on
+    // the assignee required_when rule.
+    await page.goto('/tickets/3/edit');
+    await expect(page.getByText(/Edit ticket #3/i)).toBeVisible();
 
     const subjectField = page.getByLabel(/^subject/i);
     await subjectField.fill(subject);

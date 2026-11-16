@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Http;
 
-use Middag\Demo\Standalone\Http\Concern\RendersPages;
+use Middag\Demo\Standalone\Shared\Concerns\RendersPages;
 use Middag\Framework\Http\Attribute\Auth;
 use Middag\Framework\Http\Controller\AbstractController;
 use Middag\Ui\Page\PageBuilder;
@@ -24,7 +24,7 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * The demo becomes its own surface spec: a markdown summary (covered symbols by
  * kind + the gap count), a dense_table mapping every covered symbol to its proof
- * route, and a dense_table of the catalogued gaps. Reads src/Coverage/manifest.php,
+ * route, and a dense_table of the catalogued gaps. Reads coverage/manifest.php,
  * so the live page and the CI test can never disagree.
  */
 #[Auth(login: true)]
@@ -32,7 +32,7 @@ final class CoverageController extends AbstractController
 {
     use RendersPages;
 
-    public const MANIFEST = __DIR__ . '/../Coverage/manifest.php';
+    public const string MANIFEST = __DIR__ . '/../../coverage/manifest.php';
 
     public function index(): Response
     {

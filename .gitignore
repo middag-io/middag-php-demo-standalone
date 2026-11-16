@@ -114,10 +114,15 @@ coverage/
 .nyc_output/
 *.tsbuildinfo
 # The `coverage/` pattern above (phpunit/nyc report output) also matches the
-# source dir src/Coverage/ on case-insensitive filesystems — keep the tracked
-# coverage manifest source.
-!/src/Coverage/
-!/src/Coverage/**
+# root coverage/ directory, which holds the tracked coverage manifest: keep the
+# manifest and ignore anything else written there.
+!/coverage/
+/coverage/*
+!/coverage/manifest.php
+!/coverage/api.php
+# Same pattern, same case-insensitive match: tests/Coverage/ holds the coverage
+# tooling (inventory scanner and COVERAGE.md renderer).
+!/tests/Coverage/
 
 # -----------------------------------------------------------------------------
 # Builds e artefatos de distribuição
@@ -125,7 +130,6 @@ coverage/
 /build/
 /dist/
 /public/build/
-/coverage/
 /artifacts/
 /release/
 /releases/

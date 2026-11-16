@@ -35,6 +35,10 @@
                                 "method": "post",
                                 "schema": [
                                     {
+                                        "kind": "header",
+                                        "label": "Demo operator sign-in"
+                                    },
+                                    {
                                         "kind": "field",
                                         "key": "email",
                                         "component": "email",
@@ -65,6 +69,14 @@
                         }
                     ]
                 }
+            },
+            "resources": {
+                "preferences": {
+                    "theme": "system",
+                    "locale": "en"
+                },
+                "capabilities": [],
+                "featureFlags": []
             }
         }
     },

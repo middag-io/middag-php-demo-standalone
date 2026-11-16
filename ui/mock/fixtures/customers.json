@@ -7,7 +7,8 @@
             "email": "demo@middag.io",
             "capabilities": [
                 "helpdesk:supervise"
-            ]
+            ],
+            "logoutUrl": "/logout"
         },
         "navigation": {
             "tree": [
@@ -15,50 +16,44 @@
                     "key": "dashboard",
                     "label": "Dashboard",
                     "icon": "layout-dashboard",
-                    "href": "/",
-                    "children": []
+                    "href": "/"
                 },
                 {
                     "key": "tickets",
                     "label": "Tickets",
                     "icon": "inbox",
-                    "href": "/tickets",
-                    "children": []
+                    "href": "/tickets"
                 },
                 {
                     "key": "agents",
                     "label": "Agents",
                     "icon": "users",
-                    "href": "/agents",
-                    "children": []
+                    "href": "/agents"
                 },
                 {
                     "key": "customers",
                     "label": "Customers",
                     "icon": "building",
                     "href": "/customers",
-                    "children": []
+                    "active": true
                 },
                 {
                     "key": "parity",
                     "label": "Dual-ORM parity",
                     "icon": "columns",
-                    "href": "/parity",
-                    "children": []
+                    "href": "/parity"
                 },
                 {
                     "key": "coverage",
                     "label": "Coverage",
                     "icon": "shield-check",
-                    "href": "/coverage",
-                    "children": []
+                    "href": "/coverage"
                 },
                 {
                     "key": "help",
                     "label": "Help",
                     "icon": "help-circle",
-                    "href": "/help",
-                    "children": []
+                    "href": "/help"
                 }
             ],
             "activeKey": "customers",
@@ -91,6 +86,15 @@
                                 "value": 6,
                                 "label": "Customers",
                                 "icon": "building"
+                            }
+                        },
+                        {
+                            "type": "metric_card",
+                            "key": "with_open_tickets",
+                            "data": {
+                                "value": 6,
+                                "label": "With open tickets",
+                                "icon": "inbox"
                             }
                         },
                         {
@@ -167,6 +171,21 @@
                             }
                         }
                     ]
+                }
+            },
+            "resources": {
+                "preferences": {
+                    "theme": "system",
+                    "locale": "en"
+                },
+                "capabilities": {
+                    "helpdesk:supervise": true
+                },
+                "featureFlags": [],
+                "user": {
+                    "id": "1",
+                    "name": "Demo User",
+                    "email": "demo@middag.io"
                 }
             }
         }

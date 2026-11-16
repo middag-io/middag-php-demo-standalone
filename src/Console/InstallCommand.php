@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Console;
 
-use Middag\Demo\Standalone\Domain\Eloquent\User;
+use Middag\Demo\Standalone\Domain\User;
 use Middag\Demo\Standalone\Schema\DemoMigrationRunner;
 use Middag\Demo\Standalone\Schema\HelpdeskSeeder;
 use Middag\Framework\Database\Contract\ConnectionAdapterInterface;
@@ -20,6 +20,7 @@ use Middag\Framework\Database\Contract\ConnectionInterface;
 use Middag\Framework\Database\Contract\SchemaBuilderAdapterInterface;
 use Middag\Framework\Database\Schema\MysqlVersionTracker;
 use Middag\Framework\Database\Schema\SchemaBuilder;
+use Middag\Framework\Security\Contract\PasswordHasherInterface;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -68,7 +69,7 @@ final class InstallCommand extends Command
         $output->writeln(sprintf('<info>version:</info> %d -> %d', $old, DemoMigrationRunner::VERSION));
 
         // Seed the demo login user (app-owned user store; auth session is framework-side).
-        User::seedDemo();
+        User::seedDemo($this->container->get(PasswordHasherInterface::class));
         $output->writeln(sprintf(
             '<info>demo user:</info> %s / %s',
             User::DEMO_EMAIL,
@@ -79,8 +80,12 @@ final class InstallCommand extends Command
         // tickets/comments (active-record). Idempotent.
         /** @var ConnectionAdapterInterface $connAdapter */
         $connAdapter = $this->container->get(ConnectionAdapterInterface::class);
-        HelpdeskSeeder::seed($connAdapter);
-        $output->writeln('<info>help-desk:</info> agents + customers + SLA + tickets + comments seeded');
+        $seeded = HelpdeskSeeder::seed($connAdapter);
+        $output->writeln(sprintf(
+            '<info>help-desk:</info> %d ticket(s) seeded with agents, customers, SLA and comments%s',
+            $seeded->successCount,
+            $seeded->isFullSuccess() ? '' : sprintf(' (%d failed)', $seeded->failureCount),
+        ));
 
         return Command::SUCCESS;
     }

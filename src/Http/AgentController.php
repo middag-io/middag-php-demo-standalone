@@ -14,15 +14,22 @@ namespace Middag\Demo\Standalone\Http;
 
 use Middag\Demo\Standalone\Domain\Doctrine\Agent;
 use Middag\Demo\Standalone\Domain\Doctrine\AgentRepository;
-use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
-use Middag\Demo\Standalone\Http\Concern\RendersPages;
+use Middag\Demo\Standalone\Domain\Ticket;
+use Middag\Demo\Standalone\Security\SuperviseCapability;
+use Middag\Demo\Standalone\Shared\Concerns\RendersPages;
 use Middag\Framework\Exception\MiddagNotFoundException;
 use Middag\Framework\Http\Attribute\Auth;
+use Middag\Framework\Http\Auth\CapabilityRequirement;
 use Middag\Framework\Http\Contract\AuthenticatorInterface;
+use Middag\Framework\Http\Contract\CapabilityDefinitionInterface;
+use Middag\Framework\Http\Contract\CapabilityRequirementAwareInterface;
 use Middag\Framework\Http\Controller\AbstractController;
 use Middag\Framework\Persistence\Contract\EntityInterface;
 use Middag\Ui\Page\PageBuilder;
 use Middag\Ui\Region\RegionBuilder;
+use Middag\Ui\Shared\Enum\ColumnVariant;
+use Middag\Ui\Table\Column;
+use Middag\Ui\Table\TableBuilder;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -37,10 +44,13 @@ use Symfony\Component\HttpFoundation\Response;
  * `/agents/{id}` is the detail page: a detail_panel (agent fields), a metric_card
  * (open-workload aggregate) and a link_list (the agent's open tickets).
  */
-#[Auth(login: true)]
-final class AgentController extends AbstractController
+#[Auth(login: true, requirements: [SuperviseCapability::class])]
+final class AgentController extends AbstractController implements CapabilityRequirementAwareInterface
 {
     use RendersPages;
+
+    /** @var list<CapabilityRequirement> */
+    private array $requirements = [];
 
     public function __construct(
         private readonly AgentRepository $agents,
@@ -75,10 +85,17 @@ final class AgentController extends AbstractController
         );
 
         // Base columns everyone sees; supervisors additionally see contact + load.
+        // The typed table vocabulary: TableBuilder for the plain sortable name,
+        // Column with a ColumnVariant for the cells. Columns that carry keys the
+        // Column value object does not model (a link href) or a host-registered
+        // cell (sparkline) stay plain arrays.
         $columns = [
-            ['key' => 'name', 'label' => 'Name'],
-            ['key' => 'role', 'label' => 'Role', 'variant' => 'badge'],
-            ['key' => 'active', 'label' => 'Active', 'variant' => 'boolean'],
+            ...array_map(
+                static fn (Column $column): array => $column->jsonSerialize(),
+                TableBuilder::make()->column('name', 'Name', ['sortable' => true])->build()->columns,
+            ),
+            (new Column(key: 'role', label: 'Role', variant: ColumnVariant::Badge))->jsonSerialize(),
+            (new Column(key: 'active', label: 'Active', variant: ColumnVariant::Boolean))->jsonSerialize(),
         ];
         if ($canSupervise) {
             // Contact + load + activity, supervisor-only. The cell showcase that the
@@ -86,8 +103,8 @@ final class AgentController extends AbstractController
             // interpolates {email} from the row), availability → server-controlled
             // `html` cell, workload → `progress`, intake → the custom `sparkline` cell.
             $columns[] = ['key' => 'email', 'label' => 'Email', 'variant' => 'link', 'href' => 'mailto:{email}'];
-            $columns[] = ['key' => 'availability', 'label' => 'Availability', 'variant' => 'html'];
-            $columns[] = ['key' => 'workload', 'label' => 'Open load', 'variant' => 'progress'];
+            $columns[] = (new Column(key: 'availability', label: 'Availability', variant: ColumnVariant::Html))->jsonSerialize();
+            $columns[] = (new Column(key: 'workload', label: 'Open load', variant: ColumnVariant::Progress))->jsonSerialize();
             $columns[] = ['key' => 'intake', 'label' => '7-day intake', 'variant' => 'sparkline'];
         }
 
@@ -172,6 +189,21 @@ final class AgentController extends AbstractController
         return $this->page($contract);
     }
 
+    /**
+     * The kernel forwards the rich #[Auth] requirements here (standalone, the
+     * framework enforces only the login; capability enforcement belongs to the
+     * host). The demo uses them to gate the supervisor view.
+     *
+     * @param list<CapabilityRequirement> $requirements
+     */
+    public function setRequireCapabilityRequirements(array $requirements): void
+    {
+        $this->requirements = $requirements;
+    }
+
+    /**
+     * True when the session user holds every capability the requirements name.
+     */
     private function canSupervise(): bool
     {
         $record = $this->auth->user();
@@ -179,7 +211,36 @@ final class AgentController extends AbstractController
             ? $record['attributes']['capabilities']
             : [];
 
-        return in_array('helpdesk:supervise', $caps, true);
+        if ($this->requirements === []) {
+            return false;
+        }
+
+        foreach ($this->requirements as $requirement) {
+            if (!in_array($this->capabilityKey($requirement), $caps, true)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * The capability key of a requirement: the reference when the requirement
+     * carries one, otherwise the reference of its definition (a requirement
+     * declared by class name is resolved here, as an adapter would).
+     */
+    private function capabilityKey(CapabilityRequirement $requirement): ?string
+    {
+        if ($requirement->key() !== null) {
+            return $requirement->key();
+        }
+
+        $definition = $requirement->definition;
+        if (!$definition instanceof CapabilityDefinitionInterface && $requirement->definitionClass !== null && is_a($requirement->definitionClass, CapabilityDefinitionInterface::class, true)) {
+            $definition = new ($requirement->definitionClass)();
+        }
+
+        return $definition?->capabilityReference()->key;
     }
 
     /**

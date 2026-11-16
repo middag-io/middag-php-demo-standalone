@@ -14,9 +14,10 @@ namespace Middag\Demo\Standalone\Http;
 
 use Middag\Demo\Standalone\Domain\Doctrine\AgentRepository;
 use Middag\Demo\Standalone\Domain\Doctrine\CustomerRepository;
-use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
-use Middag\Demo\Standalone\Http\Concern\MapsEntityLabels;
-use Middag\Demo\Standalone\Http\Concern\RendersPages;
+use Middag\Demo\Standalone\Domain\ModuleHealthService;
+use Middag\Demo\Standalone\Domain\Ticket;
+use Middag\Demo\Standalone\Shared\Concerns\MapsEntityLabels;
+use Middag\Demo\Standalone\Shared\Concerns\RendersPages;
 use Middag\Framework\Http\Attribute\Auth;
 use Middag\Framework\Http\Controller\AbstractController;
 use Middag\Ui\Block\ChartSeries;
@@ -33,9 +34,8 @@ use Symfony\Component\HttpFoundation\Response;
  * data-mapper way (dual-ORM in one request), then emits the four dashboard-only
  * surfaces: four metric_cards, a status_strip (SLA health, with the auto-derived
  * health-score ring via the generic block() escape hatch), a hand-built
- * `variant`-keyed dense_table of the open queue, and the custom free `chart` block
- * (a ticket-creation trend rendered host-side as inline SVG — registered in
- * ui/src/app/register.ts since React free ships no `chart`).
+ * `variant`-keyed dense_table of the open queue, and a `chart` block (the
+ * ticket-creation trend, rendered by the free ChartBlock).
  */
 #[Auth(login: true)]
 final class DashboardController extends AbstractController
@@ -47,6 +47,7 @@ final class DashboardController extends AbstractController
     public function __construct(
         private readonly CustomerRepository $customers,
         private readonly AgentRepository $agents,
+        private readonly ModuleHealthService $moduleHealth,
     ) {}
 
     public function index(): Response
@@ -104,7 +105,9 @@ final class DashboardController extends AbstractController
 
         $trend = $this->createdTrend($tickets, 14);
 
-        $contract = PageBuilder::page('demo.dashboard')
+        $isolated = $this->moduleHealth->isolatedModules();
+
+        $page = PageBuilder::page('demo.dashboard')
             ->shell('basic')
             ->layout('dashboard')
             ->title('Help-desk dashboard')
@@ -112,7 +115,10 @@ final class DashboardController extends AbstractController
             // metrics region: the dashboard layout grids these as a StatRow (4-up),
             // unwrapped — content blocks instead get a per-block Card. Keeping the
             // metric_cards out of `content` is what stops the double-card wrap.
-            ->region('metrics', function (RegionBuilder $region) use ($total, $open, $highUrgent, $avgCsat): void {
+            ->region('metrics', function (RegionBuilder $region) use ($total, $open, $highUrgent, $avgCsat, $isolated): void {
+                if ($isolated !== []) {
+                    $region->metricCard('isolated_modules', count($isolated), 'Isolated modules', icon: 'triangle-alert');
+                }
                 $region->metricCard('total', $total, 'Total tickets', icon: 'inbox');
                 $region->metricCard('open', count($open), 'Open', icon: 'folder-open');
                 $region->metricCard('urgent', $highUrgent, 'High / urgent open', icon: 'flame');
@@ -122,7 +128,7 @@ final class DashboardController extends AbstractController
                 // status_strip with the score ring → generic block() (no typed score arg).
                 $region->block('status_strip', 'sla_health', ['items' => $strip, 'score' => $score]);
 
-                // custom free chart block — inline-SVG trend, registered host-side.
+                // chart block — the trend, rendered by the free ChartBlock.
                 $region->chart('trend', ChartType::Bar, [new ChartSeries('created', 'Created')], 'date', $trend);
 
                 $region->denseTable('open_tickets', [
@@ -133,8 +139,14 @@ final class DashboardController extends AbstractController
                     ['key' => 'agent', 'label' => 'Assignee'],
                     ['key' => 'created', 'label' => 'Created', 'variant' => 'timestamp'],
                 ], $rows, ['rowHref' => '/tickets/{id}'], ['clientSide' => true]);
-            })
-            ->build();
+            });
+
+        // Modules the boot failure policy isolated (only in fault mode) surface
+        // as a warning notification instead of breaking the page.
+        foreach ($isolated as $name) {
+            $page->notifyWarning(sprintf('The %s module failed to boot and was isolated.', $name), 'Module isolated');
+        }
+        $contract = $page->build();
 
         return $this->page($contract);
     }

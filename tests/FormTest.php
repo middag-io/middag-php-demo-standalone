@@ -14,16 +14,15 @@ namespace Middag\Demo\Standalone\Tests;
 
 use Middag\Demo\Standalone\Form\TicketForm;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
-use Middag\Framework\Form\Renderer\InertiaFieldMapper;
-use Middag\Framework\Form\Renderer\InertiaRenderer;
+use Middag\Framework\Form\Renderer\RendererRegistry;
 use Middag\Ui\Shared\Enum\RenderTarget;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Form engine over the ticket form: AbstractForm + Field factory across types,
- * FormValidator (required + the IN-operator conditional), and rendering to the
- * canonical @middag-io/react FormFieldNode via InertiaRenderer.
+ * FormValidatorInterface (required + the IN-operator conditional), and rendering
+ * to the canonical @middag-io/react FormFieldNode through the renderer registry.
  *
  * Extends DemoTestCase (not bare TestCase) because TicketForm reads SLA options
  * the data-mapper way in schema() — it needs the container's DB connection (the
@@ -75,7 +74,9 @@ final class FormTest extends DemoTestCase
     #[Test]
     public function rendersToInertiaProps(): void
     {
-        $output = (new InertiaRenderer(new InertiaFieldMapper()))->render($this->form());
+        // Rendered through the @api seam: the RendererRegistry resolves the
+        // FormRendererInterface bound for the Props target.
+        $output = $this->container->get(RendererRegistry::class)->get(RenderTarget::Props)->render($this->form());
 
         self::assertSame(RenderTarget::Props, $output->target);
         $props = $output->props;

@@ -2,138 +2,118 @@
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-A standalone harness that boots **`middag-io/framework`** + **`middag-io/ui`** with
-**no Moodle/WordPress host and no proprietary `middag-io/core`**. It is the living
-proof that the OSS stack works standalone, batteries included: a real **help-desk**
-PSR-15 web app **and** a Symfony Console command worker over SQLite, exercising every
-OSS `@api` area — and proving each one with a test.
+A runnable help-desk application that boots **`middag-io/framework`** and **`middag-io/ui`**
+with no Moodle or WordPress host and no proprietary code: a PSR-15 web app rendered by
+`@middag-io/react`, and a console worker, over SQLite.
 
-> Full `@api` → artifact → test matrix: **[COVERAGE.md](COVERAGE.md)**. Run the suite
-> with `composer test` (boots the real stack against in-memory SQLite, no mocks).
+Example application: not a library, no public API, do not require it as a dependency; see the [hub](https://docs.middag.dev/libraries/) for the supported libraries.
 
-## What it proves
+What it shows and how to run it: [docs.middag.dev — Demo Application](https://docs.middag.dev/framework/reference/demo-standalone/).
 
-- **Kernel / DI** — `ContainerFactory` composition root + `ServiceProvider` suffix
-  auto-discovery + `AbstractModule` lifecycle + `HookFacade`.
-- **Converged bus** (Symfony Messenger) — sync handlers by `{Command}Handler`
-  convention, async commands routed to an in-memory transport and drained by a CLI
-  worker, batch returns, command serialization, declarative `#[Schedule]`.
-- **HTTP + Inertia** — PSR-15 kernel, controllers, session auth + the `#[Auth]` gate,
-  the middleware pipeline, CSRF, flash/PRG, and Inertia responses (first-visit HTML
-  shell vs `X-Inertia` JSON) wired standalone.
-- **Two request-validation styles, side by side** — the help-desk create path is
-  shown **both** ways the framework supports:
-  - `CreateTicketRequest` — the declarative **`rules()`-array** `AbstractFormRequest`
-    (`field => Symfony Constraint`), at `POST /api/tickets`.
-  - `TicketDto` — a plain typed DTO whose properties carry `#[Assert]` (and `#[Field]`),
-    mapped by the framework's **`#[ValidatedDto]`** attribute, at `POST /api/tickets/dto`.
-- **Two persistence paradigms on one engine** — **Active Record** (`Persistence\Model`,
-  Eloquent-style: tickets, users, comments) **and** **Data Mapper** (`Repository` +
-  `Mapper` + `Entity`, Doctrine-style: customers, agents, SLA policies) over the same
-  SQLite connection; the `/parity` page demonstrates the two side by side.
-- **Forms** — `AbstractForm` + field factory + conditional fields + the entity-picker
-  source, rendered to ui Inertia props; a multi-step ticket wizard.
-- **Schema / migrations** — descriptor-driven `SchemaBuilder` + SQLite adapter +
-  `MigrationRunner` version tracking (+ opt-in DBAL multi-engine).
-- **Logging** — Monolog-backed `LoggerFactory` + a log-cleanup command run via the bus.
-- **ui contracts** — full `PageContract` + partial `Fragment` JSON, the payload a React
-  client consumes.
+## Help and status
 
-## Stack
+- **Status of the example app.** It is maintained with the framework and ui: each
+  release builds against their current versions. [`COVERAGE.md`](COVERAGE.md) lists every
+  `@api` symbol of the installed framework and ui as covered by a demo test or E2E spec,
+  proved by the host adapters, or a gap with its reason. It is generated
+  (`composer coverage:md`); CI regenerates it and fails on any difference, and
+  `ApiCoverageTest` fails when the map and the installed libraries drift apart.
+- **Questions and bugs:** https://github.com/middag-io/middag-php-demo-standalone/issues
+- **Security reports:** [`SECURITY.md`](SECURITY.md)
+- **Changes:** [`CHANGELOG.md`](CHANGELOG.md)
 
-- PHP `^8.2` (tested on 8.4)
-- **`middag-io/framework`** `^1.15` — concern-first kernel (Bus / Database / Form /
-  Http / Kernel / Logging / Persistence), Symfony-backed behind host-agnostic contracts.
-- **`middag-io/ui`** `^1.6` — zero-dependency page/fragment contract builders.
-- SQLite via `ext-pdo_sqlite`.
-- Symfony components — `messenger`, `routing`, `http-foundation`, `dependency-injection`,
-  `serializer`, `validator` … (transitive via the framework); `console`, `lock`,
-  `finder`, `filesystem` (dev showcase).
+## Supported versions
 
-No JS bundle ships: the Inertia HTML shell embeds the page payload and documents where
-a React client (`@middag-io/react`) would mount. The server-emitted **contract** is what
-this repo proves; rendering it is a separate, downstream concern.
+| Item | Supported |
+|---|---|
+| PHP | `^8.3`: 8.3, 8.4 and 8.5, with `pdo` and `pdo_sqlite`. `config.platform.php` is `8.3.0`, so `composer.lock` resolves at the floor |
+| Symfony | `^7.4 \|\| ^8.1` for every Symfony component the demo requires. The lock resolves 7.4; a CI job without the platform pin proves 8.x |
+| `middag-io/framework` | `^1.20` |
+| `middag-io/ui` | `^1.8` |
+| `@middag-io/react` (renderer, `ui/`) | `^0.45.0` |
+| Host | none: no Moodle or WordPress. The adapters `middag-io/moodle` and `middag-io/wordpress` are not part of the demo |
+| Database | SQLite, in a file or in memory |
+| Docker image | PHP 8.4 (see [`DOCKER.md`](DOCKER.md)) |
 
-## Run
+## Quick start
 
 ```bash
 composer install
-composer install:db         # create + seed the SQLite schema
+composer install:db         # create and seed the SQLite schema
 composer serve              # http://localhost:8080  (login: demo@middag.io / middag)
-composer test               # PHPUnit — real stack, in-memory SQLite, no mocks
-composer check              # PHP-CS-Fixer + Rector (dry-run) + PHPStan (level 6)
+composer test               # PHPUnit against the real stack, in-memory SQLite
+composer check              # PHP-CS-Fixer, Rector (dry run), PHPStan
 ```
+
+The React bundle is built from `ui/` (`npm ci && npm run build:host`); the E2E suite
+lives in `e2e/` ([`e2e/README.md`](e2e/README.md)).
 
 ### Routes
 
 | Route | Returns |
 |---|---|
-| `GET /` | dashboard (Inertia: HTML shell first visit; `X-Inertia` → JSON) |
-| `GET /tickets` · `GET /tickets/{id}` | ticket list / detail |
-| `GET /tickets/new` → `POST /tickets/new` → `POST /tickets/new/confirm` | multi-step ticket wizard |
-| `POST /tickets` · `GET /tickets/{id}/edit` · `PUT /tickets/{id}` | web create / edit / update (PRG) |
-| `GET /agents` · `GET /customers` · `GET /parity` · `GET /help` · `GET /coverage` | help-desk pages |
-| `POST /api/tickets` | JSON `201` — validated via the **`rules()`-array** `CreateTicketRequest` |
-| `POST /api/tickets/dto` | JSON `201` — validated via the **`#[ValidatedDto]`** typed `TicketDto` |
-| `GET /api/entities/customers` · `GET /api/entities/agents` | entity-picker source JSON |
-| `GET /ui/page` · `GET /ui/fragment` | full `PageContract` / partial `Fragment` JSON |
-| `GET /login` · `POST /login` · `POST /logout` | session auth |
+| `GET /` | dashboard |
+| `GET /tickets` · `GET /tickets/{id}` | ticket queue, filtered, sorted and paged on the server (`search`, `filter[status]`, `filter[priority]`, `sort`, `direction`, `page`, `per_page`), and ticket detail (breadcrumbs, status lifecycle, tabs) |
+| `GET /tickets/new` → `POST /tickets/new` → `POST /tickets/new/confirm` | the ticket wizard |
+| `POST /tickets` · `GET /tickets/{id}/edit` · `PUT /tickets/{id}` | web create, edit and update (PRG) |
+| `POST /tickets/{id}/close` | the "Close ticket" action: a redirect for a browser, an `ActionResult` for JSON |
+| `GET /agents` · `GET /agents/{id}` · `GET /customers` · `GET /parity` · `GET /coverage` | help-desk pages |
+| `GET /help` · `GET /login` | public pages |
+| `POST /login` · `POST /logout` | session auth |
+| `POST /api/tickets` | JSON `201`, validated by the `rules()`-array `CreateTicketRequest` |
+| `POST /api/tickets/dto` | JSON `201`, validated by the `#[ValidatedDto]` typed `TicketDto` |
+| `GET /api/entities/customers` · `GET /api/entities/agents` | entity-picker sources |
+| `GET /ui/page` · `GET /ui/fragment` | a full `PageContract` and a partial `Fragment` as JSON |
 
 ### Console
 
 ```bash
-php bin/console install:db                # SchemaBuilder + MigrationRunner (+ seed)
-php bin/console migrate:discover          # finder + filesystem -> migration manifest
-php bin/console worker:consume --seed=3   # symfony/lock-guarded async drain
-php bin/console logs:clean                # dispatch the log-cleanup command through the bus
+php bin/console install:db                          # schema, migrations and seed
+php bin/console migrate:discover                    # migration manifest
+php bin/console worker:consume --seed=3 --limit=10  # drain the async transport (also --time-limit, --memory-limit)
+php bin/console schedule:run                        # dispatch the #[Schedule] commands due this minute
+php bin/console logs:clean                          # log cleanup through the bus
 ```
 
-## OSS ↔ core boundary
+### Environment
 
-The demo is honest about what is **not** OSS. Domain **signals** (the old 3-tier
-Signal/Outbox) live in the proprietary `middag-io/core`; here the "ticket created →
-side effect" flow is re-modeled with a **hook action** + an **async command**.
-Multi-tenant / org-scope / licensing are host/core concerns. See
-[COVERAGE.md → OSS ↔ core boundary](COVERAGE.md#oss--core-boundary).
+Read through one reader (`$_ENV`, then `$_SERVER`, then `getenv()`):
+
+| Variable | Effect |
+|---|---|
+| `DB_DSN` | PDO DSN; default `sqlite:var/demo.sqlite` |
+| `APP_DEBUG` | `1` renders a debug stack trace on a server error |
+| `LOG_LEVEL` | minimum log level; default `debug` |
+| `MAIL_CAPTURE` | `1` writes each mail as JSON under `var/mail/` instead of the null mailer |
+| `DEMO_WEBHOOK_URL`, `DEMO_WEBHOOK_SECRET` | a signed POST per created ticket, retried with backoff |
+| `DEMO_FAULT_MODE` | `1` boots a module that fails (isolated, shown on the dashboard), a maintenance gate driven by `var/maintenance.flag`, mail capture, and `GET /_test/crash`, which answers with the 500 error page. Used by the E2E fault server |
+
+## Renderer extensions
+
+`ui/src/app/register.ts` registers the free renderer's shells, layouts and blocks, plus
+three host extensions: an `auth` shell that replaces the one the package ships, and the
+`sparkline` and `tag_chips` cells.
 
 ## Notes
 
-- **Local-lib development (Composer path-repo).** By default the framework + ui resolve
-  from their published releases (pinned in `composer.lock`). To iterate against local
-  clones, add a path repository and run
-  `composer update middag-io/framework middag-io/ui` (local-only; do not commit it):
+- **Local libraries.** The framework and ui resolve from their releases in
+  `composer.lock`. To work against local clones, add a path repository and run
+  `composer update middag-io/framework middag-io/ui`; never commit it:
   ```json
   "repositories": [
     {"type": "path", "url": "../middag-php-framework", "options": {"symlink": true}},
     {"type": "path", "url": "../middag-php-ui", "options": {"symlink": true}}
   ]
   ```
-- **In-memory transport is process-local.** Async commands queued during an HTTP request
-  are not visible to a separate worker process. Tests prove dispatch → drain in-process;
-  `worker:consume --seed=N` proves the full round-trip from a single CLI process. For
-  cross-process delivery use a persistent transport (`symfony/doctrine-messenger`, opt-in).
-- **Multi-engine schema.** `doctrine/dbal` (a dev dependency) lets the schema test prove
-  the same descriptor targets another engine; drop the dep and the case skips itself.
+- **Transports.** The web app queues async commands on an in-memory transport, drained in
+  the same process. Delivery across processes is shown with the Doctrine transport and the
+  framework's runtime kernel (`RuntimeKernelTest`).
 
 ## Versioning
 
-This repo is a member of the `middag-php-*` **version family**
-(ADR-032 of the internal `docs-middag-ops`,
-which amends ADR-003 for the PHP libraries). The release version is also the Docker
-image tag.
-
-- **Until the family cut** the demo stays on `0.x` and requires the `1.x` framework
-  and ui. It does not go through `1.x`.
-- **At the cut** it jumps from `0.x` straight to `2.0.0`, together with every other
-  family member.
-- **From `2.0.0`** every family member shares MAJOR.MINOR. A PATCH carries fixes only.
-  A feature waits for the next family MINOR. A MINOR never breaks: a removal is
-  deprecated first in a MINOR and is removed in the next family MAJOR. The product
-  owner decides every family MINOR and MAJOR. The demo requires one `^2.N` range for
-  every `middag-io/*` sibling.
-
-The version family check on pull requests enforces these rules. See
-[CONTRIBUTING → Versioning](CONTRIBUTING.md#versioning).
+The demo is a member of the `middag-php-*` version family:
+[Versioning and compatibility](https://docs.middag.dev/libraries/reference/versioning-and-compatibility).
+The release version is also the Docker image tag.
 
 ## Contributing
 

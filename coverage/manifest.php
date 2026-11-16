@@ -1,0 +1,103 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * middag-io/demo-standalone — standalone proof harness for the MIDDAG OSS stack.
+ *
+ * @author      Michael Meneses <michael@middag.io>
+ * @copyright   2026 MIDDAG (https://middag.io)
+ * @license     Apache-2.0
+ */
+
+/*
+ * Coverage manifest — the single source of truth for what free middag-io surface
+ * this demo exercises, and where.
+ *
+ * `covered` maps a symbol (`kind:name`) to the route that proves it; CoverageManifestTest
+ * boots each route and asserts the symbol is actually emitted (block types present,
+ * cell variants present), that no PRO symbol leaks, and that no `gaps` symbol is
+ * silently emitted. The /coverage page renders this same array — page and test never
+ * drift because they read one file.
+ *
+ * `gaps` catalogs the honestly-unmet surface (emittable-but-unrenderable,
+ * renderable-but-unemittable, PRO-only, or simply not yet exercised) with a reason,
+ * so the demo never claims more than it proves.
+ *
+ * `api` is the `@api` map of framework and ui (coverage/api.php), checked by
+ * ApiCoverageTest and rendered into COVERAGE.md.
+ *
+ * @return array{covered: array<string, array{kind: string, route: ?string, note: string}>, gaps: array<string, array{reason: string, filed: string}>, api: array<string, array<string, mixed>>, internal: array<string, string>}
+ */
+return [
+    'covered' => [
+        // Shells (2/2 free).
+        'shell:basic' => ['kind' => 'shell', 'route' => '/', 'note' => 'login + every help-desk page'],
+        'shell:immersive' => ['kind' => 'shell', 'route' => '/help', 'note' => 'help + coverage pages'],
+
+        // Layouts (4/4 free).
+        'layout:dashboard' => ['kind' => 'layout', 'route' => '/', 'note' => 'metrics + chart grid'],
+        'layout:sidebar' => ['kind' => 'layout', 'route' => '/tickets/{id}', 'note' => 'ticket detail — main + aside metric cards'],
+        'layout:stack' => ['kind' => 'layout', 'route' => '/customers', 'note' => 'default single column'],
+        'layout:wizard' => ['kind' => 'layout', 'route' => '/tickets/new', 'note' => 'guided two-step ticket create — server-driven stepping, partial in session'],
+
+        // Blocks (14 free).
+        'block:metric_card' => ['kind' => 'block', 'route' => '/', 'note' => 'queue metrics'],
+        'block:status_strip' => ['kind' => 'block', 'route' => '/', 'note' => 'SLA health + score ring; ticket status lifecycle on /tickets/{id}'],
+        'block:dense_table' => ['kind' => 'block', 'route' => '/tickets', 'note' => 'the cell showcase'],
+        'block:chart' => ['kind' => 'block', 'route' => '/', 'note' => 'tickets created per day (free ChartBlock)'],
+        'block:detail_panel' => ['kind' => 'block', 'route' => '/agents/{id}', 'note' => 'agent fields'],
+        'block:link_list' => ['kind' => 'block', 'route' => '/agents/{id}', 'note' => 'assigned tickets'],
+        'block:card_grid' => ['kind' => 'block', 'route' => '/customers', 'note' => 'customer cards'],
+        'block:markdown_panel' => ['kind' => 'block', 'route' => '/help', 'note' => 'walkthrough'],
+        'block:empty_state' => ['kind' => 'block', 'route' => '/help', 'note' => 'first-use nudge'],
+        'block:action_grid' => ['kind' => 'block', 'route' => '/help', 'note' => 'quick links'],
+        'block:form_panel' => ['kind' => 'block', 'route' => '/tickets/new', 'note' => 'framework form pipeline'],
+        'block:tabs' => ['kind' => 'block', 'route' => '/tickets/{id}', 'note' => 'details, activity and SLA tabs'],
+        'block:activity_timeline' => ['kind' => 'block', 'route' => '/tickets/{id}', 'note' => 'comment feed, nested in the tabs block'],
+
+        // dense_table cell renderers (8 of 9 free exercised + 2 custom: sparkline,
+        // tag_chips). link_group is intentionally a gap — see below.
+        'cell:status' => ['kind' => 'cell', 'route' => '/tickets', 'note' => 'ticket status'],
+        'cell:rich_status' => ['kind' => 'cell', 'route' => '/tickets', 'note' => 'priority {label,appearance,icon}'],
+        'cell:annotated' => ['kind' => 'cell', 'route' => '/tickets', 'note' => 'assignee {text,sublabel}'],
+        'cell:tag_chips' => ['kind' => 'cell', 'route' => '/tickets', 'note' => 'custom registerCellRenderer — ticket tags as labelled pill links'],
+        'cell:timestamp' => ['kind' => 'cell', 'route' => '/tickets', 'note' => 'created date'],
+        'cell:boolean' => ['kind' => 'cell', 'route' => '/parity', 'note' => 'parity match flag'],
+        'cell:progress' => ['kind' => 'cell', 'route' => '/agents', 'note' => 'agent workload (supervisor view)'],
+        'cell:link' => ['kind' => 'cell', 'route' => '/agents', 'note' => 'agent email as a mailto link, href interpolates {email} (supervisor view)'],
+        'cell:html' => ['kind' => 'cell', 'route' => '/agents', 'note' => 'availability badge — server-controlled HTML, role escaped (supervisor view)'],
+        'cell:sparkline' => ['kind' => 'cell', 'route' => '/agents', 'note' => 'custom registerCellRenderer (the chart-block seam, cell edition) — 7-day intake (supervisor view)'],
+
+        // Form fields (the reachable PHP-factory ∩ React-free set used by the ticket form).
+        'field:text' => ['kind' => 'field', 'route' => '/tickets/new', 'note' => 'subject, tags'],
+        'field:textarea' => ['kind' => 'field', 'route' => '/tickets/new', 'note' => 'description'],
+        'field:select' => ['kind' => 'field', 'route' => '/tickets/new', 'note' => 'channel, priority, SLA'],
+        'field:entity_picker' => ['kind' => 'field', 'route' => '/tickets/new', 'note' => 'customer + assignee (live source)'],
+        'field:date' => ['kind' => 'field', 'route' => '/tickets/new', 'note' => 'due date'],
+
+        // Engine / providers.
+        'engine:message_bus' => ['kind' => 'engine', 'route' => null, 'note' => 'sync command dispatch (create/update/transition/comment)'],
+        'engine:async_signal' => ['kind' => 'engine', 'route' => null, 'note' => 'demo.ticket.created -> EscalateSlaCommand on the async transport'],
+        'engine:dual_orm_parity' => ['kind' => 'engine', 'route' => '/parity', 'note' => 'data-mapper QueryBuilder vs active-record ModelQuery, identical counts'],
+        'engine:persistent_bus' => ['kind' => 'engine', 'route' => null, 'note' => 'Doctrine transport: a command queued by one runtime kernel is drained by another on the same database (RuntimeKernelTest)'],
+        'engine:entity_source' => ['kind' => 'engine', 'route' => '/tickets/new', 'note' => 'EntitySourceRegistry: demo_customers + demo_agents'],
+        'engine:capability_gate' => ['kind' => 'provider', 'route' => '/agents', 'note' => 'helpdesk:supervise gates the supervisor columns'],
+        'engine:register_host' => ['kind' => 'engine', 'route' => '/login', 'note' => 'host registerShell("auth") replaces the package auth shell; host registerCellRenderer("sparkline") and ("tag_chips") add cells'],
+        'condition:required_when_in' => ['kind' => 'engine', 'route' => '/tickets/new', 'note' => 'assignee required_when priority IN [high,urgent]'],
+    ],
+
+    'gaps' => [
+        'block:pro' => ['reason' => 'PRO blocks (chart_panel, workflow_progress, kanban_board, flow_editor, form_builder, condition_tree, sentence_builder) + the product shell ship in @middag-io/react-pro, out of the free OSS surface', 'filed' => 'n/a (by design)'],
+        'cell:link_group' => ['reason' => 'the free link_group cell renders icon-only ghost-button links (the label is only a tooltip), not readable text chips; the help-desk domain has no natural icon-link-group column, and ticket tags read far better as the custom tag_chips cell', 'filed' => 'n/a (custom tag_chips cell preferred over a contrived icon-link column)'],
+        'field:duration' => ['reason' => 'emittable via FieldDefinition::duration() but no free React field renderer (would hit "Unknown field component")', 'filed' => 'react: duration renderer'],
+        'field:otp_slider_native_select_tags' => ['reason' => 'React-renderable but no FieldDefinition factory method', 'filed' => 'framework: field factories'],
+        'field:currency_rating_slug_color_phone_document' => ['reason' => 'React-renderable but absent from the PHP FieldType enum entirely', 'filed' => 'framework: field types'],
+    ],
+
+    'api' => require __DIR__ . '/api.php',
+
+    // Library classes marked @internal that the demo still names, and why.
+    // ApiCoverageTest keeps this list equal to the demo's imports.
+    'internal' => [],
+];

@@ -15,10 +15,10 @@ namespace Middag\Demo\Standalone\Form;
 use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicy;
 use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicyRepository;
 use Middag\Framework\Form\AbstractForm;
+use Middag\Framework\Form\Contract\FormValidatorInterface;
 use Middag\Framework\Form\FieldFactory;
-use Middag\Framework\Form\FormValidator;
-use Middag\Ui\Block\LayoutElementInterface;
-use Middag\Ui\Form\FieldInterface;
+use Middag\Ui\Block\Contract\LayoutElementInterface;
+use Middag\Ui\Form\Contract\FieldInterface;
 use Middag\Ui\Shared\Enum\ConditionOperator;
 
 /**
@@ -33,7 +33,7 @@ use Middag\Ui\Shared\Enum\ConditionOperator;
  */
 final class TicketForm extends AbstractForm
 {
-    public function __construct(FormValidator $validator, private readonly SlaPolicyRepository $sla)
+    public function __construct(FormValidatorInterface $validator, private readonly SlaPolicyRepository $sla)
     {
         parent::__construct($validator);
     }

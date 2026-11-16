@@ -13,28 +13,42 @@ declare(strict_types=1);
 namespace Middag\Demo\Standalone\Http;
 
 use Middag\Demo\Standalone\Command\CreateTicketCommand;
+use Middag\Demo\Standalone\Command\TransitionTicketCommand;
 use Middag\Demo\Standalone\Command\UpdateTicketCommand;
+use Middag\Demo\Standalone\Domain\Comment;
 use Middag\Demo\Standalone\Domain\Doctrine\AgentRepository;
 use Middag\Demo\Standalone\Domain\Doctrine\CustomerRepository;
 use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicy;
 use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicyRepository;
-use Middag\Demo\Standalone\Domain\Eloquent\Comment;
-use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
+use Middag\Demo\Standalone\Domain\Tag;
+use Middag\Demo\Standalone\Domain\Ticket;
 use Middag\Demo\Standalone\Form\TicketForm;
-use Middag\Demo\Standalone\Http\Concern\RendersPages;
 use Middag\Demo\Standalone\Http\Request\CreateTicketRequest;
+use Middag\Demo\Standalone\Shared\Concerns\RendersPages;
 use Middag\Framework\Bus\Contract\MessageBusInterface;
 use Middag\Framework\Form\Renderer\RendererRegistry;
 use Middag\Framework\Http\Attribute\Auth;
 use Middag\Framework\Http\Contract\SessionInterface;
 use Middag\Framework\Http\Controller\AbstractController;
+use Middag\Framework\Shared\Util\Arr;
+use Middag\Framework\Shared\Util\Inflector;
+use Middag\Framework\Shared\ValueObject\Uuid;
+use Middag\Ui\Action\Action;
+use Middag\Ui\Action\ActionResult;
 use Middag\Ui\Action\ActionTarget;
+use Middag\Ui\Action\Confirmation;
 use Middag\Ui\Block\BlockBuilder;
+use Middag\Ui\Navigation\Contract\BreadcrumbListBuilderInterface;
 use Middag\Ui\Page\PageBuilder;
 use Middag\Ui\Page\Tab;
 use Middag\Ui\Region\RegionBuilder;
 use Middag\Ui\Shared\Enum\ActionIntent;
+use Middag\Ui\Shared\Enum\HttpMethod;
+use Middag\Ui\Shared\Enum\NotificationLevel;
 use Middag\Ui\Shared\Enum\RenderTarget;
+use Middag\Ui\Shared\ValueObject\Notification;
+use Middag\Ui\Table\FilterDefinition;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -63,12 +77,12 @@ final class TicketController extends AbstractController
      * session and the controller drives each step. Step 1 carries the required core
      * (validated by CreateTicketRequest); step 2 the optional schedule fields.
      */
-    private const WIZARD_STEPS = [
+    private const array WIZARD_STEPS = [
         1 => ['label' => 'Ticket', 'fields' => ['subject', 'body', 'channel', 'priority', 'customer_id', 'agent_id']],
         2 => ['label' => 'Schedule', 'fields' => ['sla_policy_id', 'tags', 'due_at']],
     ];
 
-    private const WIZARD_SESSION = 'ticket_wizard';
+    private const string WIZARD_SESSION = 'ticket_wizard';
 
     public function __construct(
         private readonly MessageBusInterface $bus,
@@ -84,8 +98,14 @@ final class TicketController extends AbstractController
         $customerNames = $this->idLabelMap($this->customers->latest());
         $agentNames = $this->idLabelMap($this->agents->latest());
 
+        // The metric cards count the whole queue; the table shows one server page.
         /** @var list<Ticket> $tickets */
-        $tickets = Ticket::query()->orderBy('created_at', 'desc')->get();
+        $tickets = Ticket::query()->get();
+        $queue = TicketQueueQuery::fromQuery($this->request?->query->all() ?? []);
+        $page = $queue->apply(Ticket::query())->paginate($queue->page, $queue->perPage);
+
+        /** @var list<Ticket> $pageTickets */
+        $pageTickets = $page->items();
 
         // The queue table is the cell-renderer showcase: each column's `variant`
         // selects the React cell, so the row VALUES are shaped per cell — a plain
@@ -123,7 +143,7 @@ final class TicketController extends AbstractController
                     'created' => (int) $t->created_at,
                 ];
             },
-            $tickets,
+            $pageTickets,
         );
 
         $open = array_filter($tickets, static fn (Ticket $t): bool => !in_array((string) $t->status, ['resolved', 'closed'], true));
@@ -141,12 +161,12 @@ final class TicketController extends AbstractController
             ])
             // metrics region → StatRow grid (dashboard layout); keeps the cards out of
             // `content` so they are not double-wrapped in a per-block Card.
-            ->region('metrics', function (RegionBuilder $region) use ($rows, $open, $urgent): void {
-                $region->metricCard('total', count($rows), 'Total tickets', icon: 'inbox');
+            ->region('metrics', function (RegionBuilder $region) use ($tickets, $open, $urgent): void {
+                $region->metricCard('total', count($tickets), 'Total tickets', icon: 'inbox');
                 $region->metricCard('open', count($open), 'Open', icon: 'folder-open');
                 $region->metricCard('urgent', count($urgent), 'High / urgent', icon: 'flame');
             })
-            ->region('content', function (RegionBuilder $region) use ($rows): void {
+            ->region('content', function (RegionBuilder $region) use ($rows, $queue, $page): void {
                 // Hand-built columns keyed by `variant` — the cell renderer the React
                 // DenseTableBlock selects per column. Exercises status, rich_status,
                 // annotated, the custom tag_chips and timestamp cells in one table.
@@ -155,20 +175,30 @@ final class TicketController extends AbstractController
                     ['key' => 'status', 'label' => 'Status', 'variant' => 'status', 'sortable' => true],
                     ['key' => 'priority', 'label' => 'Priority', 'variant' => 'rich_status'],
                     ['key' => 'channel', 'label' => 'Channel', 'sortable' => true],
-                    ['key' => 'customer', 'label' => 'Customer', 'sortable' => true],
+                    ['key' => 'customer', 'label' => 'Customer'],
                     ['key' => 'assignee', 'label' => 'Assignee', 'variant' => 'annotated'],
                     ['key' => 'tags', 'label' => 'Tags', 'variant' => 'tag_chips'],
                     ['key' => 'created', 'label' => 'Created', 'variant' => 'timestamp', 'timestampFormat' => 'date', 'sortable' => true],
                 ], $rows, [
                     'rowHref' => '/tickets/{id}',
+                    // Server mode: the table sends page, per_page, sort, direction,
+                    // search and filter[...] back as query parameters, and
+                    // TicketQueueQuery answers with one filtered, sorted page.
+                    'pagination' => $queue->pagination($page->total())->jsonSerialize(),
+                    'sort' => ['column' => $queue->sort, 'direction' => $queue->direction],
+                    'filters' => [
+                        'available' => array_map(
+                            static fn (FilterDefinition $filter): array => $filter->jsonSerialize(),
+                            TicketQueueQuery::filterDefinitions(),
+                        ),
+                        'applied' => $queue->appliedFilters(),
+                    ],
+                    'searchPlaceholder' => 'Search subject or tag',
                 ], [
-                    // Client-side search/sort/pagination over the full row set the
-                    // server already sends (the queue is small). Without this the
-                    // table is server-driven: its ?search/?sort/?page params trigger
-                    // an Inertia partial reload scoped to `only:[tickets]`, but the
-                    // demo nests data under the single `contract` prop, so the reload
-                    // returns `props:[]` and the table never updates — dead search.
-                    'clientSide' => true,
+                    // The table reloads with an Inertia partial reload of this key.
+                    // The page data lives under the single `contract` prop, so the
+                    // reload asks for `contract`, not for the block key.
+                    'partialReloadKey' => 'contract',
                 ]);
             })
             ->build();
@@ -179,13 +209,11 @@ final class TicketController extends AbstractController
     /**
      * Ticket detail — the rich-block showcase + an aside region (sidebar layout).
      *
-     * Proves four blocks the list/form pages don't: workflow_progress (the status
-     * state machine, emitted via the generic block() escape hatch — it has no typed
-     * RegionBuilder method), and a tabbed_panel grouping a detail_panel (fields),
-     * an activity_timeline (the comment feed; the comment body rides in `action`
+     * Proves the blocks the list/form pages don't: a status_strip of the status
+     * lifecycle, and a tabs block grouping a detail_panel (fields), an
+     * activity_timeline (the comment feed; the comment body rides in `action`
      * because the React block does not render `detail`), and a markdown_panel (the
-     * SLA policy joined the data-mapper way). The PHP emits block type `tabs`; the
-     * host bridges `tabs`→`tabbed_panel` + `id`→`key` in ui/src/app/register.ts.
+     * SLA policy joined the data-mapper way).
      */
     public function show(int $id): Response
     {
@@ -195,7 +223,11 @@ final class TicketController extends AbstractController
         $agentNames = $this->idLabelMap($this->agents->latest());
 
         /** @var list<Comment> $comments */
-        $comments = Comment::query()->where('ticket_id', $id)->orderBy('created_at', 'asc')->get();
+        $comments = $ticket->comments()->getQuery()->orderBy('created_at', 'asc')->get();
+
+        /** @var list<Tag> $tags */
+        $tags = $ticket->tagModels()->getResults();
+        $opening = $ticket->openingComment()->getResults();
 
         $customer = $customerNames[(int) $ticket->customer_id] ?? '—';
         $assignee = $ticket->agent_id !== null ? ($agentNames[(int) $ticket->agent_id] ?? '—') : 'Unassigned';
@@ -205,13 +237,15 @@ final class TicketController extends AbstractController
             'id' => 'summary',
             'title' => 'Ticket details',
             'fields' => [
+                ['key' => 'ref', 'label' => 'Reference', 'value' => Uuid::tryVisualId($ticket->ref)],
                 ['key' => 'subject', 'label' => 'Subject', 'value' => (string) $ticket->subject],
                 ['key' => 'status', 'label' => 'Status', 'value' => (string) $ticket->status],
                 ['key' => 'priority', 'label' => 'Priority', 'value' => (string) $ticket->priority],
                 ['key' => 'channel', 'label' => 'Channel', 'value' => (string) $ticket->channel],
                 ['key' => 'customer', 'label' => 'Reporter', 'value' => $customer],
                 ['key' => 'agent', 'label' => 'Assignee', 'value' => $assignee],
-                ['key' => 'tags', 'label' => 'Tags', 'value' => $ticket->tags !== null && $ticket->tags !== '' ? implode(', ', array_map('trim', explode(',', (string) $ticket->tags))) : null],
+                ['key' => 'tags', 'label' => 'Tags', 'value' => $tags !== [] ? implode(', ', array_map(static fn (Tag $tag): string => (string) $tag->name, $tags)) : null],
+                ['key' => 'opened_by', 'label' => 'Opened by', 'value' => $opening instanceof Comment ? (string) $opening->author : null],
                 ['key' => 'created', 'label' => 'Created', 'value' => $ticket->created_at ? date('Y-m-d H:i', (int) $ticket->created_at) : null],
                 ['key' => 'resolved', 'label' => 'Resolved', 'value' => $ticket->resolved_at ? date('Y-m-d H:i', (int) $ticket->resolved_at) : null],
                 ['key' => 'satisfaction', 'label' => 'CSAT', 'value' => $ticket->satisfaction !== null ? (int) $ticket->satisfaction : null],
@@ -238,23 +272,23 @@ final class TicketController extends AbstractController
             ->shell('basic')
             ->layout('sidebar')
             ->title('#' . $id . ' · ' . $ticket->subject)
-            ->subtitle('Ticket detail — workflow state + tabbed detail/activity/SLA')
-            ->actions([
+            ->subtitle('Ticket detail — status lifecycle + tabbed detail/activity/SLA')
+            ->breadcrumbs(static function (BreadcrumbListBuilderInterface $trail) use ($id): void {
+                // Inflector::title() turns the entity name into its list title ("Tickets").
+                $trail->item(Inflector::title('ticket'), '/tickets')->current('#' . $id);
+            })
+            ->actions(array_values(array_filter([
                 PageBuilder::action('edit', 'Edit', ActionTarget::link('/tickets/' . $id . '/edit'), ActionIntent::Primary, 'pencil'),
+                $ticket->status !== 'closed' ? $this->closeAction($id) : null,
                 PageBuilder::action('back', 'All tickets', ActionTarget::link('/tickets'), ActionIntent::Secondary, 'arrow-left'),
-            ])
+            ])))
             // sidebar layout renders the `main` + `aside` regions (not `content`).
             ->region('main', function (RegionBuilder $region) use ($ticket, $section, $entries, $sla): void {
-                // workflow_progress has NO typed RegionBuilder method → escape hatch.
-                $region->block('workflow_progress', 'state', [
-                    'states' => array_map(
-                        static fn (string $s): array => ['key' => $s, 'label' => ucfirst($s)],
-                        Ticket::STATUSES,
-                    ),
-                    'currentState' => (string) $ticket->status,
-                ]);
+                // status_strip: the ticket's place in the status lifecycle, one
+                // item per state; the current state is highlighted.
+                $region->statusStrip('state', $this->lifecycleItems((string) $ticket->status));
 
-                // tabbed_panel (wire type `tabs`): each Tab nests BlockBuilder statics.
+                // tabs: each Tab nests BlockBuilder statics.
                 $region->tabs('tabs', [
                     new Tab('details', 'Details', [
                         BlockBuilder::detailPanel('detail', [$section]),
@@ -296,7 +330,8 @@ final class TicketController extends AbstractController
         }
 
         $form = $this->renderers->get(RenderTarget::Props)->render($this->form)->props;
-        $values = array_merge($form['values'] ?? [], (array) ($session->get(self::WIZARD_SESSION) ?? []));
+        // The saved step-1 partial wins over the form defaults, except where it is null.
+        $values = Arr::mergePreferNonNull($form['values'] ?? [], (array) ($session->get(self::WIZARD_SESSION) ?? []));
         $schema = $this->fieldsFor($form['schema'] ?? [], self::WIZARD_STEPS[$step]['fields']);
 
         // Step 1 → wizardStore (validates + advances); step 2 → wizardConfirm (creates).
@@ -468,6 +503,68 @@ final class TicketController extends AbstractController
      * SLA tab markdown — the policy reached the data-mapper way (SlaPolicyRepository),
      * rendered alongside the ticket's own due/resolved timestamps.
      */
+    /**
+     * POST /tickets/{id}/close — the "Close ticket" action. A browser gets the
+     * flash and a redirect back to the detail; a JSON client gets an ActionResult.
+     */
+    public function close(int $id): Response
+    {
+        Ticket::findOrFail($id);
+        $this->bus->dispatch(new TransitionTicketCommand($id, 'closed'));
+
+        if (in_array('application/json', $this->request->getAcceptableContentTypes(), true)) {
+            return new JsonResponse(new ActionResult(
+                success: true,
+                notifications: [new Notification(NotificationLevel::Success, 'Ticket closed.')],
+                redirect: '/tickets/' . $id,
+            ));
+        }
+
+        $this->flash('success', 'Ticket closed.');
+
+        return $this->redirect('/tickets/' . $id, Response::HTTP_SEE_OTHER);
+    }
+
+    /**
+     * Close is a request action (POST, no page of its own) behind a confirmation.
+     */
+    private function closeAction(int $id): Action
+    {
+        return new Action(
+            id: 'close',
+            label: 'Close ticket',
+            target: ActionTarget::request('/tickets/' . $id . '/close', HttpMethod::Post),
+            intent: ActionIntent::Danger,
+            icon: 'circle-check',
+            confirmation: new Confirmation('Close this ticket?', 'The ticket moves to closed. You can reopen it from the edit form.', 'Close ticket'),
+        );
+    }
+
+    /**
+     * One status_strip item per lifecycle state: states before the current one are
+     * done, the current one is highlighted, later ones are pending.
+     *
+     * @return list<array{key: string, label: string, value: string, appearance: string}>
+     */
+    private function lifecycleItems(string $current): array
+    {
+        $position = array_search($current, Ticket::STATUSES, true);
+        $position = $position === false ? -1 : $position;
+
+        $items = [];
+
+        foreach (Ticket::STATUSES as $index => $status) {
+            [$value, $appearance] = match (true) {
+                $index < $position => ['Done', 'success'],
+                $index === $position => ['Current', 'info'],
+                default => ['Pending', 'neutral'],
+            };
+            $items[] = ['key' => $status, 'label' => ucfirst($status), 'value' => $value, 'appearance' => $appearance];
+        }
+
+        return $items;
+    }
+
     private function slaMarkdown(Ticket $ticket, ?SlaPolicy $sla): string
     {
         $due = $ticket->due_at ? date('Y-m-d H:i', (int) $ticket->due_at) : '—';

@@ -12,10 +12,10 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Tests;
 
-use Middag\Demo\Standalone\Bootstrap\DemoBootstrap;
 use Middag\Demo\Standalone\Command\CreateTicketCommandHandler;
 use Middag\Demo\Standalone\Domain\Doctrine\CustomerRepository;
 use Middag\Demo\Standalone\Http\TicketController;
+use Middag\Demo\Standalone\Kernel\Bootstrap\DemoBootstrap;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Bus\Contract\MessageBusInterface;
 use Middag\Framework\Database\Contract\ConnectionAdapterInterface;

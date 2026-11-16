@@ -12,8 +12,8 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Tests\Support;
 
-use Middag\Demo\Standalone\Bootstrap\DemoKernel;
-use Middag\Demo\Standalone\Domain\Eloquent\User;
+use Middag\Demo\Standalone\Domain\User;
+use Middag\Demo\Standalone\Kernel\Bootstrap\DemoKernel;
 use Middag\Framework\Database\Contract\SchemaBuilderAdapterInterface;
 use Middag\Framework\Database\Schema\SchemaBuilder;
 use Middag\Framework\Http\Contract\AuthenticatorInterface;
@@ -21,6 +21,7 @@ use Middag\Framework\Http\Middleware\MiddlewareDispatcher;
 use Middag\Framework\Http\Security\CsrfTokenManager;
 use Middag\Framework\Http\StandaloneKernel;
 use Middag\Framework\Kernel\Facade\AbstractFacade;
+use Middag\Framework\Security\Contract\PasswordHasherInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -61,7 +62,7 @@ abstract class DemoTestCase extends TestCase
         // default to an authenticated session (via the framework authenticator) so
         // guarded routes are reachable. AuthTest logs out / back in to exercise the
         // gate, login verification, and logout.
-        User::seedDemo();
+        User::seedDemo($this->container->get(PasswordHasherInterface::class));
         $this->container->get(AuthenticatorInterface::class)->login(1, [
             'name' => 'Test User',
             'email' => 'test@demo.local',

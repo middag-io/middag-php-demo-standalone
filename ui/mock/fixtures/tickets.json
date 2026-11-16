@@ -7,7 +7,8 @@
             "email": "demo@middag.io",
             "capabilities": [
                 "helpdesk:supervise"
-            ]
+            ],
+            "logoutUrl": "/logout"
         },
         "navigation": {
             "tree": [
@@ -15,50 +16,44 @@
                     "key": "dashboard",
                     "label": "Dashboard",
                     "icon": "layout-dashboard",
-                    "href": "/",
-                    "children": []
+                    "href": "/"
                 },
                 {
                     "key": "tickets",
                     "label": "Tickets",
                     "icon": "inbox",
                     "href": "/tickets",
-                    "children": []
+                    "active": true
                 },
                 {
                     "key": "agents",
                     "label": "Agents",
                     "icon": "users",
-                    "href": "/agents",
-                    "children": []
+                    "href": "/agents"
                 },
                 {
                     "key": "customers",
                     "label": "Customers",
                     "icon": "building",
-                    "href": "/customers",
-                    "children": []
+                    "href": "/customers"
                 },
                 {
                     "key": "parity",
                     "label": "Dual-ORM parity",
                     "icon": "columns",
-                    "href": "/parity",
-                    "children": []
+                    "href": "/parity"
                 },
                 {
                     "key": "coverage",
                     "label": "Coverage",
                     "icon": "shield-check",
-                    "href": "/coverage",
-                    "children": []
+                    "href": "/coverage"
                 },
                 {
                     "key": "help",
                     "label": "Help",
                     "icon": "help-circle",
-                    "href": "/help",
-                    "children": []
+                    "href": "/help"
                 }
             ],
             "activeKey": "tickets",
@@ -69,9 +64,7 @@
         "theme": {
             "appearance": "light"
         },
-        "flash": {
-            "success": "Welcome, Demo User."
-        },
+        "flash": [],
         "errors": [],
         "csrf_token": "dev-csrf-token",
         "contract": {
@@ -80,7 +73,19 @@
             "page": {
                 "key": "demo.tickets",
                 "title": "Tickets",
-                "subtitle": "Help-desk queue — active-record tickets, data-mapper customer/agent names"
+                "subtitle": "Help-desk queue — active-record tickets, data-mapper customer/agent names",
+                "actions": [
+                    {
+                        "id": "new",
+                        "label": "New ticket",
+                        "target": {
+                            "kind": "link",
+                            "href": "/tickets/new"
+                        },
+                        "intent": "primary",
+                        "icon": "plus"
+                    }
+                ]
             },
             "layout": {
                 "template": "dashboard",
@@ -122,12 +127,14 @@
                                 "columns": [
                                     {
                                         "key": "subject",
-                                        "label": "Subject"
+                                        "label": "Subject",
+                                        "sortable": true
                                     },
                                     {
                                         "key": "status",
                                         "label": "Status",
-                                        "variant": "status"
+                                        "variant": "status",
+                                        "sortable": true
                                     },
                                     {
                                         "key": "priority",
@@ -136,11 +143,13 @@
                                     },
                                     {
                                         "key": "channel",
-                                        "label": "Channel"
+                                        "label": "Channel",
+                                        "sortable": true
                                     },
                                     {
                                         "key": "customer",
-                                        "label": "Customer"
+                                        "label": "Customer",
+                                        "sortable": true
                                     },
                                     {
                                         "key": "assignee",
@@ -156,7 +165,8 @@
                                         "key": "created",
                                         "label": "Created",
                                         "variant": "timestamp",
-                                        "timestampFormat": "date"
+                                        "timestampFormat": "date",
+                                        "sortable": true
                                     }
                                 ],
                                 "rows": [
@@ -185,7 +195,7 @@
                                                 "href": "/tickets?search=login"
                                             }
                                         ],
-                                        "created": 1780444567
+                                        "created": 1794840802
                                     },
                                     {
                                         "id": 2,
@@ -212,7 +222,7 @@
                                                 "href": "/tickets?search=export"
                                             }
                                         ],
-                                        "created": 1780440967
+                                        "created": 1794837202
                                     },
                                     {
                                         "id": 3,
@@ -239,7 +249,7 @@
                                                 "href": "/tickets?search=import"
                                             }
                                         ],
-                                        "created": 1780350967
+                                        "created": 1794747202
                                     },
                                     {
                                         "id": 5,
@@ -266,7 +276,7 @@
                                                 "href": "/tickets?search=dashboard"
                                             }
                                         ],
-                                        "created": 1780343767
+                                        "created": 1794740002
                                     },
                                     {
                                         "id": 4,
@@ -293,7 +303,7 @@
                                                 "href": "/tickets?search=enhancement"
                                             }
                                         ],
-                                        "created": 1780260967
+                                        "created": 1794657202
                                     },
                                     {
                                         "id": 6,
@@ -320,7 +330,7 @@
                                                 "href": "/tickets?search=waiting"
                                             }
                                         ],
-                                        "created": 1780167367
+                                        "created": 1794563602
                                     },
                                     {
                                         "id": 7,
@@ -347,7 +357,7 @@
                                                 "href": "/tickets?search=pricing"
                                             }
                                         ],
-                                        "created": 1780077367
+                                        "created": 1794473602
                                     },
                                     {
                                         "id": 8,
@@ -374,7 +384,7 @@
                                                 "href": "/tickets?search=copy"
                                             }
                                         ],
-                                        "created": 1779987367
+                                        "created": 1794383602
                                     },
                                     {
                                         "id": 9,
@@ -401,7 +411,7 @@
                                                 "href": "/tickets?search=csv"
                                             }
                                         ],
-                                        "created": 1779897367
+                                        "created": 1794293602
                                     },
                                     {
                                         "id": 10,
@@ -424,7 +434,7 @@
                                                 "href": "/tickets?search=onboarding"
                                             }
                                         ],
-                                        "created": 1779720967
+                                        "created": 1794117202
                                     },
                                     {
                                         "id": 11,
@@ -447,7 +457,7 @@
                                                 "href": "/tickets?search=billing"
                                             }
                                         ],
-                                        "created": 1779630967
+                                        "created": 1794027202
                                     },
                                     {
                                         "id": 12,
@@ -474,13 +484,31 @@
                                                 "href": "/tickets?search=refund"
                                             }
                                         ],
-                                        "created": 1779540967
+                                        "created": 1793937202
                                     }
                                 ],
                                 "rowHref": "/tickets/{id}"
+                            },
+                            "meta": {
+                                "clientSide": true
                             }
                         }
                     ]
+                }
+            },
+            "resources": {
+                "preferences": {
+                    "theme": "system",
+                    "locale": "en"
+                },
+                "capabilities": {
+                    "helpdesk:supervise": true
+                },
+                "featureFlags": [],
+                "user": {
+                    "id": "1",
+                    "name": "Demo User",
+                    "email": "demo@middag.io"
                 }
             }
         }

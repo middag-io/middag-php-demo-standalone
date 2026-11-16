@@ -39,7 +39,7 @@ use Psr\Log\LoggerInterface;
 final class TicketHooks
 {
     /** Priorities that breach first-response SLA and auto-escalate. */
-    private const ESCALATE_PRIORITIES = ['high', 'urgent'];
+    private const array ESCALATE_PRIORITIES = ['high', 'urgent'];
 
     private function __construct() {}
 
@@ -64,12 +64,13 @@ final class TicketHooks
         );
 
         // Page-props filter: a host can transform the emitted contract before it
-        // hits the wire (UiController::page applies this on /ui/page).
+        // hits the wire (UiController::page applies this on /ui/page). It writes
+        // only keys the page contract schema defines, so the result stays valid.
         $hooks->addFilter(
             'demo.ui.page',
             static function (array $page): array {
-                $page['meta'] ??= [];
-                $page['meta']['generatedBy'] = 'demo.ui.page filter hook';
+                $page['page'] ??= [];
+                $page['page']['subtitle'] = 'Filtered by the demo.ui.page hook';
 
                 return $page;
             },

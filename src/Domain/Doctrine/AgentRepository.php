@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Domain\Doctrine;
 
-use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
+use Middag\Demo\Standalone\Domain\Ticket;
 use Middag\Framework\Persistence\Contract\MapperInterface;
 use Middag\Framework\Persistence\Repository\AbstractRepository;
 use Middag\Framework\Shared\Enum\Operator;

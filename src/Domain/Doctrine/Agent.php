@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Domain\Doctrine;
 
-use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
+use Middag\Demo\Standalone\Domain\Ticket;
 use Middag\Framework\Persistence\Contract\EntityInterface;
 
 /**
@@ -25,7 +25,7 @@ use Middag\Framework\Persistence\Contract\EntityInterface;
  */
 final class Agent implements EntityInterface
 {
-    public const ROLES = ['agent', 'supervisor', 'admin'];
+    public const array ROLES = ['agent', 'supervisor', 'admin'];
 
     public function __construct(
         private readonly ?int $id,

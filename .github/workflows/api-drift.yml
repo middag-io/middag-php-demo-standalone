@@ -1,0 +1,56 @@
+name: API drift
+
+# Weekly: resolve the highest dependency versions without the platform pin and
+# run the api-coverage group (ApiCoverageTest). A failure means a released
+# middag-io/framework or middag-io/ui added or removed an @api symbol that
+# coverage/api.php does not map yet. The pull request jobs leave this group out
+# of the unpinned run, so the drift is reported here, as one open issue.
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  api-drift:
+    name: '@api map against the highest versions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: curl, intl, mbstring, pdo, pdo_sqlite, sqlite3
+          coverage: none
+          tools: composer:v2
+
+      - name: Resolve the highest versions without the platform pin
+        run: |
+          composer config --no-interaction --unset platform.php
+          composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Run the api-coverage group
+        id: drift
+        continue-on-error: true
+        run: vendor/bin/phpunit --group api-coverage
+
+      - name: Open or update the drift issue
+        if: steps.drift.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title='@api map drift against the highest library versions'
+          body="ApiCoverageTest failed against the highest versions of middag-io/framework and middag-io/ui: $RUN_URL. Map the new @api symbols in coverage/api.php (or remove the gone ones) and regenerate COVERAGE.md with composer coverage:md."
+          number=$(gh issue list --state open --search "in:title \"$title\"" --json number --jq '.[0].number')
+          if [ -n "$number" ]; then
+            gh issue comment "$number" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body"
+          fi

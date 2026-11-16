@@ -12,12 +12,17 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Http;
 
-use Middag\Demo\Standalone\Domain\Eloquent\User;
+use Middag\Demo\Standalone\Domain\User;
 use Middag\Demo\Standalone\Form\LoginForm;
-use Middag\Demo\Standalone\Http\Concern\RendersPages;
+use Middag\Demo\Standalone\Shared\Concerns\DeclaresPublicRoute;
+use Middag\Demo\Standalone\Shared\Concerns\RendersPages;
 use Middag\Framework\Form\Renderer\RendererRegistry;
+use Middag\Framework\Http\Attribute\Auth;
 use Middag\Framework\Http\Contract\AuthenticatorInterface;
+use Middag\Framework\Http\Contract\PublicRouteAwareInterface;
 use Middag\Framework\Http\Controller\AbstractController;
+use Middag\Framework\Security\Contract\PasswordHasherInterface;
+use Middag\Ui\Form\FormHeaderNode;
 use Middag\Ui\Page\PageBuilder;
 use Middag\Ui\Region\RegionBuilder;
 use Middag\Ui\Shared\Enum\RenderTarget;
@@ -35,12 +40,16 @@ use Symfony\Component\HttpFoundation\Response;
  * needs a CUSTOM @middag-io/react login component (the lib ships none), which is
  * future `ui/` work — the backend (this controller + the contract) is complete.
  */
-final class AuthController extends AbstractController
+#[Auth(login: false)]
+final class AuthController extends AbstractController implements PublicRouteAwareInterface
 {
+    use DeclaresPublicRoute;
+
     use RendersPages;
 
     public function __construct(
         private readonly AuthenticatorInterface $auth,
+        private readonly PasswordHasherInterface $hasher,
         private readonly RendererRegistry $renderers,
         private readonly LoginForm $form,
     ) {}
@@ -52,6 +61,10 @@ final class AuthController extends AbstractController
         // hand-built: the renderer emits the canonical @middag-io/react
         // FormFieldNode shape, and middag-io/ui's RegionBuilder::formPanel wraps it.
         $rendered = $this->renderers->get(RenderTarget::Props)->render($this->form)->props;
+        // A header node built from the ui value objects heads the form; the
+        // FormPanel serializes FormSchemaNodeInterface nodes next to the
+        // renderer's arrays.
+        $schema = [new FormHeaderNode('Demo operator sign-in'), ...($rendered['schema'] ?? [])];
 
         $contract = PageBuilder::page('demo.login')
             // Custom chromeless shell (registered host-side) — no app sidebar/nav
@@ -60,7 +73,7 @@ final class AuthController extends AbstractController
             ->shell('auth')
             ->title('Sign in')
             ->subtitle('')
-            ->region('content', function (RegionBuilder $region) use ($rendered): void {
+            ->region('content', function (RegionBuilder $region) use ($rendered, $schema): void {
                 // submit/cancel labels + cancel target ride in form_panel meta (the
                 // React FormPanelBlock reads data.meta.submitLabel/cancelLabel/cancelHref).
                 // Cancel → /login reloads a clean form, so it reads as "Reset".
@@ -68,7 +81,7 @@ final class AuthController extends AbstractController
                     'login',
                     '/login',
                     'POST',
-                    $rendered['schema'] ?? [],
+                    $schema,
                     $rendered['values'] ?? [],
                     null,
                     ['meta' => ['validation' => 'both', 'submitLabel' => 'Sign in', 'cancelLabel' => 'Reset', 'cancelHref' => '/login']],
@@ -87,7 +100,7 @@ final class AuthController extends AbstractController
 
         $user = User::findByEmail($email);
 
-        if (!$user instanceof User || !$user->verifyPassword($password)) {
+        if (!$user instanceof User || !$user->verifyPassword($password, $this->hasher)) {
             $this->flash('error', 'Invalid credentials.');
 
             return $this->redirectToRoute('login.form');

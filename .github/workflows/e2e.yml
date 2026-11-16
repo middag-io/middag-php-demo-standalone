@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -18,14 +19,20 @@ concurrency:
 # drive real auth + navigation + business flows in Chromium (desktop + mobile).
 jobs:
   e2e:
-    name: Playwright E2E (full-stack, PHP 8.4)
+    name: Playwright E2E (full-stack, PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The committed composer.lock is resolved at the platform pin (8.3.0),
+        # so the same lock runs on every supported PHP.
+        php: ['8.3', '8.4', '8.5']
     steps:
       - uses: actions/checkout@v7
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: ${{ matrix.php }}
           extensions: curl, intl, mbstring, pdo, pdo_sqlite, sqlite3
           coverage: none
           tools: composer:v2
@@ -67,6 +74,76 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-report
+          name: playwright-report-php${{ matrix.php }}
           path: e2e/playwright-report/
           retention-days: 7
+
+  # Forward drift, not a gate: the highest PHP dependencies (platform pin
+  # removed) and the latest @middag-io/react on PHP 8.5, desktop projects only.
+  # Runs on main and on demand, never on a pull request; a failure opens (or
+  # comments on) one issue instead of failing the run.
+  e2e-highest:
+    name: Playwright E2E (highest dependencies, PHP 8.5)
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: curl, intl, mbstring, pdo, pdo_sqlite, sqlite3
+          coverage: none
+          tools: composer:v2
+
+      - name: Resolve the highest PHP dependencies without the platform pin
+        run: |
+          composer config --no-interaction --unset platform.php
+          composer update --prefer-dist --no-interaction --no-progress
+          mkdir -p var
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          registry-url: https://npm.pkg.github.com
+          scope: '@middag-io'
+
+      - name: Build the React bundle on the latest renderer
+        working-directory: ui
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm ci
+          npm install --no-save @middag-io/react@latest
+          npm run build:host
+
+      - name: Install E2E dependencies + Chromium
+        working-directory: e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run the desktop projects
+        id: run
+        continue-on-error: true
+        working-directory: e2e
+        run: npx playwright test --project=setup --project=auth-flows --project=desktop --project=api --project=errors --project=fault
+
+      - name: Open or update the drift issue
+        if: steps.run.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title='E2E drift against the highest dependencies'
+          body="The E2E suite failed on PHP 8.5 with the highest PHP dependencies and the latest @middag-io/react: $RUN_URL"
+          number=$(gh issue list --state open --search "in:title \"$title\"" --json number --jq '.[0].number')
+          if [ -n "$number" ]; then
+            gh issue comment "$number" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body"
+          fi

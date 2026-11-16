@@ -12,8 +12,8 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Tests;
 
-use Middag\Demo\Standalone\Bootstrap\DemoBootstrap;
-use Middag\Demo\Standalone\Bootstrap\DemoComponentContext;
+use Middag\Demo\Standalone\Kernel\Bootstrap\DemoBootstrap;
+use Middag\Demo\Standalone\Kernel\Bootstrap\DemoComponentContext;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Http\Inertia\InertiaVersionManager;
 use Middag\Framework\Kernel\Contract\HostComponentContextInterface;

@@ -12,15 +12,18 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Schema;
 
+use Middag\Demo\Standalone\Domain\Comment;
 use Middag\Demo\Standalone\Domain\Doctrine\Agent;
 use Middag\Demo\Standalone\Domain\Doctrine\AgentRepository;
 use Middag\Demo\Standalone\Domain\Doctrine\Customer;
 use Middag\Demo\Standalone\Domain\Doctrine\CustomerRepository;
 use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicy;
 use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicyRepository;
-use Middag\Demo\Standalone\Domain\Eloquent\Comment;
-use Middag\Demo\Standalone\Domain\Eloquent\Ticket;
+use Middag\Demo\Standalone\Domain\Tag;
+use Middag\Demo\Standalone\Domain\Ticket;
 use Middag\Framework\Database\Contract\ConnectionAdapterInterface;
+use Middag\Framework\Shared\Dto\SyncResult;
+use Middag\Framework\Shared\ValueObject\Uuid;
 
 /**
  * Idempotent seeder for the help-desk demo dataset.
@@ -32,11 +35,11 @@ use Middag\Framework\Database\Contract\ConnectionAdapterInterface;
  */
 final class HelpdeskSeeder
 {
-    public static function seed(ConnectionAdapterInterface $adapter): void
+    public static function seed(ConnectionAdapterInterface $adapter): SyncResult
     {
         $agents = new AgentRepository($adapter);
         if ($agents->findAll() !== []) {
-            return; // already seeded
+            return new SyncResult(0, 0); // already seeded
         }
 
         $sla = new SlaPolicyRepository($adapter);
@@ -117,6 +120,7 @@ final class HelpdeskSeeder
             $customerId = (int) $custIds[$i % count($custIds)];
 
             $ticket = new Ticket([
+                'ref' => (string) Uuid::v7(),
                 'subject' => $subject,
                 'body' => $subject . ' — reported via ' . $channel . '. Steps and context provided by the customer.',
                 'status' => $status,
@@ -133,6 +137,7 @@ final class HelpdeskSeeder
             ]);
             $ticket->save();
             $ticketId = (int) $ticket->getKey();
+            Tag::syncTicket($ticketId, $tags);
 
             (new Comment([
                 'ticket_id' => $ticketId,
@@ -154,5 +159,7 @@ final class HelpdeskSeeder
 
             ++$i;
         }
+
+        return new SyncResult($i, 0);
     }
 }

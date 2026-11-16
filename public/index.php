@@ -14,17 +14,25 @@ if (PHP_SAPI === 'cli-server') {
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use Middag\Demo\Standalone\Bootstrap\DemoKernel;
-use Middag\Demo\Standalone\Framework\DebugCollector;
+use Middag\Demo\Standalone\Kernel\Bootstrap\DemoKernel;
+use Middag\Demo\Standalone\Kernel\Bootstrap\DemoEnv;
+use Middag\Demo\Standalone\Observability\DebugCollector;
+use Middag\Framework\Http\FatalErrorHandler;
 use Middag\Framework\Http\Middleware\MiddlewareDispatcher;
 use Middag\Framework\Http\StandaloneKernel;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 $projectRoot = dirname(__DIR__);
-$debug = (($_ENV['APP_DEBUG'] ?? '0') === '1');
+$debug = DemoEnv::flag('APP_DEBUG');
 $startedAt = microtime(true);
 
 $container = DemoKernel::boot($projectRoot, $debug);
+
+// A fatal error (out of memory, a parse error in a lazily loaded file) never
+// reaches the kernel's exception mapping; the shutdown handler logs it and
+// answers with the framework's 500 envelope instead of a blank page.
+(new FatalErrorHandler($container->get(LoggerInterface::class), debug: $debug))->register();
 
 $request = Request::createFromGlobals();
 
