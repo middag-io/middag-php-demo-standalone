@@ -13,9 +13,11 @@ docker compose up --build         # web (8080) + worker
 open http://localhost:8080        # demo login (seeded in demo_users)
 ```
 
-First boot: the entrypoint creates `var/`, installs vendor (if missing), and runs
-`bin/console install:db` (creates + seeds the SQLite DB). Later boots skip the
-install (guarded on the `var/demo.sqlite` file).
+Every boot of the web service: the entrypoint creates `var/`, installs vendor (if
+missing), and runs `bin/console install:db`. It is idempotent: the first boot
+creates and seeds the SQLite DB; a later boot on an existing `var/demo.sqlite`
+applies the newer schema versions and re-applies the demo users' capabilities,
+and leaves the help-desk data alone.
 
 ## Dockerfile only (no compose)
 

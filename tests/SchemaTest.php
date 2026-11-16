@@ -13,8 +13,11 @@ declare(strict_types=1);
 namespace Middag\Demo\Standalone\Tests;
 
 use Doctrine\DBAL\DriverManager;
+use Middag\Demo\Standalone\Console\InstallCommand;
 use Middag\Demo\Standalone\Domain\Attachment;
+use Middag\Demo\Standalone\Domain\User;
 use Middag\Demo\Standalone\Schema\DemoMigrationRunner;
+use Middag\Demo\Standalone\Security\SuperviseCapability;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Database\Contract\ConnectionInterface;
 use Middag\Framework\Database\Contract\SchemaBuilderAdapterInterface;
@@ -23,6 +26,7 @@ use Middag\Framework\Database\Schema\MysqlVersionTracker;
 use Middag\Framework\Database\Schema\SchemaBuilder;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Test;
+use Symfony\Component\Console\Tester\CommandTester;
 
 /**
  * Schema + migrations: descriptor loading, the SQLite adapter (table/column
@@ -80,6 +84,42 @@ final class SchemaTest extends DemoTestCase
         self::assertTrue($adapter->columnExists('demo_attachments', 'user_id'));
         self::assertSame(0, Attachment::query()->where('token', $token)->first()?->user_id);
         self::assertNull(Attachment::findPending(1, 1, $token), 'a pending upload from before the column has no owner');
+    }
+
+    #[Test]
+    public function installOnADatabaseFromAnOlderSchemaUpgradesItAndIsIdempotent(): void
+    {
+        $builder = $this->container->get(SchemaBuilder::class);
+        $adapter = $this->container->get(SchemaBuilderAdapterInterface::class);
+        $connection = $this->container->get(ConnectionInterface::class);
+
+        // A database as an older release left it: no capabilities on the users,
+        // no uploader on the attachments, a supervisor without its capability.
+        foreach (['demo_users' => 'capabilities', 'demo_attachments' => 'user_id'] as $table => $column) {
+            $descriptor = $builder->all()[$table];
+            $adapter->dropTable($table);
+            $adapter->createTable([
+                ...$descriptor,
+                'columns' => array_values(array_filter($descriptor['columns'], static fn (array $c): bool => $c['name'] !== $column)),
+            ]);
+        }
+        $connection->execute(
+            'INSERT INTO demo_users (email, name, password_hash, created_at) VALUES (?, ?, ?, ?)',
+            [User::DEMO_EMAIL, 'Demo User', 'old-hash', time()],
+        );
+        $tracker = new MysqlVersionTracker($connection, 'demo');
+        $tracker->setVersion(2026111600);
+
+        $install = new CommandTester(new InstallCommand($this->container));
+        self::assertSame(0, $install->execute([]));
+        self::assertSame(0, $install->execute([]));
+
+        self::assertTrue($adapter->columnExists('demo_users', 'capabilities'));
+        self::assertTrue($adapter->columnExists('demo_attachments', 'user_id'));
+        self::assertSame(DemoMigrationRunner::VERSION, $tracker->getVersion());
+        self::assertSame([SuperviseCapability::KEY], User::findByEmail(User::DEMO_EMAIL)?->capabilities());
+        self::assertSame('old-hash', User::findByEmail(User::DEMO_EMAIL)?->password_hash, 'an existing user keeps its password');
+        self::assertCount(2, User::query()->get());
     }
 
     #[Test]
