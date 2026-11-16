@@ -433,7 +433,7 @@ Generated from `middag-io/framework` v1.20.4 and `middag-io/ui` v1.9.0, as insta
 |---|---|---|---|---|
 | `Region\Contract\RegionBuilderInterface` | covered | Reached through RegionBuilder. | `DashboardContractTest::dashboardRendersMetricsStatusStripChartAndOpenQueue` | — |
 | `Region\Fragment` | covered | `src/Http/UiController.php` | `UiContractTest::fragmentEndpointEmitsPartialTableFragment` | — |
-| `Region\PollConfig` | gap | RegionBuilder cannot attach a poll config to a block, so no page polls; the test proves the descriptor emits a valid poll. | `WireSchemaTest::pollConfigMatchesTheSchema` | — |
+| `Region\PollConfig` | gap | RegionBuilder::poll() attaches it to a block, but no demo page needs a live refresh, so no page polls; the test proves the descriptor emits a valid poll. | `WireSchemaTest::pollConfigMatchesTheSchema` | — |
 | `Region\RegionBuilder` | covered | `src/Http/TicketController.php` | `HttpTest::showExistingIdSucceedsWhenAuthenticated`<br>`KernelContainerTest::serviceProviderAutoDiscoveredDemoServices` | — |
 | `Region\RegionUpdate` | gap | No consumer in the free renderer. | — | — |
 
