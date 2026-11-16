@@ -1,13 +1,15 @@
 # DOCKER.md — run the Demo standalone in Docker
 
 A single PHP 8.4 image serves the PSR-15 app (built-in server) + the Messenger
-worker. DB = **SQLite file** (`var/demo.sqlite`), no external DB server. The `ui/`
-layer (React/Vite) is **not included yet** — it lives in a profile-gated Node
-service, ready for when `middag-react` unblocks.
+worker. DB = **SQLite file** (`var/demo.sqlite`), no external DB server. The image also
+builds the `ui/` layer (React + Vite, `@middag-io/react`) in a separate `ui` stage
+and copies the bundle to `public/build`, so a bare `docker run` serves the complete,
+styled app. A profile-gated Node service runs the Vite dev server for frontend work.
 
 ## TL;DR
 
 ```bash
+export GITHUB_TOKEN=...           # read:packages, for @middag-io/react (build only)
 docker compose up --build         # web (8080) + worker
 open http://localhost:8080        # demo login (seeded in demo_users)
 ```
@@ -19,7 +21,9 @@ install (guarded on the `var/demo.sqlite` file).
 ## Dockerfile only (no compose)
 
 ```bash
-docker build -t middag-demo-standalone:dev .
+# @middag-io/react is installed from GitHub Packages: pass a token with
+# read:packages as a BuildKit secret (it is never stored in a layer).
+docker build --secret id=github_token,env=GITHUB_TOKEN -t middag-demo-standalone:dev .
 docker run --rm -p 8080:8080 middag-demo-standalone:dev          # serve
 docker run --rm middag-demo-standalone:dev worker                # worker
 docker run --rm middag-demo-standalone:dev composer test         # phpunit
@@ -42,21 +46,23 @@ docker compose down                                # stop
 
 ```bash
 docker compose --profile redis up      # + Redis on :6379 (validate cache/session/transport)
-docker compose --profile ui up         # + Vite dev server on :5173 (FUTURE: ui/)
+docker compose --profile ui up         # + Vite dev server (HMR) for ui/
 ```
 
 - **redis**: there is no Redis wiring in the demo today. The service is here only
   to experiment (point Messenger session/cache/transport at Redis).
-- **ui**: BLOCKED until `middag-react`. There is no `package.json` in `ui/` yet, so
-  the service fails on purpose until the layer exists. Once it does: it produces the
-  `/build/app.js` bundle the PHP shell (`DemoBootstrap::inertiaHtmlBootstrap()`)
-  references. See `FRONTEND-PLAN.md`.
+- **ui**: runs `npm install` and the Vite dev server in `ui/` with HMR. The
+  production bundle that the PHP shell (`DemoBootstrap::inertiaHtmlBootstrap()`)
+  references is built by the image's `ui` stage into `public/build`.
 
 ## Notes
 
-- **Public packages — no auth.** `middag-io/framework` + `middag-io/ui` are on
-  Packagist (Apache-2.0), so the build needs no credentials: composer resolves them
-  from the committed `composer.lock`.
+- **Credentials.** The PHP side needs none: `middag-io/framework` and
+  `middag-io/ui` are on Packagist (Apache-2.0) and composer resolves them from the
+  committed `composer.lock`. The `ui` stage installs `@middag-io/react` from GitHub
+  Packages, so `docker build` needs the `github_token` BuildKit secret (a token with
+  `read:packages`); the token is read only inside that `RUN` and never baked into a
+  layer.
 - **dev = bind mount.** `.:/app` in compose: editing code reflects immediately.
   `vendor` and `ui/node_modules` are anonymous volumes (so they don't shadow what
   the image installed).
@@ -68,7 +74,6 @@ docker compose --profile ui up         # + Vite dev server on :5173 (FUTURE: ui/
   the boot breaks). Pass `DB_DSN`/`APP_*` via the environment (the Dockerfile and
   compose already do).
 - **Serving static assets.** `serve` uses `php -S ... public/index.php` (same as the
-  composer `serve` script), which routes everything through the kernel. When `ui/`
-  lands and the prod bundle must be served by PHP, switch to a router that does
-  `return false` for existing files — or serve via Vite/CDN. In dev, Vite (the `ui`
-  profile) serves assets with HMR.
+  composer `serve` script), which routes everything through the kernel. The image
+  serves the prebuilt bundle from `public/build`. In dev, Vite (the `ui` profile)
+  serves assets with HMR.
