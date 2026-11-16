@@ -28,7 +28,7 @@ Closes #
 - [ ] This PR introduces a breaking change
 
 <!--
-Version family (ADR-032): the `php-version-family-check / check` job fails a
+Version family: the `php-version-family-check / check` job fails a
 breaking change unless a family MAJOR window is open, and from 2.0.0 it fails a
 `feat` unless a family window is open. The window is the organization variable
 PHP_LIBS_OPEN_RELEASE, set on the order of the product owner. Do not use `!` or a

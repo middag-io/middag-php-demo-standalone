@@ -100,7 +100,7 @@ Longer body when the "why" isn't obvious.
 ## Versioning
 
 The demo belongs to the `middag-php-*` version family
-(ADR-032 of the internal `docs-middag-ops`, which amends ADR-003 for the PHP libraries). release-please derives
+(see https://docs.middag.dev/libraries/reference/versioning-and-compatibility). release-please derives
 each release from the commit types on `main`.
 
 - **Now (`0.x`).** `feat:` and `fix:` cut a release as before. A breaking change ships
