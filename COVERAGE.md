@@ -16,7 +16,7 @@ Generated from `middag-io/framework` v1.20.4 and `middag-io/ui` v1.10.0, as inst
 | Library | `@api` | covered | host | gap |
 |---|---|---|---|---|
 | `middag-io/framework` | 225 | 201 | 14 | 10 |
-| `middag-io/ui` | 94 | 79 | 0 | 15 |
+| `middag-io/ui` | 94 | 81 | 0 | 13 |
 
 ## `middag-io/framework`
 
@@ -463,13 +463,13 @@ Generated from `middag-io/framework` v1.20.4 and `middag-io/ui` v1.10.0, as inst
 | `Shared\ValueObject\Translatable` | covered | Reached through AbstractField::toDefinition(). | `FormTest::rendersToInertiaProps` | — |
 | `Shared\ValueObject\UserPreferences` | gap | The free renderer does not apply a server-sent preference; the theme is client-side only. | — | — |
 
-### Table — 8 `@api`: 6 covered, 0 host, 2 gap
+### Table — 8 `@api`: 8 covered, 0 host, 0 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
 | `Table\Column` | covered | `src/Http/UiController.php` | `UiContractTest::fragmentEndpointEmitsPartialTableFragment` | — |
-| `Table\Contract\CrudBuilderInterface` | gap | See CrudBuilder: rowActions() on the interface takes action names only. | — | — |
-| `Table\CrudBuilder` | gap | The agents list cannot be built with it: rowActions() takes action names and emits link or request targets only, so the Edit action cannot carry the panel target; the column descriptor drops the column variant, so the badge, html, progress and sparkline cells are lost; and build() returns a single content region with no row link, shell, subtitle, extra region or editable panel config. | — | — |
+| `Table\Contract\CrudBuilderInterface` | covered | Reached through CrudBuilder, which builds the agents index page. | `AgentContractTest::listRendersRosterAndGatesSupervisorColumnsByDefault`<br>`AgentPanelTest::supervisorsGetThePanelConfigAndTheEditRowAction` | `business/agents.spec.ts › renders the roster with its variant cells and metrics` |
+| `Table\CrudBuilder` | covered | `src/Http/AgentController.php`; the agents index: variant columns, a row link, the Edit row action with the panel target, and through page() the shell, subtitle, metrics region and editable panel, returned by toProps(). The sparkline and mailto link cells, which CrudBuilder cannot express, are proved on the agent detail page. | `AgentContractTest::listRendersRosterAndGatesSupervisorColumnsByDefault`<br>`AgentContractTest::listShowsSupervisorColumnsWhenCapabilityHeld`<br>`AgentContractTest::listSortsSearchesAndPagesTheRosterOnTheServer`<br>`AgentPanelTest::supervisorsGetThePanelConfigAndTheEditRowAction` | `business/agents.spec.ts › renders the roster with its variant cells and metrics`<br>`business/agents.spec.ts › a row opens the agent detail`<br>`business/agents.spec.ts › edits an agent in the side panel` |
 | `Table\FilterDefinition` | covered | `src/Http/TicketQueueQuery.php` | `TicketContractTest::queueFiltersSortsAndPaginatesOnTheServer` | `business/table.spec.ts › filters and pages the ticket queue on the server` |
 | `Table\Pagination` | covered | `src/Http/TicketQueueQuery.php` | `TicketContractTest::queueFiltersSortsAndPaginatesOnTheServer` | `business/table.spec.ts › filters and pages the ticket queue on the server` |
 | `Table\TableBuilder` | covered | `src/Http/AgentController.php` | `AgentContractTest::detailShowsSupervisorsTheMailtoAndSparklineActivityTable` | — |
