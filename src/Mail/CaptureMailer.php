@@ -23,16 +23,21 @@ use Middag\Framework\Mail\Mail;
  * instead of sending it. The framework ships only the NullMailer; the demo binds
  * this one when MAIL_CAPTURE=1 (and in fault mode), so a test or the outbox route
  * can read what would have been sent.
+ *
+ * FilesystemInterface cannot list a directory, so the mailer keeps an index file
+ * of the captured names; {@see self::captured()} reads the outbox back through it.
  */
-final class CaptureMailer implements MailerInterface
+final readonly class CaptureMailer implements MailerInterface
 {
-    private int $sequence = 0;
+    public const string INDEX = 'outbox.index';
 
-    public function __construct(private readonly FilesystemInterface $outbox) {}
+    public function __construct(private FilesystemInterface $outbox) {}
 
     public function send(Mail $mail): void
     {
-        $name = sprintf('%s-%04d.json', date('YmdHis'), ++$this->sequence);
+        // Unique per message: the built-in server runs each request in a fresh
+        // process, so a per-instance counter would collide within one second.
+        $name = sprintf('%s-%s.json', date('YmdHis'), bin2hex(random_bytes(4)));
 
         $this->outbox->write($name, (string) json_encode([
             'to' => array_map(static fn (Address $to): string => $to->toString(), $mail->to),
@@ -41,5 +46,38 @@ final class CaptureMailer implements MailerInterface
             'body' => $mail->body,
             'attachments' => array_map(static fn (Attachment $file): string => $file->filename(), $mail->attachments),
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+        $this->outbox->write(self::INDEX, implode("\n", [...$this->names(), $name]));
+    }
+
+    /**
+     * The captured messages, oldest first.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function captured(): array
+    {
+        $mails = [];
+        foreach ($this->names() as $name) {
+            if (!$this->outbox->exists($name)) {
+                continue;
+            }
+            $mail = json_decode($this->outbox->read($name), true);
+            if (is_array($mail)) {
+                $mails[] = ['id' => basename($name, '.json')] + $mail;
+            }
+        }
+
+        return $mails;
+    }
+
+    /** @return list<string> */
+    private function names(): array
+    {
+        if (!$this->outbox->exists(self::INDEX)) {
+            return [];
+        }
+
+        return array_values(array_filter(explode("\n", $this->outbox->read(self::INDEX))));
     }
 }

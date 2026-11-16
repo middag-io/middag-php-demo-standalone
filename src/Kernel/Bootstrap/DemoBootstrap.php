@@ -635,10 +635,12 @@ final readonly class DemoBootstrap implements BootstrapInterface
         $routes->add('agents.show', new Route('/agents/{id}', ['_controller' => AgentController::class . '::show'], [], ['id' => '\d+'], '', [], ['GET']));
         $routes->add('customers.index', new Route('/customers', ['_controller' => CustomerController::class . '::index'], [], [], '', [], ['GET']));
 
-        // Fault mode only: a route that throws, for the 500 error page. Without
-        // DEMO_FAULT_MODE the path does not exist and answers 404.
+        // Fault mode only: a route that throws, for the 500 error page, and the
+        // captured mail outbox. Without DEMO_FAULT_MODE the paths do not exist and
+        // answer 404.
         if (DemoEnv::flag('DEMO_FAULT_MODE')) {
             $routes->add('fault.crash', new Route('/_test/crash', ['_controller' => FaultController::class . '::crash'], [], [], '', [], ['GET']));
+            $routes->add('fault.outbox', new Route('/_test/outbox', ['_controller' => FaultController::class . '::outbox'], [], [], '', [], ['GET']));
         }
 
         // Dual-ORM parity proof + help/about (immersive shell).
