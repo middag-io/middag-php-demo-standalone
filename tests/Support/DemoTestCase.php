@@ -62,7 +62,7 @@ abstract class DemoTestCase extends TestCase
         // default to an authenticated session (via the framework authenticator) so
         // guarded routes are reachable. AuthTest logs out / back in to exercise the
         // gate, login verification, and logout.
-        User::seedDemo($this->container->get(PasswordHasherInterface::class));
+        User::seedDemoUsers($this->container->get(PasswordHasherInterface::class));
         $this->container->get(AuthenticatorInterface::class)->login(1, [
             'name' => 'Test User',
             'email' => 'test@demo.local',

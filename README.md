@@ -45,6 +45,9 @@ composer test               # PHPUnit against the real stack, in-memory SQLite
 composer check              # PHP-CS-Fixer, Rector (dry run), PHPStan
 ```
 
+Two logins are seeded: `demo@middag.io` / `middag` is the help-desk supervisor (it holds
+`helpdesk:supervise`), and `agent@middag.io` / `middag` is a plain agent without it.
+
 The React bundle is built from `ui/` (`npm ci && npm run build:host`); the E2E suite
 lives in `e2e/` ([`e2e/README.md`](e2e/README.md)).
 

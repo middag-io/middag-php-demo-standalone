@@ -45,7 +45,9 @@ which run without storage state because they test authentication itself).
   npx playwright install chromium
   ```
 
-The seeded login is `demo@middag.io` / `middag` (see `helpers/auth.ts`).
+The seeded logins are `demo@middag.io` / `middag` (the supervisor, used by the
+stored session) and `agent@middag.io` / `middag` (no `helpdesk:supervise`, used by the
+capability spec). See `helpers/auth.ts`.
 
 ## Run locally
 

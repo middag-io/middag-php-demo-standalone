@@ -106,12 +106,13 @@ final class AuthController extends AbstractController implements PublicRouteAwar
             return $this->redirectToRoute('login.form');
         }
 
-        // The single demo operator is the help-desk supervisor — the capability
-        // opens the supervisor-only columns on /agents (the Can gate).
+        // The session carries the user's stored capabilities: the demo operator
+        // holds helpdesk:supervise, which opens the supervisor-only columns and the
+        // editable panel on /agents (the Can gate); the seeded agent holds none.
         $this->auth->login((int) $user->id, [
             'name' => (string) $user->name,
             'email' => (string) $user->email,
-            'capabilities' => ['helpdesk:supervise'],
+            'capabilities' => $user->capabilities(),
         ]);
         $this->flash('success', 'Welcome, ' . $user->name . '.');
 

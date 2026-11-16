@@ -85,6 +85,6 @@ final class HelpPage extends AbstractPage
             . "- **Coverage** — the CI-enforced manifest mapping every covered symbol to its proof route, plus the catalogued gaps.\n\n"
             . "### Run it\n\n"
             . "```\nphp -S localhost:8090 -t public public/index.php\ncd ui && npm run build:host\n```\n\n"
-            . 'Login: `demo@middag.io` / `middag`.';
+            . 'Login: `demo@middag.io` / `middag` (supervisor) or `agent@middag.io` / `middag` (no supervisor capability).';
     }
 }
