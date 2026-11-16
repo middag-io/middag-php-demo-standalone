@@ -8,7 +8,9 @@ import { defineConfig, devices } from '@playwright/test';
  * the server off :8080 when that port is taken.
  */
 const PORT = Number(process.env.E2E_PORT ?? 8080);
+const FAULT_PORT = Number(process.env.E2E_FAULT_PORT ?? PORT + 1);
 const BASE_URL = `http://localhost:${PORT}`;
+const FAULT_URL = `http://localhost:${FAULT_PORT}`;
 const STORAGE = 'fixtures/.auth/user.json';
 
 export default defineConfig({
@@ -47,13 +49,46 @@ export default defineConfig({
       dependencies: ['setup'],
       use: { ...devices['Pixel 7'], storageState: STORAGE },
     },
+    {
+      name: 'api',
+      testMatch: /api\/.*\.spec\.ts/,
+      dependencies: ['setup'],
+      use: { storageState: STORAGE },
+    },
+    {
+      name: 'errors',
+      testMatch: /errors\/.*\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      // Second server: DEMO_FAULT_MODE=1 on its own database. Serial, because
+      // the maintenance flag is server state.
+      name: 'fault',
+      testMatch: /fault\/.*\.spec\.ts/,
+      fullyParallel: false,
+      workers: 1,
+      use: { ...devices['Desktop Chrome'], baseURL: FAULT_URL },
+    },
   ],
-  webServer: {
-    command: `cd .. && php bin/console install:db && php -S localhost:${PORT} -t public public/index.php`,
-    url: BASE_URL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-    stdout: 'ignore',
-    stderr: 'pipe',
-  },
+  webServer: [
+    {
+      command: `cd .. && php bin/console install:db && php -S localhost:${PORT} -t public public/index.php`,
+      url: BASE_URL,
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+      stdout: 'ignore',
+      stderr: 'pipe',
+    },
+    {
+      // The variables reach the PHP process environment; DemoEnv reads them even
+      // when variables_order leaves $_ENV empty.
+      command: `cd .. && rm -f var/fault.sqlite && php bin/console install:db && php -S localhost:${FAULT_PORT} -t public public/index.php`,
+      url: `${FAULT_URL}/login`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+      stdout: 'ignore',
+      stderr: 'pipe',
+      env: { DB_DSN: 'sqlite:var/fault.sqlite', DEMO_FAULT_MODE: '1', MAIL_CAPTURE: '1' },
+    },
+  ],
 });

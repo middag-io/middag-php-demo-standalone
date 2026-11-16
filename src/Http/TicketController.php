@@ -257,7 +257,8 @@ final class TicketController extends AbstractController
             ->title('#' . $id . ' · ' . $ticket->subject)
             ->subtitle('Ticket detail — status lifecycle + tabbed detail/activity/SLA')
             ->breadcrumbs(static function (BreadcrumbListBuilderInterface $trail) use ($id): void {
-                $trail->item('Tickets', '/tickets')->current('#' . $id);
+                // Inflector::title() turns the entity name into its list title ("Tickets").
+                $trail->item(Inflector::title('ticket'), '/tickets')->current('#' . $id);
             })
             ->actions(array_values(array_filter([
                 PageBuilder::action('edit', 'Edit', ActionTarget::link('/tickets/' . $id . '/edit'), ActionIntent::Primary, 'pencil'),
@@ -541,7 +542,7 @@ final class TicketController extends AbstractController
                 $index === $position => ['Current', 'info'],
                 default => ['Pending', 'neutral'],
             };
-            $items[] = ['key' => $status, 'label' => Inflector::title($status), 'value' => $value, 'appearance' => $appearance];
+            $items[] = ['key' => $status, 'label' => ucfirst($status), 'value' => $value, 'appearance' => $appearance];
         }
 
         return $items;

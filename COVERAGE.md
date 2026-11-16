@@ -123,9 +123,9 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
 | `Http\Attribute\Auth` | covered | `src/Http/TicketController.php` | `HttpTest::apiRejectsUnauthenticatedWith401`<br>`HttpTest::showExistingIdSucceedsWhenAuthenticated` | — |
-| `Http\Attribute\Cors` | covered | `src/Http/TicketApiController.php` | `HttpSeamsTest::corsAnswersOnlyTheAllowedOrigin` | — |
-| `Http\Attribute\Middleware` | covered | `src/Http/TicketApiController.php` | `HttpSeamsTest::apiRouteMiddlewareStampsATimeOrderedRequestId` | — |
-| `Http\Attribute\ValidatedDto` | covered | `src/Http/TicketApiController.php` | `HttpTest::apiStoreDtoValidatesAndReturns201` | — |
+| `Http\Attribute\Cors` | covered | `src/Http/TicketApiController.php` | `HttpSeamsTest::corsAnswersOnlyTheAllowedOrigin` | `api/tickets.spec.ts › answers CORS for the allowed origin only and stamps a request id` |
+| `Http\Attribute\Middleware` | covered | `src/Http/TicketApiController.php` | `HttpSeamsTest::apiRouteMiddlewareStampsATimeOrderedRequestId` | `api/tickets.spec.ts › answers CORS for the allowed origin only and stamps a request id` |
+| `Http\Attribute\ValidatedDto` | covered | `src/Http/TicketApiController.php` | `HttpTest::apiStoreDtoValidatesAndReturns201` | `api/tickets.spec.ts › rejects an invalid ticket through the typed DTO (422)` |
 | `Http\Auth\CapabilityReference` | covered | `src/Security/SuperviseCapability.php` | `HttpSeamsTest::supervisorGateIsARichCapabilityRequirement`<br>`AgentContractTest::listShowsSupervisorColumnsWhenCapabilityHeld` | — |
 | `Http\Auth\CapabilityRequirement` | covered | `src/Http/AgentController.php` | `HttpSeamsTest::supervisorGateIsARichCapabilityRequirement`<br>`AgentContractTest::listShowsSupervisorColumnsWhenCapabilityHeld` | — |
 | `Http\Auth\SessionAuthenticator` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
@@ -136,7 +136,7 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | `Http\Contract\CapabilityRequirementAwareInterface` | covered | `src/Http/AgentController.php` | `AgentContractTest::listShowsSupervisorColumnsWhenCapabilityHeld`<br>`AgentContractTest::listRendersRosterAndGatesSupervisorColumnsByDefault` | — |
 | `Http\Contract\ContainerAwareInterface` | covered | Reached through AbstractController. | `HttpTest::indexWithXInertiaHeaderReturnsJson` | — |
 | `Http\Contract\ControllerInterface` | covered | Reached through AbstractController. | `HttpTest::indexWithXInertiaHeaderReturnsJson` | — |
-| `Http\Contract\ExceptionRendererInterface` | covered | `src/Http/ErrorPageRenderer.php` | `HttpSeamsTest::unknownRouteRendersTheNotFoundPage` | — |
+| `Http\Contract\ExceptionRendererInterface` | covered | `src/Http/ErrorPageRenderer.php` | `HttpSeamsTest::unknownRouteRendersTheNotFoundPage` | `errors/not-found.spec.ts › an unknown route renders the 404 error page` |
 | `Http\Contract\FormRequestInterface` | covered | Reached through AbstractFormRequest. | `TicketContractTest::wizardAdvancesThroughStepsAndCreatesWithMergedData` | — |
 | `Http\Contract\HttpKernelInterface` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `KernelContainerTest::containerResolvesFrameworkContractsToOssDefaults` | — |
 | `Http\Contract\PublicRouteAwareInterface` | covered | `src/Shared/Concerns/DeclaresPublicRoute.php` | `HttpSeamsTest::loginAndHelpArePublicRoutes` | — |
@@ -158,10 +158,10 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | `Http\Middleware\ShareFlashMiddleware` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `FrontendContractTest::createFlashesSuccessOnNextVisit` | — |
 | `Http\Middleware\StartSessionMiddleware` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
 | `Http\Middleware\VerifyCsrfMiddleware` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
-| `Http\Request\AbstractFormRequest` | covered | `src/Http/Request/CreateTicketRequest.php` | `TicketContractTest::wizardAdvancesThroughStepsAndCreatesWithMergedData` | — |
+| `Http\Request\AbstractFormRequest` | covered | `src/Http/Request/CreateTicketRequest.php` | `TicketContractTest::wizardAdvancesThroughStepsAndCreatesWithMergedData` | `api/tickets.spec.ts › creates a ticket through the rules() request (201)` |
 | `Http\Retry\RetryPolicy` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `SecurityTest::webhookIsSignedSentAndRetriedOnce` | — |
 | `Http\Routing\RouteMiddlewareStack` | covered | Reached through the kernel, which builds the per-route stack from the #[Middleware] declarations. | `HttpSeamsTest::apiRouteMiddlewareStampsATimeOrderedRequestId` | — |
-| `Http\Security\CsrfTokenManager` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
+| `Http\Security\CsrfTokenManager` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | `api/tickets.spec.ts › refuses a write without the CSRF token` |
 | `Http\Session\ArraySession` | covered | `tests/HttpSeamsTest.php` | `HttpSeamsTest::arraySessionBacksTheSessionAuthenticator` | — |
 | `Http\Session\FlashBag` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `FrontendContractTest::createFlashesSuccessOnNextVisit` | — |
 | `Http\Session\NativeSession` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
@@ -172,7 +172,7 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
 | `Kernel\Attribute\Lazy` | covered | `src/Domain/ModuleHealthService.php` | `KernelSeamsTest::moduleHealthIsALazyServiceOnItsOwnLogChannel` | — |
-| `Kernel\Bootstrap\BootIsolateFailurePolicy` | covered | `src/Kernel/Bootstrap/DemoKernel.php` | `FaultModeTest::faultyModuleIsIsolatedAndTheDashboardStillRenders` | — |
+| `Kernel\Bootstrap\BootIsolateFailurePolicy` | covered | `src/Kernel/Bootstrap/DemoKernel.php` | `FaultModeTest::faultyModuleIsIsolatedAndTheDashboardStillRenders` | `fault/fault.spec.ts › a module that fails to boot is isolated and reported on the dashboard` |
 | `Kernel\Bootstrap\EnvConfigResolver` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `HostContextContractTest::inertiaAssetVersionResolvesFromHostContext`<br>`HostContextContractTest::runtimeWiringRegistersDemoHostContext`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
 | `Kernel\Bootstrap\NullMaintenanceGate` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `KernelSeamsTest::defaultModeBindsTheNullGateAndIsolatesNothing` | — |
 | `Kernel\ContainerFactory` | covered | `src/Kernel/Bootstrap/DemoKernel.php` | `KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
@@ -182,7 +182,7 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | `Kernel\Contract\ConfigResolverInterface` | host | OSS default EnvConfigResolver (used by the demo); moodle and wordpress implement their own. | — | — |
 | `Kernel\Contract\FacadeInterface` | covered | Reached through HookFacade. | `HooksModuleTest::moduleBootRegisteredItsActionThroughTheFacade` | — |
 | `Kernel\Contract\FacadeLoaderInterface` | host | Only moodle implements it; no OSS default. | — | — |
-| `Kernel\Contract\FailedModuleRegistryInterface` | covered | `src/Kernel/Module/InMemoryFailedModuleRegistry.php` | `FaultModeTest::faultyModuleIsIsolatedAndTheDashboardStillRenders`<br>`KernelSeamsTest::defaultModeBindsTheNullGateAndIsolatesNothing` | — |
+| `Kernel\Contract\FailedModuleRegistryInterface` | covered | `src/Kernel/Module/InMemoryFailedModuleRegistry.php` | `FaultModeTest::faultyModuleIsIsolatedAndTheDashboardStillRenders`<br>`KernelSeamsTest::defaultModeBindsTheNullGateAndIsolatesNothing` | `fault/fault.spec.ts › a module that fails to boot is isolated and reported on the dashboard` |
 | `Kernel\Contract\HookManagerInterface` | covered | `src/Hook/TicketHooks.php` | `KernelContainerTest::containerResolvesFrameworkContractsToOssDefaults` | — |
 | `Kernel\Contract\HookRegisterInterface` | covered | `src/Hook/ModuleHooks.php` | `KernelSeamsTest::moduleRegistersItsHooksThroughARegisterClass` | — |
 | `Kernel\Contract\HookfileLoaderInterface` | covered | `src/Kernel/Module/DemoHookfileLoader.php` | `KernelSeamsTest::hookfileCapsTheSubjectAtTheColumnLength` | — |
@@ -191,7 +191,7 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | `Kernel\Contract\KernelInterface` | host | moodle and wordpress implement it; the standalone app boots through Http\StandaloneKernel. | — | — |
 | `Kernel\Contract\LoaderFailurePolicyInterface` | gap | Only the proprietary core implements it; moodle only consumes it. | — | — |
 | `Kernel\Contract\LoaderInterface` | host | Reached through FacadeLoaderInterface, which extends it; moodle implements it. | — | — |
-| `Kernel\Contract\MaintenanceGateInterface` | covered | `src/Http/Middleware/MaintenanceMiddleware.php` | `FaultModeTest::maintenanceFlagClosesTheApplication`<br>`KernelSeamsTest::defaultModeBindsTheNullGateAndIsolatesNothing` | — |
+| `Kernel\Contract\MaintenanceGateInterface` | covered | `src/Http/Middleware/MaintenanceMiddleware.php` | `FaultModeTest::maintenanceFlagClosesTheApplication`<br>`KernelSeamsTest::defaultModeBindsTheNullGateAndIsolatesNothing` | `fault/fault.spec.ts › the maintenance flag closes the application and reopens it` |
 | `Kernel\Contract\ModuleInterface` | covered | Reached through AbstractModule. | `HooksModuleTest::moduleBootRegisteredItsActionThroughTheFacade`<br>`HooksModuleTest::moduleExposesLifecycleMetadata`<br>`KernelContainerTest::defaultBootFailurePolicyRethrows` | — |
 | `Kernel\Contract\ModuleLoaderInterface` | gap | Only the proprietary core extends it; the demo registers its module directly, not through a loader. | — | — |
 | `Kernel\Contract\ServiceLoaderInterface` | gap | Only the proprietary core implements it. | — | — |
@@ -326,8 +326,8 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 |---|---|---|---|---|
 | `Action\Action` | covered | Reached through PageBuilder::action(). | `TicketContractTest::showRendersStatusLifecycleAndTabbedDetailActivitySla` | — |
 | `Action\ActionResult` | covered | `src/Http/TicketController.php` | `UiSeamsTest::closeAnswersAJsonClientWithAnActionResult`<br>`WireSchemaTest::closeActionResultMatchesActionResult` | — |
-| `Action\ActionTarget` | covered | `src/Http/TicketController.php` | `HttpTest::showExistingIdSucceedsWhenAuthenticated`<br>`KernelContainerTest::serviceProviderAutoDiscoveredDemoServices` | — |
-| `Action\Confirmation` | covered | `src/Http/TicketController.php` | `UiSeamsTest::detailCarriesBreadcrumbsAndAConfirmedCloseAction` | — |
+| `Action\ActionTarget` | covered | `src/Http/TicketController.php` | `HttpTest::showExistingIdSucceedsWhenAuthenticated`<br>`KernelContainerTest::serviceProviderAutoDiscoveredDemoServices` | `business/actions.spec.ts › closing a ticket asks for confirmation and moves it to closed` |
+| `Action\Confirmation` | covered | `src/Http/TicketController.php` | `UiSeamsTest::detailCarriesBreadcrumbsAndAConfirmedCloseAction` | `business/actions.spec.ts › closing a ticket asks for confirmation and moves it to closed` |
 | `Action\Contract\ActionInterface` | covered | Reached through Action. | `TicketContractTest::showRendersStatusLifecycleAndTabbedDetailActivitySla` | — |
 
 ### Block — 8 `@api`: 6 covered, 0 host, 2 gap
@@ -403,7 +403,7 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | `Navigation\Breadcrumb` | covered | Reached through BreadcrumbListBuilder, which PageBuilder::breadcrumbs() hands to the ticket detail. | `UiSeamsTest::detailCarriesBreadcrumbsAndAConfirmedCloseAction` | — |
 | `Navigation\BreadcrumbListBuilder` | covered | Reached through PageBuilder::breadcrumbs() on the ticket detail. | `UiSeamsTest::detailCarriesBreadcrumbsAndAConfirmedCloseAction` | — |
 | `Navigation\Contract\BreadcrumbInterface` | covered | Reached through Breadcrumb. | `UiSeamsTest::detailCarriesBreadcrumbsAndAConfirmedCloseAction` | — |
-| `Navigation\Contract\BreadcrumbListBuilderInterface` | covered | `src/Http/TicketController.php` | `UiSeamsTest::detailCarriesBreadcrumbsAndAConfirmedCloseAction` | — |
+| `Navigation\Contract\BreadcrumbListBuilderInterface` | covered | `src/Http/TicketController.php` | `UiSeamsTest::detailCarriesBreadcrumbsAndAConfirmedCloseAction` | `navigation/breadcrumb.spec.ts › the ticket breadcrumb leads back to the list` |
 | `Navigation\Contract\NavigationRegistryInterface` | covered | `src/Navigation/DemoNavigationRegistry.php` | `UiSeamsTest::navigationComesFromTheRegistry`<br>`UiSeamsTest::registryNestsGatesAndBadgesNodes` | — |
 | `Navigation\NavigationNode` | covered | `src/Navigation/DemoNavigationRegistry.php` | `UiSeamsTest::registryNestsGatesAndBadgesNodes` | — |
 
@@ -448,7 +448,7 @@ Generated from `middag-io/framework` v1.19.0 and `middag-io/ui` v1.7.0, as insta
 | `Shared\Enum\FilterType` | gap | See FilterDefinition. | — | — |
 | `Shared\Enum\FormComponent` | covered | The component of every emitted form node is validated against the enum in the schema. | `WireSchemaTest::formPanelNodesMatchFormSchemaNode` | — |
 | `Shared\Enum\FragmentKind` | covered | Reached through Fragment::table(). | `UiContractTest::fragmentEndpointEmitsPartialTableFragment` | — |
-| `Shared\Enum\HttpMethod` | covered | `src/Http/TicketController.php` | `UiSeamsTest::detailCarriesBreadcrumbsAndAConfirmedCloseAction` | — |
+| `Shared\Enum\HttpMethod` | covered | `src/Http/TicketController.php` | `UiSeamsTest::detailCarriesBreadcrumbsAndAConfirmedCloseAction` | `business/actions.spec.ts › closing a ticket asks for confirmation and moves it to closed` |
 | `Shared\Enum\NotificationLevel` | covered | `src/Http/UiController.php` | `UiContractTest::pageEndpointEmitsFullPageContract` | — |
 | `Shared\Enum\RegionUpdateMode` | gap | No consumer in the free renderer. | — | — |
 | `Shared\Enum\RenderTarget` | covered | `src/Http/TicketController.php` | `FormTest::rendersToInertiaProps` | — |

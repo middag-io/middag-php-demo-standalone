@@ -105,6 +105,8 @@ final class DashboardController extends AbstractController
 
         $trend = $this->createdTrend($tickets, 14);
 
+        $isolated = $this->moduleHealth->isolatedModules();
+
         $page = PageBuilder::page('demo.dashboard')
             ->shell('basic')
             ->layout('dashboard')
@@ -113,7 +115,10 @@ final class DashboardController extends AbstractController
             // metrics region: the dashboard layout grids these as a StatRow (4-up),
             // unwrapped — content blocks instead get a per-block Card. Keeping the
             // metric_cards out of `content` is what stops the double-card wrap.
-            ->region('metrics', function (RegionBuilder $region) use ($total, $open, $highUrgent, $avgCsat): void {
+            ->region('metrics', function (RegionBuilder $region) use ($total, $open, $highUrgent, $avgCsat, $isolated): void {
+                if ($isolated !== []) {
+                    $region->metricCard('isolated_modules', count($isolated), 'Isolated modules', icon: 'triangle-alert');
+                }
                 $region->metricCard('total', $total, 'Total tickets', icon: 'inbox');
                 $region->metricCard('open', count($open), 'Open', icon: 'folder-open');
                 $region->metricCard('urgent', $highUrgent, 'High / urgent open', icon: 'flame');
@@ -138,7 +143,7 @@ final class DashboardController extends AbstractController
 
         // Modules the boot failure policy isolated (only in fault mode) surface
         // as a warning notification instead of breaking the page.
-        foreach ($this->moduleHealth->isolatedModules() as $name) {
+        foreach ($isolated as $name) {
             $page->notifyWarning(sprintf('The %s module failed to boot and was isolated.', $name), 'Module isolated');
         }
         $contract = $page->build();
