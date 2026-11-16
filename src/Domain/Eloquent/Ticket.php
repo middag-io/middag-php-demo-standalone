@@ -39,9 +39,9 @@ use Middag\Framework\Persistence\Model;
  */
 final class Ticket extends Model
 {
-    public const STATUSES = ['new', 'open', 'pending', 'resolved', 'closed'];
+    public const array STATUSES = ['new', 'open', 'pending', 'resolved', 'closed'];
 
-    public const PRIORITIES = ['low', 'normal', 'high', 'urgent'];
+    public const array PRIORITIES = ['low', 'normal', 'high', 'urgent'];
 
     protected string $table = 'demo_tickets';
 

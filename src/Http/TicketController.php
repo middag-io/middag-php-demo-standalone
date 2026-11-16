@@ -63,12 +63,12 @@ final class TicketController extends AbstractController
      * session and the controller drives each step. Step 1 carries the required core
      * (validated by CreateTicketRequest); step 2 the optional schedule fields.
      */
-    private const WIZARD_STEPS = [
+    private const array WIZARD_STEPS = [
         1 => ['label' => 'Ticket', 'fields' => ['subject', 'body', 'channel', 'priority', 'customer_id', 'agent_id']],
         2 => ['label' => 'Schedule', 'fields' => ['sla_policy_id', 'tags', 'due_at']],
     ];
 
-    private const WIZARD_SESSION = 'ticket_wizard';
+    private const string WIZARD_SESSION = 'ticket_wizard';
 
     public function __construct(
         private readonly MessageBusInterface $bus,

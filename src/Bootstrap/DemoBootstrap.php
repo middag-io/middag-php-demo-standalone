@@ -108,7 +108,7 @@ use Symfony\Component\Routing\RouteCollection;
  */
 final readonly class DemoBootstrap implements BootstrapInterface
 {
-    public const ASYNC_TRANSPORT = 'async';
+    public const string ASYNC_TRANSPORT = 'async';
 
     public function __construct(
         private string $projectRoot,
@@ -431,8 +431,8 @@ final readonly class DemoBootstrap implements BootstrapInterface
     {
         $transport = $c->get(InMemoryTransport::class);
 
-        $senderLocator = new class($transport) implements ContainerInterface {
-            public function __construct(private readonly InMemoryTransport $transport) {}
+        $senderLocator = new readonly class($transport) implements ContainerInterface {
+            public function __construct(private InMemoryTransport $transport) {}
 
             public function has(string $id): bool
             {

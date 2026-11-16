@@ -26,7 +26,7 @@ use Middag\Framework\Kernel\Contract\HostComponentContextInterface;
 final readonly class DemoComponentContext implements HostComponentContextInterface
 {
     /** Asset / cache-busting version emitted to the Inertia client. */
-    public const VERSION = 'demo-0.5';
+    public const string VERSION = 'demo-0.5';
 
     public function componentName(): string
     {

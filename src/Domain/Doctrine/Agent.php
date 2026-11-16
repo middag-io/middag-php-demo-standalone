@@ -25,7 +25,7 @@ use Middag\Framework\Persistence\Contract\EntityInterface;
  */
 final class Agent implements EntityInterface
 {
-    public const ROLES = ['agent', 'supervisor', 'admin'];
+    public const array ROLES = ['agent', 'supervisor', 'admin'];
 
     public function __construct(
         private readonly ?int $id,

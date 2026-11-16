@@ -36,7 +36,7 @@ use Symfony\Component\Messenger\Stamp\HandledStamp;
 final class CoverageManifestTest extends DemoTestCase
 {
     /** PRO block types that must NEVER appear in the free demo. */
-    private const PRO_BLOCKS = ['chart_panel', 'kanban_board', 'flow_editor', 'form_builder', 'condition_tree', 'sentence_builder'];
+    private const array PRO_BLOCKS = ['chart_panel', 'kanban_board', 'flow_editor', 'form_builder', 'condition_tree', 'sentence_builder'];
 
     /** @var array<string, array<string, mixed>> route => decoded contract */
     private array $contractCache = [];

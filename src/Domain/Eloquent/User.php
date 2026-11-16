@@ -30,9 +30,9 @@ use Middag\Framework\Shared\Enum\Operator;
  */
 final class User extends Model
 {
-    public const DEMO_EMAIL = 'demo@middag.io';
+    public const string DEMO_EMAIL = 'demo@middag.io';
 
-    public const DEMO_PASSWORD = 'middag';
+    public const string DEMO_PASSWORD = 'middag';
 
     protected string $table = 'demo_users';
 

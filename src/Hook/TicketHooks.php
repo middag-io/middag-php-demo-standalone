@@ -39,7 +39,7 @@ use Psr\Log\LoggerInterface;
 final class TicketHooks
 {
     /** Priorities that breach first-response SLA and auto-escalate. */
-    private const ESCALATE_PRIORITIES = ['high', 'urgent'];
+    private const array ESCALATE_PRIORITIES = ['high', 'urgent'];
 
     private function __construct() {}
 

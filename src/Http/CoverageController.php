@@ -32,7 +32,7 @@ final class CoverageController extends AbstractController
 {
     use RendersPages;
 
-    public const MANIFEST = __DIR__ . '/../Coverage/manifest.php';
+    public const string MANIFEST = __DIR__ . '/../Coverage/manifest.php';
 
     public function index(): Response
     {
