@@ -60,9 +60,10 @@ use Symfony\Component\HttpFoundation\Response;
  * Proves dual-ORM reads in ONE request: tickets come from the active-record
  * {@see Ticket} model, while the customer/agent display names are resolved through
  * the data-mapper {@see CustomerRepository}/{@see AgentRepository}. The list table
- * is hand-built with `variant`-keyed columns (status/badge/timestamp cells) — the
- * renderer the React DenseTableBlock selects by column `variant`, which CrudBuilder
- * (emitting `format`) cannot reach.
+ * is hand-built with `variant`-keyed columns (status/rich_status/timestamp cells) —
+ * the renderer the React DenseTableBlock selects by column `variant`. It stays
+ * hand-built because it also carries the host-registered `tag_chips` cell, which
+ * is not a ColumnVariant; the agents index is the CrudBuilder page.
  *
  * Login-gated by the class-level #[Auth(login: true)].
  */
@@ -78,8 +79,8 @@ final class TicketController extends AbstractController
      * (validated by CreateTicketRequest); step 2 the optional schedule fields.
      */
     private const array WIZARD_STEPS = [
-        1 => ['label' => 'Ticket', 'fields' => ['subject', 'body', 'channel', 'priority', 'customer_id', 'agent_id']],
-        2 => ['label' => 'Schedule', 'fields' => ['sla_policy_id', 'tags', 'due_at']],
+        1 => ['label' => 'Ticket', 'section' => TicketForm::SECTION_TICKET],
+        2 => ['label' => 'Schedule', 'section' => TicketForm::SECTION_SCHEDULE],
     ];
 
     private const string WIZARD_SESSION = 'ticket_wizard';
@@ -280,6 +281,7 @@ final class TicketController extends AbstractController
             ->actions(array_values(array_filter([
                 PageBuilder::action('edit', 'Edit', ActionTarget::link('/tickets/' . $id . '/edit'), ActionIntent::Primary, 'pencil'),
                 $ticket->status !== 'closed' ? $this->closeAction($id) : null,
+                PageBuilder::action('attachments', 'Attachments', ActionTarget::link('/tickets/' . $id . '/attachments'), ActionIntent::Secondary, 'paperclip'),
                 PageBuilder::action('back', 'All tickets', ActionTarget::link('/tickets'), ActionIntent::Secondary, 'arrow-left'),
             ])))
             // sidebar layout renders the `main` + `aside` regions (not `content`).
@@ -332,7 +334,7 @@ final class TicketController extends AbstractController
         $form = $this->renderers->get(RenderTarget::Props)->render($this->form)->props;
         // The saved step-1 partial wins over the form defaults, except where it is null.
         $values = Arr::mergePreferNonNull($form['values'] ?? [], (array) ($session->get(self::WIZARD_SESSION) ?? []));
-        $schema = $this->fieldsFor($form['schema'] ?? [], self::WIZARD_STEPS[$step]['fields']);
+        $schema = $this->sectionFor($form['schema'] ?? [], self::WIZARD_STEPS[$step]['section']);
 
         // Step 1 → wizardStore (validates + advances); step 2 → wizardConfirm (creates).
         $action = $step === 1 ? '/tickets/new' : '/tickets/new/confirm';
@@ -429,8 +431,9 @@ final class TicketController extends AbstractController
         // splices it into the option list until live results arrive).
         $customerNames = $this->idLabelMap($this->customers->latest());
         $agentNames = $this->idLabelMap($this->agents->latest());
-        $schema = array_map(
-            function (array $node) use ($ticket, $customerNames, $agentNames): array {
+        $schema = self::mapFieldNodes(
+            $form['schema'] ?? [],
+            static function (array $node) use ($ticket, $customerNames, $agentNames): array {
                 if (($node['key'] ?? null) === 'customer_id') {
                     $node['props']['initialOption'] = [
                         'value' => (string) $ticket->customer_id,
@@ -445,7 +448,6 @@ final class TicketController extends AbstractController
 
                 return $node;
             },
-            $form['schema'] ?? [],
         );
 
         // Seed schema defaults, then override with the ticket's stored fields
@@ -632,19 +634,41 @@ final class TicketController extends AbstractController
     }
 
     /**
-     * Keep only the rendered form schema nodes for a step (filtered by node `key`).
+     * Keep only the rendered section node of a wizard step (matched by its `id`).
      *
      * @param list<array<string, mixed>> $schema
-     * @param list<string>               $names
      *
      * @return list<array<string, mixed>>
      */
-    private function fieldsFor(array $schema, array $names): array
+    private function sectionFor(array $schema, string $section): array
     {
         return array_values(array_filter(
             $schema,
-            static fn (array $node): bool => in_array($node['key'] ?? null, $names, true),
+            static fn (array $node): bool => ($node['kind'] ?? null) === 'section' && ($node['id'] ?? null) === $section,
         ));
+    }
+
+    /**
+     * Apply $map to every field node of a rendered schema, recursing into the
+     * section and group nodes that hold them.
+     *
+     * @param list<array<string, mixed>>                           $schema
+     * @param callable(array<string, mixed>): array<string, mixed> $map
+     *
+     * @return list<array<string, mixed>>
+     */
+    private static function mapFieldNodes(array $schema, callable $map): array
+    {
+        return array_map(
+            static function (array $node) use ($map): array {
+                if (is_array($node['children'] ?? null)) {
+                    return ['children' => self::mapFieldNodes($node['children'], $map)] + $node;
+                }
+
+                return ($node['kind'] ?? null) === 'field' ? $map($node) : $node;
+            },
+            $schema,
+        );
     }
 
     /** rich_status appearance for a ticket priority (one of success/warning/danger/info/neutral). */

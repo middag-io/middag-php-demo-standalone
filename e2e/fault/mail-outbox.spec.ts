@@ -1,25 +1,24 @@
-import { test, expect } from '@playwright/test';
-import { readdirSync, readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { test, expect, type APIRequestContext } from '@playwright/test';
 import { login } from '../helpers/auth';
 
 /**
  * Fault server only (mail capture on): creating a ticket sends the "ticket
- * created" mail with the ticket summary attached, and the capture mailer writes
- * it as JSON under var/mail/.
+ * created" mail with the ticket summary attached. The spec reads the captured
+ * mail over HTTP from `/_test/outbox`, a route that exists only with
+ * DEMO_FAULT_MODE=1, so it never reads the server's var/mail directory.
  */
-const MAIL_DIR = fileURLToPath(new URL('../../var/mail/', import.meta.url));
+interface CapturedMail {
+  subject: string;
+  attachments: string[];
+}
 
-function capturedMailFor(subject: string): { subject: string; attachments: string[] } | undefined {
-  let files: string[] = [];
-  try {
-    files = readdirSync(MAIL_DIR).filter((name) => name.endsWith('.json'));
-  } catch {
+async function capturedMailFor(request: APIRequestContext, subject: string): Promise<CapturedMail | undefined> {
+  const response = await request.get('/_test/outbox', { headers: { Accept: 'application/json' } });
+  if (!response.ok()) {
     return undefined;
   }
-  return files
-    .map((name) => JSON.parse(readFileSync(MAIL_DIR + name, 'utf8')))
-    .find((mail) => typeof mail.subject === 'string' && mail.subject.includes(subject));
+  const { data } = (await response.json()) as { data: CapturedMail[] };
+  return data.find((mail) => typeof mail.subject === 'string' && mail.subject.includes(subject));
 }
 
 test('a new ticket sends the captured mail with its attachment', async ({ page }) => {
@@ -36,6 +35,6 @@ test('a new ticket sends the captured mail with its attachment', async ({ page }
   expect(response.status()).toBe(201);
   const { id } = await response.json();
 
-  await expect.poll(() => capturedMailFor(subject)).toBeDefined();
-  expect(capturedMailFor(subject)!.attachments).toContain(`ticket-${id}.txt`);
+  await expect.poll(() => capturedMailFor(page.request, subject)).toBeDefined();
+  expect((await capturedMailFor(page.request, subject))!.attachments).toContain(`ticket-${id}.txt`);
 });

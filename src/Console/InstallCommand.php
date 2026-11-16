@@ -68,12 +68,18 @@ final class InstallCommand extends Command
         $output->writeln(sprintf('<info>tables:</info> %s', implode(', ', $builder->tables())));
         $output->writeln(sprintf('<info>version:</info> %d -> %d', $old, DemoMigrationRunner::VERSION));
 
-        // Seed the demo login user (app-owned user store; auth session is framework-side).
-        User::seedDemo($this->container->get(PasswordHasherInterface::class));
+        // Seed the demo logins (app-owned user store; auth session is framework-side):
+        // the supervisor and a plain agent without the supervisor capability.
+        User::seedDemoUsers($this->container->get(PasswordHasherInterface::class));
         $output->writeln(sprintf(
-            '<info>demo user:</info> %s / %s',
+            '<info>demo user:</info> %s / %s (supervisor)',
             User::DEMO_EMAIL,
             User::DEMO_PASSWORD,
+        ));
+        $output->writeln(sprintf(
+            '<info>agent user:</info> %s / %s (no supervisor capability)',
+            User::AGENT_EMAIL,
+            User::AGENT_PASSWORD,
         ));
 
         // Seed the help-desk dataset: agents/customers/SLA (data-mapper) +

@@ -20,11 +20,14 @@ use Middag\Demo\Standalone\Domain\Comment;
 use Middag\Demo\Standalone\Domain\Tag;
 use Middag\Demo\Standalone\Domain\Ticket;
 use Middag\Demo\Standalone\Form\AgentEntitySource;
+use Middag\Demo\Standalone\Form\AgentPanelForm;
+use Middag\Demo\Standalone\Form\AttachmentForm;
 use Middag\Demo\Standalone\Form\CustomerEntitySource;
 use Middag\Demo\Standalone\Form\LoginForm;
 use Middag\Demo\Standalone\Form\TicketForm;
 use Middag\Demo\Standalone\Hook\TicketHooks;
 use Middag\Demo\Standalone\Http\AgentController;
+use Middag\Demo\Standalone\Http\AttachmentController;
 use Middag\Demo\Standalone\Http\AuthController;
 use Middag\Demo\Standalone\Http\CoverageController;
 use Middag\Demo\Standalone\Http\CustomerController;
@@ -298,6 +301,14 @@ final readonly class DemoBootstrap implements BootstrapInterface
         $c->register(AgentEntitySource::class, AgentEntitySource::class)
             ->setAutowired(true)->setPublic(true);
         $c->register(LoginForm::class, LoginForm::class)
+            ->setAutowired(true)
+            ->setShared(false)
+            ->setPublic(true);
+        $c->register(AgentPanelForm::class, AgentPanelForm::class)
+            ->setAutowired(true)
+            ->setShared(false)
+            ->setPublic(true);
+        $c->register(AttachmentForm::class, AttachmentForm::class)
             ->setAutowired(true)
             ->setShared(false)
             ->setPublic(true);
@@ -628,17 +639,26 @@ final readonly class DemoBootstrap implements BootstrapInterface
         $routes->add('tickets.edit', new Route('/tickets/{id}/edit', ['_controller' => TicketController::class . '::edit'], [], ['id' => '\d+'], '', [], ['GET']));
         $routes->add('tickets.close', new Route('/tickets/{id}/close', ['_controller' => TicketController::class . '::close'], [], ['id' => '\d+'], '', [], ['POST']));
         $routes->add('tickets.update', new Route('/tickets/{id}', ['_controller' => TicketController::class . '::update'], [], ['id' => '\d+'], '', [], ['PUT', 'PATCH']));
+        // Ticket attachments: upload (pending, by upload token), attach, download.
+        $routes->add('tickets.attachments', new Route('/tickets/{id}/attachments', ['_controller' => AttachmentController::class . '::index'], [], ['id' => '\d+'], '', [], ['GET']));
+        $routes->add('tickets.attachments.upload', new Route('/tickets/{id}/attachments/upload', ['_controller' => AttachmentController::class . '::upload'], [], ['id' => '\d+'], '', [], ['POST']));
+        $routes->add('tickets.attachments.attach', new Route('/tickets/{id}/attachments', ['_controller' => AttachmentController::class . '::attach'], [], ['id' => '\d+'], '', [], ['POST']));
+        $routes->add('tickets.attachments.download', new Route('/tickets/{id}/attachments/{attachment}', ['_controller' => AttachmentController::class . '::download'], [], ['id' => '\d+', 'attachment' => '\d+'], '', [], ['GET']));
 
         // Help-desk reference pages: agents (sidebar + detail, capability gate) and
         // customers (card_grid) — data-mapper-backed.
         $routes->add('agents.index', new Route('/agents', ['_controller' => AgentController::class . '::index'], [], [], '', [], ['GET']));
         $routes->add('agents.show', new Route('/agents/{id}', ['_controller' => AgentController::class . '::show'], [], ['id' => '\d+'], '', [], ['GET']));
+        $routes->add('agents.panel', new Route('/agents/{id}/panel', ['_controller' => AgentController::class . '::panel'], [], ['id' => '\d+'], '', [], ['GET']));
+        $routes->add('agents.panel.save', new Route('/agents/{id}/panel', ['_controller' => AgentController::class . '::savePanel'], [], ['id' => '\d+'], '', [], ['POST']));
         $routes->add('customers.index', new Route('/customers', ['_controller' => CustomerController::class . '::index'], [], [], '', [], ['GET']));
 
-        // Fault mode only: a route that throws, for the 500 error page. Without
-        // DEMO_FAULT_MODE the path does not exist and answers 404.
+        // Fault mode only: a route that throws, for the 500 error page, and the
+        // captured mail outbox. Without DEMO_FAULT_MODE the paths do not exist and
+        // answer 404.
         if (DemoEnv::flag('DEMO_FAULT_MODE')) {
             $routes->add('fault.crash', new Route('/_test/crash', ['_controller' => FaultController::class . '::crash'], [], [], '', [], ['GET']));
+            $routes->add('fault.outbox', new Route('/_test/outbox', ['_controller' => FaultController::class . '::outbox'], [], [], '', [], ['GET']));
         }
 
         // Dual-ORM parity proof + help/about (immersive shell).

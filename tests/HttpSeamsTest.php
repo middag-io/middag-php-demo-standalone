@@ -116,6 +116,7 @@ final class HttpSeamsTest extends DemoTestCase
     public function faultRoutesDoNotExistOutsideFaultMode(): void
     {
         self::assertSame(404, $this->handle('GET', '/_test/crash')->getStatusCode());
+        self::assertSame(404, $this->handle('GET', '/_test/outbox')->getStatusCode());
     }
 
     #[Test]

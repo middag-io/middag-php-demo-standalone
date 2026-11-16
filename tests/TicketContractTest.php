@@ -114,7 +114,7 @@ final class TicketContractTest extends DemoTestCase
 
         $components = [];
         $conditions = [];
-        foreach ($form['data']['schema'] ?? [] as $field) {
+        foreach (self::fieldNodes($form['data']['schema'] ?? []) as $field) {
             $components[$field['key'] ?? ''] = $field['component'] ?? null;
             if (isset($field['props']['required_when'])) {
                 $conditions[(string) $field['key']] = $field['props']['required_when'];
@@ -144,7 +144,7 @@ final class TicketContractTest extends DemoTestCase
         $form = $this->blockByKey($this->contentBlocks('/tickets/new'), 'ticket_form');
         self::assertNotNull($form);
         self::assertSame('/tickets/new', $form['data']['action'] ?? null);
-        $keys = array_column($form['data']['schema'], 'key');
+        $keys = array_column(self::fieldNodes($form['data']['schema']), 'key');
         self::assertContains('subject', $keys);
         self::assertContains('customer_id', $keys);
         self::assertNotContains('sla_policy_id', $keys, 'the schedule fields belong to step 2');
@@ -174,7 +174,7 @@ final class TicketContractTest extends DemoTestCase
         $form = $this->blockByKey($contract['layout']['regions']['content'] ?? [], 'ticket_form');
         self::assertNotNull($form);
         self::assertSame('/tickets/new/confirm', $form['data']['action'] ?? null);
-        $keys = array_column($form['data']['schema'], 'key');
+        $keys = array_column(self::fieldNodes($form['data']['schema']), 'key');
         self::assertContains('tags', $keys);
         self::assertNotContains('subject', $keys, 'step 2 shows only the schedule fields');
 

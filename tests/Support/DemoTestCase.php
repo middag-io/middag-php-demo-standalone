@@ -62,7 +62,7 @@ abstract class DemoTestCase extends TestCase
         // default to an authenticated session (via the framework authenticator) so
         // guarded routes are reachable. AuthTest logs out / back in to exercise the
         // gate, login verification, and logout.
-        User::seedDemo($this->container->get(PasswordHasherInterface::class));
+        User::seedDemoUsers($this->container->get(PasswordHasherInterface::class));
         $this->container->get(AuthenticatorInterface::class)->login(1, [
             'name' => 'Test User',
             'email' => 'test@demo.local',
@@ -80,8 +80,9 @@ abstract class DemoTestCase extends TestCase
      *
      * @param array<string, mixed> $params
      * @param array<string, mixed> $server
+     * @param array<string, mixed> $files  uploaded files, keyed by field name
      */
-    protected function handle(string $method, string $path, array $params = [], array $server = []): Response
+    protected function handle(string $method, string $path, array $params = [], array $server = [], array $files = []): Response
     {
         // Echo a valid CSRF token for unsafe methods so VerifyCsrfMiddleware (M8)
         // lets the write through — a real client mirrors the shared csrf_token prop.
@@ -89,7 +90,7 @@ abstract class DemoTestCase extends TestCase
             $server['HTTP_X_CSRF_TOKEN'] = $this->container->get(CsrfTokenManager::class)->token();
         }
 
-        $request = Request::create($path, $method, $params, [], [], $server);
+        $request = Request::create($path, $method, $params, [], $files, $server);
 
         // Drive the full PSR-15 pipeline (StartSession → ShareFlash → VerifyCsrf →
         // kernel), bridged by StandaloneKernel — which now accepts the dispatcher
@@ -105,5 +106,30 @@ abstract class DemoTestCase extends TestCase
     protected function json(Response $response): array
     {
         return (array) json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * The field nodes of a rendered form schema, flattened out of the section and
+     * group nodes that hold them, in document order.
+     *
+     * @param array<int, mixed> $schema
+     *
+     * @return list<array<string, mixed>>
+     */
+    protected static function fieldNodes(array $schema): array
+    {
+        $fields = [];
+        foreach ($schema as $node) {
+            if (!is_array($node)) {
+                continue;
+            }
+            if (is_array($node['children'] ?? null)) {
+                $fields = [...$fields, ...self::fieldNodes($node['children'])];
+            } elseif (($node['kind'] ?? null) === 'field') {
+                $fields[] = $node;
+            }
+        }
+
+        return $fields;
     }
 }

@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Domain;
 
+use Middag\Demo\Standalone\Security\SuperviseCapability;
 use Middag\Framework\Persistence\Model;
 use Middag\Framework\Security\Contract\PasswordHasherInterface;
 use Middag\Framework\Shared\Enum\Operator;
@@ -28,6 +29,7 @@ use Middag\Framework\Shared\Enum\Operator;
  * @property string   $name
  * @property string   $password_hash
  * @property int      $created_at
+ * @property string   $capabilities  comma-separated capability keys
  */
 final class User extends Model
 {
@@ -35,15 +37,32 @@ final class User extends Model
 
     public const string DEMO_PASSWORD = 'middag';
 
+    /** The second seeded login: a plain agent without the supervisor capability. */
+    public const string AGENT_EMAIL = 'agent@middag.io';
+
+    public const string AGENT_PASSWORD = 'middag';
+
+    /**
+     * The seeded logins: email => [name, password, capabilities]. The demo
+     * operator is the help-desk supervisor; the agent holds no capability.
+     *
+     * @var array<string, array{string, string, list<string>}>
+     */
+    private const array SEEDED = [
+        self::DEMO_EMAIL => ['Demo User', self::DEMO_PASSWORD, [SuperviseCapability::KEY]],
+        self::AGENT_EMAIL => ['Agent User', self::AGENT_PASSWORD, []],
+    ];
+
     protected string $table = 'demo_users';
 
     /** @var list<string> */
-    protected array $fillable = ['email', 'name', 'password_hash', 'created_at'];
+    protected array $fillable = ['email', 'name', 'password_hash', 'created_at', 'capabilities'];
 
     /** @var array<string, string> */
     protected array $casts = ['id' => 'int', 'created_at' => 'int'];
 
-    private static ?string $demoHash = null;
+    /** @var array<string, string> password => hash, so repeated seeding hashes once */
+    private static array $hashes = [];
 
     public static function findByEmail(string $email): ?self
     {
@@ -56,20 +75,43 @@ final class User extends Model
     }
 
     /**
-     * Idempotently seed the single static demo user. Called by install:db (runtime)
-     * and the test harness. Password is hashed with PASSWORD_DEFAULT.
+     * The capability keys this user's session carries after login.
+     *
+     * @return list<string>
      */
-    public static function seedDemo(PasswordHasherInterface $hasher): void
+    public function capabilities(): array
     {
-        if (self::findByEmail(self::DEMO_EMAIL) instanceof User) {
-            return;
-        }
+        return array_values(array_filter(array_map(trim(...), explode(',', (string) $this->capabilities)), static fn (string $key): bool => $key !== ''));
+    }
 
-        (new self([
-            'email' => self::DEMO_EMAIL,
-            'name' => 'Demo User',
-            'password_hash' => self::$demoHash ??= $hasher->hash(self::DEMO_PASSWORD),
-            'created_at' => time(),
-        ]))->save();
+    /**
+     * Idempotently seed the demo logins (the supervisor and the plain agent).
+     * Called by install:db (runtime) and the test harness. A user that already
+     * exists keeps its password; its capabilities are reset to the seeded set,
+     * so a database installed before the capabilities column gets them too.
+     * Passwords are hashed with PASSWORD_DEFAULT.
+     */
+    public static function seedDemoUsers(PasswordHasherInterface $hasher): void
+    {
+        foreach (self::SEEDED as $email => [$name, $password, $capabilities]) {
+            $keys = implode(',', $capabilities);
+            $user = self::findByEmail($email);
+            if ($user instanceof self) {
+                if ((string) $user->capabilities !== $keys) {
+                    $user->capabilities = $keys;
+                    $user->save();
+                }
+
+                continue;
+            }
+
+            (new self([
+                'email' => $email,
+                'name' => $name,
+                'password_hash' => self::$hashes[$password] ??= $hasher->hash($password),
+                'created_at' => time(),
+                'capabilities' => $keys,
+            ]))->save();
+        }
     }
 }

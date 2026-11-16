@@ -15,10 +15,10 @@ namespace Middag\Demo\Standalone\Tests;
 use Middag\Demo\Standalone\Schema\HelpdeskSeeder;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Database\Contract\ConnectionAdapterInterface;
+use Middag\Framework\Filesystem\Contract\FilesystemInterface;
+use Middag\Framework\Http\Contract\AuthenticatorInterface;
 use Middag\Ui\Block\BlockDescriptor;
-use Middag\Ui\EditablePanel\EditablePanelDescriptor;
 use Middag\Ui\Region\PollConfig;
-use Middag\Ui\Shared\Enum\HttpMethod;
 use Opis\JsonSchema\Errors\ErrorFormatter;
 use Opis\JsonSchema\Errors\ValidationError;
 use Opis\JsonSchema\Resolvers\SchemaResolver;
@@ -26,6 +26,7 @@ use Opis\JsonSchema\Validator;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
  * Validates what the demo emits against the JSON Schema that middag-io/ui publishes
@@ -68,7 +69,7 @@ final class WireSchemaTest extends DemoTestCase
      */
     public static function routes(): iterable
     {
-        foreach (['/', '/tickets', '/tickets/1', '/tickets/1/edit', '/tickets/new', '/tickets/new?step=1', '/agents', '/agents/1', '/customers', '/parity', '/help', '/coverage', '/ui/page'] as $route) {
+        foreach (['/', '/tickets', '/tickets/1', '/tickets/1/edit', '/tickets/1/attachments', '/tickets/new', '/tickets/new?step=1', '/agents', '/agents/1', '/customers', '/parity', '/help', '/coverage', '/ui/page'] as $route) {
             yield $route => [$route];
         }
     }
@@ -106,11 +107,14 @@ final class WireSchemaTest extends DemoTestCase
             $this->assertValid($node, self::SCHEMA_ID . '#/$defs/FormSchemaNode', 'form node ' . ($node['key'] ?? '?'));
         }
 
-        $components = array_column($nodes, 'component');
+        $kinds = array_column($nodes, 'kind');
+        self::assertContains('section', $kinds, 'the ticket form is laid out in sections');
+        $fields = self::fieldNodes($nodes);
+        $components = array_column($fields, 'component');
         self::assertContains('select', $components, 'option fields (OptionFieldProps) are covered');
         self::assertContains('entity_picker', $components);
-        self::assertNotEmpty(array_filter($nodes, static fn (array $node): bool => isset($node['props']['validation'])), 'FormFieldValidation is covered');
-        self::assertNotEmpty(array_filter($nodes, static fn (array $node): bool => isset($node['props']['required_when']) || isset($node['props']['visible_when'])), 'FormCondition is covered');
+        self::assertNotEmpty(array_filter($fields, static fn (array $node): bool => isset($node['props']['validation'])), 'FormFieldValidation is covered');
+        self::assertNotEmpty(array_filter($fields, static fn (array $node): bool => isset($node['props']['required_when']) || isset($node['props']['visible_when'])), 'FormCondition is covered');
     }
 
     #[Test]
@@ -122,16 +126,54 @@ final class WireSchemaTest extends DemoTestCase
     }
 
     #[Test]
-    public function pollAndEditablePanelDescriptorsMatchTheSchema(): void
+    public function pollConfigMatchesTheSchema(): void
     {
-        // Emission only: RegionBuilder cannot attach a poll config to a block,
-        // and no free shell mounts the editable panel.
+        // Emission only: RegionBuilder cannot attach a poll config to a block.
         $block = new BlockDescriptor('dense_table', 'queue', ['columns' => [], 'rows' => []], poll: new PollConfig('/tickets', 15000));
         $this->assertValid($block->jsonSerialize(), self::SCHEMA_ID . '#/$defs/BlockDescriptor', 'polled block');
         self::assertSame(15000, $block->jsonSerialize()['poll']['intervalMs'] ?? null);
+    }
 
-        $panel = new EditablePanelDescriptor('/tickets/1/panel', '/tickets/1', HttpMethod::Put);
-        $this->assertValid($panel->jsonSerialize(), self::SCHEMA_ID . '#/$defs/EditablePanelDescriptor', 'editable panel');
+    #[Test]
+    public function agentEditablePanelMatchesTheSchema(): void
+    {
+        $this->container->get(AuthenticatorInterface::class)->login(1, ['name' => 'Supervisor', 'capabilities' => ['helpdesk:supervise']]);
+
+        // The page config the agents page ships next to its contract.
+        $props = $this->json($this->handle('GET', '/agents', [], ['HTTP_X_INERTIA' => 'true']))['props'];
+        $this->assertValid($props['editablePanel'] ?? null, self::SCHEMA_ID . '#/$defs/EditablePanelDescriptor', 'agents editable panel');
+
+        // The form the panel endpoint serves: FormSectionNode, FormGroupNode and
+        // FormFieldNode, each valid as a FormSchemaNode.
+        $descriptor = $this->json($this->handle('GET', '/agents/1/panel', [], ['HTTP_ACCEPT' => 'application/json']));
+        self::assertNotEmpty($descriptor['schema'] ?? []);
+        foreach ($descriptor['schema'] as $node) {
+            $this->assertValid($node, self::SCHEMA_ID . '#/$defs/FormSchemaNode', 'panel node ' . ($node['id'] ?? '?'));
+        }
+    }
+
+    #[Test]
+    public function attachmentFileValueMatchesTheSchema(): void
+    {
+        $tmp = (string) tempnam(sys_get_temp_dir(), 'att');
+        file_put_contents($tmp, 'wire');
+        $upload = $this->handle('POST', '/tickets/1/attachments/upload', [], [], ['file' => new UploadedFile($tmp, 'wire.txt', null, null, true)]);
+        $location = (string) $upload->headers->get('Location');
+        self::assertStringContainsString('?token=', $location);
+
+        // The pending upload comes back as the file field's FileValue, with its token.
+        $contract = $this->contractOf($location);
+        $this->assertValid($contract, self::SCHEMA_ID, 'attachments with a pending upload');
+        $value = $this->formPanels($contract)[0]['data']['values']['file'] ?? null;
+        self::assertIsArray($value);
+        self::assertArrayHasKey('uploadToken', $value);
+        $this->assertValid($value, self::SCHEMA_ID . '#/$defs/FileValue', 'pending upload file value');
+
+        $path = 'attachments/' . $value['uploadToken'];
+        $files = $this->container->get(FilesystemInterface::class);
+        if ($files->exists($path)) {
+            $files->delete($path);
+        }
     }
 
     /**

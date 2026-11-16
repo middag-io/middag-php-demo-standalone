@@ -15,6 +15,9 @@ namespace Middag\Demo\Standalone\Tests;
 use Middag\Demo\Standalone\Form\TicketForm;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Form\Renderer\RendererRegistry;
+use Middag\Ui\Block\Contract\LayoutElementInterface;
+use Middag\Ui\Block\Section;
+use Middag\Ui\Form\Group;
 use Middag\Ui\Shared\Enum\RenderTarget;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Test;
@@ -72,6 +75,29 @@ final class FormTest extends DemoTestCase
     }
 
     #[Test]
+    public function ticketFormIsLaidOutInSectionsAndGroups(): void
+    {
+        $schema = $this->form()->schema();
+
+        // The layout elements: two sections, each holding groups of fields.
+        self::assertContainsOnlyInstancesOf(Section::class, $schema);
+        self::assertSame([TicketForm::SECTION_TICKET, TicketForm::SECTION_SCHEDULE], array_map(static fn (LayoutElementInterface $e): string => $e->id(), $schema));
+        $groups = array_values(array_filter($schema[0]->children(), static fn (object $child): bool => $child instanceof Group));
+        self::assertSame(['summary', 'routing', 'people'], array_map(static fn (Group $g): string => $g->id(), $groups));
+
+        // The renderer serializes them as section and group nodes, labels included.
+        $props = $this->container->get(RendererRegistry::class)->get(RenderTarget::Props)->render($this->form())->props;
+        $sections = $props['schema'];
+        self::assertSame(['section', 'section'], array_column($sections, 'kind'));
+        self::assertSame(['Ticket', 'Schedule'], array_column($sections, 'label'));
+        self::assertSame(['group', 'group', 'group'], array_column($sections[0]['children'], 'kind'));
+        self::assertSame(['subject', 'body'], array_column($sections[0]['children'][0]['children'], 'key'));
+
+        // Defaults still reach the values from inside the layout containers.
+        self::assertSame('normal', $props['values']['priority'] ?? null);
+    }
+
+    #[Test]
     public function rendersToInertiaProps(): void
     {
         // Rendered through the @api seam: the RendererRegistry resolves the
@@ -87,10 +113,8 @@ final class FormTest extends DemoTestCase
         // Index field nodes by their node-level key — the contract the lib's
         // FormField consumes (it reads field.key, never props.name).
         $fields = [];
-        foreach ($props['schema'] as $node) {
-            if (($node['kind'] ?? '') === 'field') {
-                $fields[$node['key']] = $node;
-            }
+        foreach (self::fieldNodes($props['schema']) as $node) {
+            $fields[$node['key']] = $node;
         }
 
         // Every declared field reaches the client under its key.

@@ -18,12 +18,12 @@ if [ ! -f vendor/autoload.php ]; then
     composer install --no-interaction --no-progress --prefer-dist
 fi
 
-# Create + seed the SQLite DB on first boot. Keyed on the default DSN path
-# (sqlite:/app/var/demo.sqlite). For a custom DSN, adjust this guard.
+# Create, migrate and seed the SQLite DB on every web boot. install:db is
+# idempotent: on a new DB it creates and seeds it; on an existing DB it adds
+# what newer schema versions bring and re-applies the demo users' capabilities,
+# while the help-desk seed is skipped once agents exist.
 prepare_db() {
-    if [ ! -f var/demo.sqlite ]; then
-        php bin/console install:db
-    fi
+    php bin/console install:db
 }
 
 # The worker does not install the DB: it waits for the web service to create it

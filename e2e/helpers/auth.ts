@@ -1,10 +1,13 @@
 import { type Page, expect } from '@playwright/test';
 
-/** Seeded demo login (User::seedDemo / HelpdeskSeeder). */
+/** Seeded supervisor login (User::seedDemoUsers): holds helpdesk:supervise. */
 export const DEMO = { email: 'demo@middag.io', password: 'middag' } as const;
 
+/** Seeded agent login (User::seedDemoUsers): no helpdesk:supervise. */
+export const AGENT = { email: 'agent@middag.io', password: 'middag' } as const;
+
 /** Drive the contract-driven login form. Resilient, role/label-based selectors. */
-export async function login(page: Page, email = DEMO.email, password = DEMO.password): Promise<void> {
+export async function login(page: Page, email: string = DEMO.email, password: string = DEMO.password): Promise<void> {
   await page.goto('/login');
   // Anchor the label regexes: a "Show password" toggle button also carries the
   // word "password", so an unanchored /password/i matches two elements.

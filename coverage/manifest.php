@@ -65,9 +65,9 @@ return [
         'cell:timestamp' => ['kind' => 'cell', 'route' => '/tickets', 'note' => 'created date'],
         'cell:boolean' => ['kind' => 'cell', 'route' => '/parity', 'note' => 'parity match flag'],
         'cell:progress' => ['kind' => 'cell', 'route' => '/agents', 'note' => 'agent workload (supervisor view)'],
-        'cell:link' => ['kind' => 'cell', 'route' => '/agents', 'note' => 'agent email as a mailto link, href interpolates {email} (supervisor view)'],
+        'cell:link' => ['kind' => 'cell', 'route' => '/agents/{id}', 'note' => 'agent email as a mailto link, href interpolates {email} (supervisor view)'],
         'cell:html' => ['kind' => 'cell', 'route' => '/agents', 'note' => 'availability badge — server-controlled HTML, role escaped (supervisor view)'],
-        'cell:sparkline' => ['kind' => 'cell', 'route' => '/agents', 'note' => 'custom registerCellRenderer (the chart-block seam, cell edition) — 7-day intake (supervisor view)'],
+        'cell:sparkline' => ['kind' => 'cell', 'route' => '/agents/{id}', 'note' => 'custom registerCellRenderer (the chart-block seam, cell edition) — 7-day intake (supervisor view)'],
 
         // Form fields (the reachable PHP-factory ∩ React-free set used by the ticket form).
         'field:text' => ['kind' => 'field', 'route' => '/tickets/new', 'note' => 'subject, tags'],

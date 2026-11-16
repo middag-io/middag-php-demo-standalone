@@ -17,6 +17,8 @@ return [
         ['name' => 'name', 'type' => 'varchar', 'length' => 190, 'notnull' => true],
         ['name' => 'password_hash', 'type' => 'varchar', 'length' => 255, 'notnull' => true],
         ['name' => 'created_at', 'type' => 'bigint', 'notnull' => true, 'default' => 0],
+        // Comma-separated capability keys the session carries after login.
+        ['name' => 'capabilities', 'type' => 'varchar', 'length' => 255, 'notnull' => true, 'default' => ''],
     ],
     'indexes' => [
         ['name' => 'idx_demo_users_email', 'unique' => true, 'fields' => ['email'], 'columns' => ['email']],

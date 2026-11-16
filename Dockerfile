@@ -11,14 +11,10 @@
 # and copied into every target image — avoids a slow arm64 npm build under QEMU.
 FROM --platform=$BUILDPLATFORM node:22-bookworm-slim AS ui
 WORKDIR /app/ui
-# Deps first (layer cache). @middag-io/react lives on GitHub Packages, so a
-# scoped registry + auth token is required. The token arrives as a BuildKit
-# secret (never baked into a layer); the literal ${NODE_AUTH_TOKEN} in .npmrc is
-# expanded by npm at runtime from the env var set only for that RUN.
+# Deps first (layer cache). @middag-io/react comes from the public npm
+# registry, so no token is needed.
 COPY ui/package.json ui/package-lock.json ./
-RUN printf '@middag-io:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}\n' > .npmrc
-RUN --mount=type=secret,id=github_token \
-    NODE_AUTH_TOKEN="$(cat /run/secrets/github_token)" npm ci
+RUN npm ci
 # Source + production build. build:host (vite.config.custom.ts) writes the app
 # entry (app.js + style.css + hashed chunks) to /app/public/build.
 COPY ui/ ./

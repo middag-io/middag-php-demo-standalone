@@ -17,6 +17,8 @@ use Middag\Demo\Standalone\Kernel\Bootstrap\FlagFileMaintenanceGate;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Kernel\Contract\FailedModuleRegistryInterface;
 use Middag\Framework\Kernel\Contract\MaintenanceGateInterface;
+use Middag\Framework\Mail\Contract\MailerInterface;
+use Middag\Framework\Mail\Mail;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Test;
 
@@ -90,5 +92,18 @@ final class FaultModeTest extends DemoTestCase
 
         self::assertSame(500, $response->getStatusCode());
         self::assertStringContainsString('data-testid="error-page-title"', (string) $response->getContent());
+    }
+
+    #[Test]
+    public function outboxRouteListsTheCapturedMail(): void
+    {
+        $subject = 'Outbox probe ' . bin2hex(random_bytes(4));
+        $this->container->get(MailerInterface::class)->send(new Mail(['probe@middag.io'], $subject, 'Body.'));
+
+        $response = $this->handle('GET', '/_test/outbox', [], ['HTTP_ACCEPT' => 'application/json']);
+
+        self::assertSame(200, $response->getStatusCode());
+        $subjects = array_column($this->json($response)['data'] ?? [], 'subject');
+        self::assertContains($subject, $subjects);
     }
 }
