@@ -13,7 +13,6 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Features
 
 * build the HTTP kernel and the forms through framework 1.20 seams ([c2fd5c0](https://github.com/middag-io/middag-php-demo-standalone/commit/c2fd5c04261ee0fb6a396b6860eaf97c0d16ff42))
-* **deps:** bump middag-io/framework to ^1.15 and ui to ^1.6 ([8ffbe6f](https://github.com/middag-io/middag-php-demo-standalone/commit/8ffbe6f92426bf91e76ad1899018d011a758097c))
 * **deps:** bump middag-io/framework to ^1.15 and ui to ^1.6 ([b15ede2](https://github.com/middag-io/middag-php-demo-standalone/commit/b15ede2af1fced39e0d31c8366c1a52803b17c02))
 * **deps:** raise the platform to PHP 8.3 and Symfony 7.4 or 8.1 ([e69637a](https://github.com/middag-io/middag-php-demo-standalone/commit/e69637a046471af2516842d60cd02b359e42b6dd))
 * exercise the framework bus, runtime, mail, files and schema seams ([8e3c747](https://github.com/middag-io/middag-php-demo-standalone/commit/8e3c74776ce2a7c2878d26087e666b003fbc94f0))
@@ -23,7 +22,6 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 * exercise the ui page, action, navigation and table seams ([248a9ca](https://github.com/middag-io/middag-php-demo-standalone/commit/248a9ca0940b8cfbe5cf439a415b1311094e5171))
 * filter, sort and page the ticket queue on the server ([7fd8240](https://github.com/middag-io/middag-php-demo-standalone/commit/7fd8240b156814285acf4081635ed8c67dba72b4))
 * generate COVERAGE.md per [@api](https://github.com/api) symbol with a drift test ([a3f64c0](https://github.com/middag-io/middag-php-demo-standalone/commit/a3f64c02e10c57e6ab51c4d9d69a761285b12b54))
-* PHP 8.3 platform, current renderer and a fuller example application ([f76cc54](https://github.com/middag-io/middag-php-demo-standalone/commit/f76cc5423e650cdcf08f1df114d8e7c5307caaf6))
 * **ui:** render with @middag-io/react 0.44.1 ([3d7938d](https://github.com/middag-io/middag-php-demo-standalone/commit/3d7938df363898776cdae0e97a963eedfbb2b9c3))
 * **ui:** render with @middag-io/react 0.45.0 ([8d3be73](https://github.com/middag-io/middag-php-demo-standalone/commit/8d3be7391f60dc3081120452e580f48c542cf3af))
 
@@ -43,10 +41,8 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Documentation
 
-* align versioning docs with the version family (ADR-032) ([7a8139d](https://github.com/middag-io/middag-php-demo-standalone/commit/7a8139de826275acf64a730e1e435a5f2ca20a3c))
 * align versioning docs with the version family (ADR-032) ([d755116](https://github.com/middag-io/middag-php-demo-standalone/commit/d755116147a2cf202a66e6186e96ad97344fcee0))
 * canonical AGENTS.md, CLAUDE.md symlink (ADR-017) ([519380c](https://github.com/middag-io/middag-php-demo-standalone/commit/519380c3897b7315b60c81924b7f01f8ca26ca28))
-* drop pre-v2 deadline text ([4453a4c](https://github.com/middag-io/middag-php-demo-standalone/commit/4453a4c0939838250ee629e6ee17deea6a037db2))
 * drop pre-v2 deadline text ([8a89c2a](https://github.com/middag-io/middag-php-demo-standalone/commit/8a89c2ab1c94bada8bb5fa9d41d50bc4f0bcc53c))
 * match the breaking-change guidance to the version family check ([a347b0c](https://github.com/middag-io/middag-php-demo-standalone/commit/a347b0c2dd9ea8d9f03c01042075f507e7c6e37c))
 * point the architecture docs to the hub and state the supported versions ([0e3c9ab](https://github.com/middag-io/middag-php-demo-standalone/commit/0e3c9ab543f3aac5756d40fc006488702b0e577d))
