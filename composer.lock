@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9ce75c125f2a9fdf7ce504278ddb3836",
+    "content-hash": "1ef1e5ab0f17bbb753d8243c5b106327",
     "packages": [
         {
             "name": "middag-io/framework",
@@ -128,16 +128,16 @@
         },
         {
             "name": "middag-io/ui",
-            "version": "v1.10.0",
+            "version": "v1.10.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/middag-io/middag-php-ui.git",
-                "reference": "44ae9c512fb2017b1297458ddfec2d201e69837b"
+                "reference": "5341cd0031f7c27e6896fb7102c1bf5a54e028ff"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/middag-io/middag-php-ui/zipball/44ae9c512fb2017b1297458ddfec2d201e69837b",
-                "reference": "44ae9c512fb2017b1297458ddfec2d201e69837b",
+                "url": "https://api.github.com/repos/middag-io/middag-php-ui/zipball/5341cd0031f7c27e6896fb7102c1bf5a54e028ff",
+                "reference": "5341cd0031f7c27e6896fb7102c1bf5a54e028ff",
                 "shasum": ""
             },
             "require": {
@@ -183,8 +183,8 @@
                 "security": "https://github.com/middag-io/middag-php-ui/security/policy",
                 "source": "https://github.com/middag-io/middag-php-ui"
             },
-            "time": "2026-11-16T19:39:52+00:00",
-            "published-time": "2026-11-16T19:40:57+00:00"
+            "time": "2026-11-16T20:05:53+00:00",
+            "published-time": "2026-11-16T20:07:14+00:00"
         },
         {
             "name": "monolog/monolog",

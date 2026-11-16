@@ -31,6 +31,8 @@ final readonly class AgentRosterQuery
 
     public const string SORT_COLUMN = 'name';
 
+    public const string DEFAULT_DIRECTION = 'asc';
+
     private const int MAX_SEARCH_LENGTH = 100;
 
     /** Row keys the search box matches. */
@@ -51,17 +53,18 @@ final readonly class AgentRosterQuery
         return new self(
             max(1, self::intParam($query['page'] ?? null, 1)),
             min(self::MAX_PER_PAGE, max(1, self::intParam($query['per_page'] ?? null, self::DEFAULT_PER_PAGE))),
-            ($query['direction'] ?? null) === 'desc' ? 'desc' : 'asc',
+            ($query['direction'] ?? null) === 'desc' ? 'desc' : self::DEFAULT_DIRECTION,
             \is_string($query['search'] ?? null) ? mb_substr(trim($query['search']), 0, self::MAX_SEARCH_LENGTH) : '',
         );
     }
 
     /**
-     * Filter, sort and slice the rows to the requested page.
+     * Filter, sort and slice the rows to the requested page. The applied sort is
+     * returned with them so the table renders it as the active one.
      *
      * @param list<array<string, mixed>> $rows
      *
-     * @return array{rows: list<array<string, mixed>>, pagination: Pagination}
+     * @return array{rows: list<array<string, mixed>>, pagination: Pagination, sort: array{column: string, direction: 'asc'|'desc'}}
      */
     public function apply(array $rows): array
     {
@@ -73,6 +76,7 @@ final readonly class AgentRosterQuery
         return [
             'rows' => \array_slice($matching, ($this->page - 1) * $this->perPage, $this->perPage),
             'pagination' => Pagination::of($this->page, $this->perPage, \count($matching)),
+            'sort' => ['column' => self::SORT_COLUMN, 'direction' => $this->direction],
         ];
     }
 

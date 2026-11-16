@@ -109,7 +109,10 @@ final class AgentContractTest extends DemoTestCase
         self::assertEquals(['sortColumn' => 'name', 'sortDirection' => 'asc'], array_intersect_key($ascending['options'], ['sortColumn' => 1, 'sortDirection' => 1]));
         self::assertSame(count($ascending['rows']), $ascending['pagination']['total'] ?? null);
         self::assertSame('Zoe Last', $descending['rows'][0]['name'] ?? null);
-        self::assertSame('desc', $descending['options']['sortDirection'] ?? null);
+        // The options keep the default sort; the active sort is the request's.
+        self::assertSame(['column' => 'name', 'direction' => 'asc'], $ascending['sort'] ?? null);
+        self::assertSame('asc', $descending['options']['sortDirection'] ?? null);
+        self::assertSame(['column' => 'name', 'direction' => 'desc'], $descending['sort'] ?? null);
         self::assertSame(['Zoe Last'], array_column($searched['rows'], 'name'));
         self::assertSame(1, $searched['pagination']['total'] ?? null);
         self::assertSame([$ascending['rows'][1]['name']], array_column($paged['rows'], 'name'));

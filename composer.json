@@ -8,7 +8,7 @@
     "ext-pdo": "*",
     "ext-pdo_sqlite": "*",
     "middag-io/framework": "^1.20.4",
-    "middag-io/ui": "^1.10",
+    "middag-io/ui": "^1.10.1",
     "symfony/dotenv": "^7.4 || ^8.1"
   },
   "require-dev": {

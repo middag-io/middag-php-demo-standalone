@@ -110,7 +110,8 @@ final class AgentController extends AbstractController implements CapabilityRequ
             $agents,
         );
         // The CrudBuilder table runs in server mode: search, sort and paging come
-        // back as query parameters and are applied here.
+        // back as query parameters and are applied here. The applied sort goes
+        // into the build data, so the table shows it as the active sort.
         $page = $roster->apply($rows);
 
         $supervisors = count(array_filter($agents, static fn (Agent $a): bool => $a->isSupervisor()));
@@ -140,7 +141,9 @@ final class AgentController extends AbstractController implements CapabilityRequ
                 $col['label'] = 'Open load';
                 $col['variant'] = ColumnVariant::Progress;
             })
-            ->sort(AgentRosterQuery::SORT_COLUMN, $roster->direction)
+            // The default sort; the request's sort reaches the table through the
+            // `sort` key of the build data.
+            ->sort(AgentRosterQuery::SORT_COLUMN, AgentRosterQuery::DEFAULT_DIRECTION)
             ->perPage($roster->perPage)
             ->pageActions([])
             // Supervisors edit an agent in the side panel: the row action carries
