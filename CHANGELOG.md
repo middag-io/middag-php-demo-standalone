@@ -7,6 +7,40 @@ release tag — manual entries below the unreleased section will be overwritten.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.4](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.5.3...v0.5.4) (2026-11-16)
+
+
+### Features
+
+* **auth:** seed an agent login without the supervisor capability ([dc599e7](https://github.com/middag-io/middag-php-demo-standalone/commit/dc599e713d77e60d2fca832109ebfcceeaf74f6f))
+* build the agents index page with the ui CrudBuilder ([f742656](https://github.com/middag-io/middag-php-demo-standalone/commit/f7426565a8e69d3a8153ddc574547376955758ab))
+* **form:** lay out the ticket form in sections and groups ([7901ff5](https://github.com/middag-io/middag-php-demo-standalone/commit/7901ff555800413a06d213d6aa57df7e894068c2))
+* **mail:** read the captured outbox over a fault-mode route ([4a86a85](https://github.com/middag-io/middag-php-demo-standalone/commit/4a86a85a6aa8d2f26b5cf08c77e450a76944f096))
+* **tickets:** upload, attach and download ticket attachments ([39518fb](https://github.com/middag-io/middag-php-demo-standalone/commit/39518fbdcb5aee8bc9d53053274c285f431463d4))
+* **ui:** edit agents in the editable side panel ([e815800](https://github.com/middag-io/middag-php-demo-standalone/commit/e81580075a1b7cf43c60380f522d74f99e0cc664))
+
+
+### Bug Fixes
+
+* **agents:** keep supervisor-only fields out of non-supervisor rows ([b987462](https://github.com/middag-io/middag-php-demo-standalone/commit/b987462a622cfa9c6b17a063ae33dcd3d44ae7e1))
+* **attachments:** bind a pending upload to the user who made it ([17979d9](https://github.com/middag-io/middag-php-demo-standalone/commit/17979d9199cc6a60e944b4aff5e96575fde79a6b))
+* **attachments:** cap the attached files per ticket ([f1517b2](https://github.com/middag-io/middag-php-demo-standalone/commit/f1517b28a332a2a7d0d89e5be9b8567d3127ebcb))
+* **attachments:** expire pending uploads and cap them per user ([7adea80](https://github.com/middag-io/middag-php-demo-standalone/commit/7adea80bac9969b7dbe38a0fd8a3ba66c359b7c8))
+* **attachments:** let the uploader download their own pending file ([b2de42d](https://github.com/middag-io/middag-php-demo-standalone/commit/b2de42d941e3b223667b01c68577761794a71aa2))
+* **attachments:** serve only attached files on download ([4240254](https://github.com/middag-io/middag-php-demo-standalone/commit/4240254034e4d654f7aca4c0eb9bd841e1e83311))
+* **docker:** migrate an existing database on every web boot ([cd1709d](https://github.com/middag-io/middag-php-demo-standalone/commit/cd1709d0b06b54843c80c5fc39318e4546028c4f))
+* **docker:** pass the GitHub Packages token to compose builds ([0bdaa10](https://github.com/middag-io/middag-php-demo-standalone/commit/0bdaa10b8658510d673c18fb131142f87082dc23))
+
+
+### Documentation
+
+* align DOCKER.md with the image ([103f356](https://github.com/middag-io/middag-php-demo-standalone/commit/103f35618b48966da8e6ee5667e1291d2d3884b1))
+* **coverage:** record CrudBuilder as covered by the agents index ([8e2ff89](https://github.com/middag-io/middag-php-demo-standalone/commit/8e2ff8975d60d625fade3db80d55b454fe05612a))
+* **coverage:** record the ui 1.9.0 poll API and the new minimums ([c690ad1](https://github.com/middag-io/middag-php-demo-standalone/commit/c690ad154d6530593c19753d9211777fe776bfc6))
+* **coverage:** regenerate the coverage map for this batch ([72255b1](https://github.com/middag-io/middag-php-demo-standalone/commit/72255b1cae303972a208a0aa2bafda8efecd350a))
+* point security reports to security@middag.io ([cb66087](https://github.com/middag-io/middag-php-demo-standalone/commit/cb660878b269e8cc541a955f5d11464e2fd993cc))
+* **readme:** state requirements, help channels and the internal surface ([96d3c6d](https://github.com/middag-io/middag-php-demo-standalone/commit/96d3c6d46ebeec1084a2cf6559216e9694f2581d))
+
 ## [0.5.3](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.5.2...v0.5.3) (2026-11-16)
 
 
