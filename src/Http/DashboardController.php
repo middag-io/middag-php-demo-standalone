@@ -33,9 +33,8 @@ use Symfony\Component\HttpFoundation\Response;
  * data-mapper way (dual-ORM in one request), then emits the four dashboard-only
  * surfaces: four metric_cards, a status_strip (SLA health, with the auto-derived
  * health-score ring via the generic block() escape hatch), a hand-built
- * `variant`-keyed dense_table of the open queue, and the custom free `chart` block
- * (a ticket-creation trend rendered host-side as inline SVG — registered in
- * ui/src/app/register.ts since React free ships no `chart`).
+ * `variant`-keyed dense_table of the open queue, and a `chart` block (the
+ * ticket-creation trend, rendered by the free ChartBlock).
  */
 #[Auth(login: true)]
 final class DashboardController extends AbstractController
@@ -122,7 +121,7 @@ final class DashboardController extends AbstractController
                 // status_strip with the score ring → generic block() (no typed score arg).
                 $region->block('status_strip', 'sla_health', ['items' => $strip, 'score' => $score]);
 
-                // custom free chart block — inline-SVG trend, registered host-side.
+                // chart block — the trend, rendered by the free ChartBlock.
                 $region->chart('trend', ChartType::Bar, [new ChartSeries('created', 'Created')], 'date', $trend);
 
                 $region->denseTable('open_tickets', [

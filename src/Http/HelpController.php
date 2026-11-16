@@ -87,8 +87,8 @@ final class HelpController extends AbstractController
             . 'A support desk built to prove the **free** middag-io surface end-to-end, '
             . "so the Moodle and WordPress adapters inherit a de-risked contract.\n\n"
             . "### What each page proves\n\n"
-            . "- **Dashboard** — `dashboard` layout, metric cards, a status_strip and the custom `chart` block.\n"
-            . "- **Tickets** — hand-built `dense_table` cell renderers; the form pipeline (entity pickers, conditional fields); the rich detail page (workflow_progress + tabbed detail/activity/SLA).\n"
+            . "- **Dashboard** — `dashboard` layout, metric cards, a status_strip and a `chart` block.\n"
+            . "- **Tickets** — hand-built `dense_table` cell renderers; the form pipeline (entity pickers, conditional fields); the rich detail page (status lifecycle + tabbed detail/activity/SLA).\n"
             . "- **Agents** — `sidebar` layout with a capability-gated supervisor view.\n"
             . "- **Customers** — the `card_grid` block.\n"
             . "- **Dual-ORM parity** — the same dataset read two ways, asserted identical.\n"

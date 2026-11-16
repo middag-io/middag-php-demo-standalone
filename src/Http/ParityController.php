@@ -31,7 +31,7 @@ use Symfony\Component\HttpFoundation\Response;
  * The active-record idiom is `Ticket::query()` (a ModelQuery that hydrates Ticket
  * models); the data-mapper idiom is `QueryBuilder::on($conn, 'demo_tickets')` (the
  * repository query seam, returning raw rows + an aggregate count). Both hit the
- * one SQLite `demo_tickets` table. The page renders each read in a tabbed_panel,
+ * one SQLite `demo_tickets` table. The page renders each read in a tabs block,
  * a side-by-side parity dense_table (with a boolean `match` cell), and a
  * markdown_panel showing the two query sources. CoverageManifestTest asserts the
  * two count sets are identical — parity, not just coexistence.

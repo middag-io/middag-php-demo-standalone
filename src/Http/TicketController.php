@@ -179,13 +179,11 @@ final class TicketController extends AbstractController
     /**
      * Ticket detail — the rich-block showcase + an aside region (sidebar layout).
      *
-     * Proves four blocks the list/form pages don't: workflow_progress (the status
-     * state machine, emitted via the generic block() escape hatch — it has no typed
-     * RegionBuilder method), and a tabbed_panel grouping a detail_panel (fields),
-     * an activity_timeline (the comment feed; the comment body rides in `action`
+     * Proves the blocks the list/form pages don't: a status_strip of the status
+     * lifecycle, and a tabs block grouping a detail_panel (fields), an
+     * activity_timeline (the comment feed; the comment body rides in `action`
      * because the React block does not render `detail`), and a markdown_panel (the
-     * SLA policy joined the data-mapper way). The PHP emits block type `tabs`; the
-     * host bridges `tabs`→`tabbed_panel` + `id`→`key` in ui/src/app/register.ts.
+     * SLA policy joined the data-mapper way).
      */
     public function show(int $id): Response
     {
@@ -238,23 +236,18 @@ final class TicketController extends AbstractController
             ->shell('basic')
             ->layout('sidebar')
             ->title('#' . $id . ' · ' . $ticket->subject)
-            ->subtitle('Ticket detail — workflow state + tabbed detail/activity/SLA')
+            ->subtitle('Ticket detail — status lifecycle + tabbed detail/activity/SLA')
             ->actions([
                 PageBuilder::action('edit', 'Edit', ActionTarget::link('/tickets/' . $id . '/edit'), ActionIntent::Primary, 'pencil'),
                 PageBuilder::action('back', 'All tickets', ActionTarget::link('/tickets'), ActionIntent::Secondary, 'arrow-left'),
             ])
             // sidebar layout renders the `main` + `aside` regions (not `content`).
             ->region('main', function (RegionBuilder $region) use ($ticket, $section, $entries, $sla): void {
-                // workflow_progress has NO typed RegionBuilder method → escape hatch.
-                $region->block('workflow_progress', 'state', [
-                    'states' => array_map(
-                        static fn (string $s): array => ['key' => $s, 'label' => ucfirst($s)],
-                        Ticket::STATUSES,
-                    ),
-                    'currentState' => (string) $ticket->status,
-                ]);
+                // status_strip: the ticket's place in the status lifecycle, one
+                // item per state; the current state is highlighted.
+                $region->statusStrip('state', $this->lifecycleItems((string) $ticket->status));
 
-                // tabbed_panel (wire type `tabs`): each Tab nests BlockBuilder statics.
+                // tabs: each Tab nests BlockBuilder statics.
                 $region->tabs('tabs', [
                     new Tab('details', 'Details', [
                         BlockBuilder::detailPanel('detail', [$section]),
@@ -468,6 +461,31 @@ final class TicketController extends AbstractController
      * SLA tab markdown — the policy reached the data-mapper way (SlaPolicyRepository),
      * rendered alongside the ticket's own due/resolved timestamps.
      */
+    /**
+     * One status_strip item per lifecycle state: states before the current one are
+     * done, the current one is highlighted, later ones are pending.
+     *
+     * @return list<array{key: string, label: string, value: string, appearance: string}>
+     */
+    private function lifecycleItems(string $current): array
+    {
+        $position = array_search($current, Ticket::STATUSES, true);
+        $position = $position === false ? -1 : $position;
+
+        $items = [];
+
+        foreach (Ticket::STATUSES as $index => $status) {
+            [$value, $appearance] = match (true) {
+                $index < $position => ['Done', 'success'],
+                $index === $position => ['Current', 'info'],
+                default => ['Pending', 'neutral'],
+            };
+            $items[] = ['key' => $status, 'label' => ucfirst($status), 'value' => $value, 'appearance' => $appearance];
+        }
+
+        return $items;
+    }
+
     private function slaMarkdown(Ticket $ticket, ?SlaPolicy $sla): string
     {
         $due = $ticket->due_at ? date('Y-m-d H:i', (int) $ticket->due_at) : '—';

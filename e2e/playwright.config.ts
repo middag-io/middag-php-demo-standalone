@@ -4,9 +4,11 @@ import { defineConfig, devices } from '@playwright/test';
  * Full-stack E2E for the MIDDAG help-desk demo. The webServer seeds a fresh
  * SQLite database and boots the PHP built-in server (which serves the Inertia
  * shell + the built React bundle from public/build). Locally an already-running
- * `composer serve` on :8080 is reused; in CI a fresh server is started.
+ * server on the port is reused; in CI a fresh server is started. E2E_PORT moves
+ * the server off :8080 when that port is taken.
  */
-const BASE_URL = process.env.E2E_BASE_URL ?? 'http://localhost:8080';
+const PORT = Number(process.env.E2E_PORT ?? 8080);
+const BASE_URL = `http://localhost:${PORT}`;
 const STORAGE = 'fixtures/.auth/user.json';
 
 export default defineConfig({
@@ -47,7 +49,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'cd .. && composer install:db && composer serve',
+    command: `cd .. && php bin/console install:db && php -S localhost:${PORT} -t public public/index.php`,
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

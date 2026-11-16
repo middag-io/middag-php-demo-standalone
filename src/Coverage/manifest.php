@@ -38,11 +38,11 @@ return [
         'layout:stack' => ['kind' => 'layout', 'route' => '/customers', 'note' => 'default single column'],
         'layout:wizard' => ['kind' => 'layout', 'route' => '/tickets/new', 'note' => 'guided two-step ticket create — server-driven stepping, partial in session'],
 
-        // Blocks (13 free + 1 custom).
+        // Blocks (14 free).
         'block:metric_card' => ['kind' => 'block', 'route' => '/', 'note' => 'queue metrics'],
-        'block:status_strip' => ['kind' => 'block', 'route' => '/', 'note' => 'SLA health + score ring'],
+        'block:status_strip' => ['kind' => 'block', 'route' => '/', 'note' => 'SLA health + score ring; ticket status lifecycle on /tickets/{id}'],
         'block:dense_table' => ['kind' => 'block', 'route' => '/tickets', 'note' => 'the cell showcase'],
-        'block:chart' => ['kind' => 'block', 'route' => '/', 'note' => 'custom registerBlock (inline SVG)'],
+        'block:chart' => ['kind' => 'block', 'route' => '/', 'note' => 'tickets created per day (free ChartBlock)'],
         'block:detail_panel' => ['kind' => 'block', 'route' => '/agents/{id}', 'note' => 'agent fields'],
         'block:link_list' => ['kind' => 'block', 'route' => '/agents/{id}', 'note' => 'assigned tickets'],
         'block:card_grid' => ['kind' => 'block', 'route' => '/customers', 'note' => 'customer cards'],
@@ -50,9 +50,8 @@ return [
         'block:empty_state' => ['kind' => 'block', 'route' => '/help', 'note' => 'first-use nudge'],
         'block:action_grid' => ['kind' => 'block', 'route' => '/help', 'note' => 'quick links'],
         'block:form_panel' => ['kind' => 'block', 'route' => '/tickets/new', 'note' => 'framework form pipeline'],
-        'block:workflow_progress' => ['kind' => 'block', 'route' => '/tickets/{id}', 'note' => 'status state machine'],
-        'block:tabbed_panel' => ['kind' => 'block', 'route' => '/tickets/{id}', 'note' => 'emitted as wire type "tabs"; host aliases tabs->tabbed_panel + id->key'],
-        'block:activity_timeline' => ['kind' => 'block', 'route' => '/tickets/{id}', 'note' => 'comment feed, nested in the tabbed_panel'],
+        'block:tabs' => ['kind' => 'block', 'route' => '/tickets/{id}', 'note' => 'details, activity and SLA tabs'],
+        'block:activity_timeline' => ['kind' => 'block', 'route' => '/tickets/{id}', 'note' => 'comment feed, nested in the tabs block'],
 
         // dense_table cell renderers (8 of 9 free exercised + 2 custom: sparkline,
         // tag_chips). link_group is intentionally a gap — see below.
@@ -80,12 +79,12 @@ return [
         'engine:dual_orm_parity' => ['kind' => 'engine', 'route' => '/parity', 'note' => 'data-mapper QueryBuilder vs active-record ModelQuery, identical counts'],
         'engine:entity_source' => ['kind' => 'engine', 'route' => '/tickets/new', 'note' => 'EntitySourceRegistry: demo_customers + demo_agents'],
         'engine:capability_gate' => ['kind' => 'provider', 'route' => '/agents', 'note' => 'helpdesk:supervise gates the supervisor columns'],
-        'engine:register_block' => ['kind' => 'engine', 'route' => '/', 'note' => 'host registerBlock("chart") + tabs alias'],
+        'engine:register_host' => ['kind' => 'engine', 'route' => '/login', 'note' => 'host registerShell("auth") replaces the package auth shell; host registerCellRenderer("sparkline") and ("tag_chips") add cells'],
         'condition:required_when_in' => ['kind' => 'engine', 'route' => '/tickets/new', 'note' => 'assignee required_when priority IN [high,urgent]'],
     ],
 
     'gaps' => [
-        'block:pro' => ['reason' => 'PRO blocks (chart_panel, kanban_board, flow_editor, form_builder, condition_tree, sentence_builder) + the product shell ship in @middag-io/react-pro, out of the free OSS surface', 'filed' => 'n/a (by design)'],
+        'block:pro' => ['reason' => 'PRO blocks (chart_panel, workflow_progress, kanban_board, flow_editor, form_builder, condition_tree, sentence_builder) + the product shell ship in @middag-io/react-pro, out of the free OSS surface', 'filed' => 'n/a (by design)'],
         'cell:link_group' => ['reason' => 'the free link_group cell renders icon-only ghost-button links (the label is only a tooltip), not readable text chips; the help-desk domain has no natural icon-link-group column, and ticket tags read far better as the custom tag_chips cell', 'filed' => 'n/a (custom tag_chips cell preferred over a contrived icon-link column)'],
         'field:duration' => ['reason' => 'emittable via FieldDefinition::duration() but no free React field renderer (would hit "Unknown field component")', 'filed' => 'react: duration renderer'],
         'field:otp_slider_native_select_tags' => ['reason' => 'React-renderable but no FieldDefinition factory method', 'filed' => 'framework: field factories'],

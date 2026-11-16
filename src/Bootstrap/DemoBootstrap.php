@@ -363,6 +363,9 @@ final readonly class DemoBootstrap implements BootstrapInterface
                 'name' => (string) ($attrs['name'] ?? ''),
                 'email' => (string) ($attrs['email'] ?? ''),
                 'capabilities' => array_values((array) ($attrs['capabilities'] ?? [])),
+                // Drives the BasicShell account-menu Sign-out item: the shell
+                // POSTs here with the csrf_token shared prop (AuthController::logout).
+                'logoutUrl' => '/logout',
             ];
         });
         // `navigation` follows the lib's NavigationTreePayload ({tree, activeKey}),
@@ -380,11 +383,6 @@ final readonly class DemoBootstrap implements BootstrapInterface
         // keeps the wire canonical. The demo is single-locale English, light theme.
         InertiaManager::share('locale', 'en');
         InertiaManager::share('theme', ['appearance' => 'light']);
-        // `logoutUrl` drives the BasicShell account-menu Sign-out item (the shell
-        // POSTs here with the csrf_token shared prop). Optional in the lib so
-        // adapters with a different auth backend (Moodle, WP) set their own; the
-        // demo points at its POST /logout route (AuthController::logout).
-        InertiaManager::share('logoutUrl', '/logout');
     }
 
     /**

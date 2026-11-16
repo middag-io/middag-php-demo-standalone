@@ -56,22 +56,23 @@ final class TicketContractTest extends DemoTestCase
     }
 
     #[Test]
-    public function showRendersWorkflowProgressAndTabbedDetailActivitySla(): void
+    public function showRendersStatusLifecycleAndTabbedDetailActivitySla(): void
     {
         $id = $this->createTicket('Cannot reset password');
 
         $blocks = $this->contentBlocks('/tickets/' . $id);
 
-        // workflow_progress (generic block escape hatch) reflects the ticket state.
+        // status_strip reflects the ticket's place in the status lifecycle.
         $state = $this->blockByKey($blocks, 'state');
-        self::assertNotNull($state, 'ticket detail must contain the workflow_progress block');
-        self::assertSame('workflow_progress', $state['type']);
-        self::assertSame('new', $state['data']['currentState'] ?? null);
-        self::assertNotEmpty($state['data']['states'] ?? [], 'workflow states populated');
+        self::assertNotNull($state, 'ticket detail must contain the status_strip block');
+        self::assertSame('status_strip', $state['type']);
+        $values = array_column($state['data']['items'] ?? [], 'value', 'key');
+        self::assertSame('Current', $values['new'] ?? null, 'a new ticket is at the first state');
+        self::assertSame('Pending', $values['closed'] ?? null);
 
-        // tabbed_panel (wire type `tabs`) groups the detail/activity/sla blocks.
+        // tabs groups the detail/activity/sla blocks.
         $tabs = $this->blockByKey($blocks, 'tabs');
-        self::assertNotNull($tabs, 'ticket detail must contain the tabbed_panel (tabs) block');
+        self::assertNotNull($tabs, 'ticket detail must contain the tabs block');
         self::assertSame('tabs', $tabs['type']);
 
         $nested = $this->tabsNestedBlocks($tabs);

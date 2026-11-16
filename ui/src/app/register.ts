@@ -1,10 +1,10 @@
 /**
  * register — registration for this plugin's UI.
  *
- * Registers the 13 standard blocks plus shells, layouts, cell renderers, form
- * fields and icons. The 6 Pro/interactive blocks (chart_panel, kanban_board,
- * flow_editor, form_builder, condition_tree, sentence_builder) ship in
- * @middag-io/react-pro and register via its registerProDefaults().
+ * Registers the 14 free blocks plus shells, layouts, cell renderers, form
+ * fields and icons. The Pro/interactive blocks (chart_panel, workflow_progress,
+ * kanban_board, flow_editor, form_builder, condition_tree, sentence_builder)
+ * ship in @middag-io/react-pro and register via its registerProDefaults().
  *
  * For lean IIFE bundles (WordPress/Moodle), trim the blocks you don't use.
  *
@@ -33,20 +33,17 @@ import {
   EmptyStateBlock,
   DetailPanelBlock,
   StatusStripBlock,
-  TabbedPanelBlock,
+  TabsBlock,
   ActivityTimelineBlock,
-  WorkflowProgressBlock,
+  ChartBlock,
   MarkdownPanelBlock,
   CardGridBlock,
   ActionGridBlock,
   LinkListBlock,
   FormPanelBlock,
 } from "@middag-io/react";
-// Host-registered blocks that fill the free-surface gaps (P5):
-//  - chart: React free ships no chart block (chart_panel is PRO) → custom inline SVG.
-//  - tabs:  BlockBuilder::tabs() emits type "tabs"; alias it onto TabbedPanelBlock.
-import { ChartBlock } from "../blocks/chart-block";
-import { TabsAliasBlock } from "../blocks/tabs-alias";
+// Host-registered extensions: a custom `auth` shell that replaces the package
+// one, and two custom cells (`sparkline`, `tag_chips`).
 import { SparklineCell } from "../cells/sparkline-cell";
 import { TagChipsCell } from "../cells/tag-chips-cell";
 import { AuthShell } from "../shells/auth-shell";
@@ -63,8 +60,9 @@ export function registerDefaults(): void {
   registerShell("basic", BasicShell);
   registerShell("product", BasicShell);
   registerShell("immersive", ImmersiveShell);
-  // Custom demo shell: a chromeless centered login (no app sidebar/nav) — the
-  // shell-level twin of the host-registered `chart` block + `sparkline` cell.
+  // Custom demo shell: a chromeless centered login (no app sidebar/nav). The
+  // package ships its own `auth` shell; registering the same key replaces it,
+  // which is how a host swaps a package shell for its own.
   registerShell("auth", AuthShell);
 
   // Layouts
@@ -79,9 +77,9 @@ export function registerDefaults(): void {
   registerBlock("empty_state", EmptyStateBlock);
   registerBlock("detail_panel", DetailPanelBlock);
   registerBlock("status_strip", StatusStripBlock);
-  registerBlock("tabbed_panel", TabbedPanelBlock);
+  registerBlock("tabs", TabsBlock);
   registerBlock("activity_timeline", ActivityTimelineBlock);
-  registerBlock("workflow_progress", WorkflowProgressBlock);
+  registerBlock("chart", ChartBlock);
   registerBlock("markdown_panel", MarkdownPanelBlock);
   registerBlock("card_grid", CardGridBlock);
   registerBlock("action_grid", ActionGridBlock);
@@ -89,16 +87,10 @@ export function registerDefaults(): void {
   // form_panel pulls react-hook-form + zod; drop it if this bundle has no forms.
   registerBlock("form_panel", FormPanelBlock);
 
-  // Host-extension seam (P5): a custom free chart block + the tabs->tabbed_panel
-  // alias. These let the PHP contract emit `chart` and `tabs` block types that the
-  // free React engine does not register out of the box.
-  registerBlock("chart", ChartBlock);
-  registerBlock("tabs", TabsAliasBlock);
-
   // Cell renderers (status, timestamp, link, boolean, etc.)
   registerDefaultCells();
-  // Custom free `sparkline` cell — the cell-level twin of the custom `chart`
-  // block. A dense_table column with variant "sparkline" resolves here (P5).
+  // Custom `sparkline` cell — a dense_table column with variant "sparkline"
+  // resolves here.
   // Register AFTER the defaults.
   registerCellRenderer("sparkline", SparklineCell);
   // Custom `tag_chips` cell — readable labelled pills for the ticket tags

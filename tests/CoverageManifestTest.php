@@ -36,7 +36,7 @@ use Symfony\Component\Messenger\Stamp\HandledStamp;
 final class CoverageManifestTest extends DemoTestCase
 {
     /** PRO block types that must NEVER appear in the free demo. */
-    private const array PRO_BLOCKS = ['chart_panel', 'kanban_board', 'flow_editor', 'form_builder', 'condition_tree', 'sentence_builder'];
+    private const array PRO_BLOCKS = ['chart_panel', 'workflow_progress', 'kanban_board', 'flow_editor', 'form_builder', 'condition_tree', 'sentence_builder'];
 
     /** @var array<string, array<string, mixed>> route => decoded contract */
     private array $contractCache = [];
@@ -78,10 +78,6 @@ final class CoverageManifestTest extends DemoTestCase
                 continue;
             }
             $wireType = explode(':', $symbol, 2)[1];
-            // The tabbed_panel surface is emitted under the PHP wire type "tabs".
-            if ($wireType === 'tabbed_panel') {
-                $wireType = 'tabs';
-            }
 
             $types = $this->blockTypes($this->contractFor($entry['route']));
             self::assertContains($wireType, $types, sprintf('covered %s must be emitted by %s', $symbol, $entry['route']));
@@ -189,7 +185,7 @@ final class CoverageManifestTest extends DemoTestCase
     }
 
     /**
-     * Every block type on a contract, recursing into tabbed_panel ("tabs") children.
+     * Every block type on a contract, recursing into tabs children.
      *
      * @param array<string, mixed> $contract
      *
