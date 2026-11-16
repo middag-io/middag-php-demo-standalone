@@ -24,8 +24,8 @@ final class CoverageReport
 
     /**
      * @param array{covered: array<string, array{kind: string, route: ?string, note: string}>, gaps: array<string, array{reason: string, filed: string}>, api: array<string, array<string, mixed>>, internal?: array<string, string>} $manifest
-     * @param array<string, array{lib: string, area: string, kind: string}>                                                                                                                         $inventory
-     * @param array<string, string>                                                                                                                                                                 $versions  library => installed version
+     * @param array<string, array{lib: string, area: string, kind: string}>                                                                                                                                                           $inventory
+     * @param array<string, string>                                                                                                                                                                                                   $versions  library => installed version
      */
     public static function render(array $manifest, array $inventory, array $versions): string
     {

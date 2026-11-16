@@ -7,7 +7,8 @@
             "email": "demo@middag.io",
             "capabilities": [
                 "helpdesk:supervise"
-            ]
+            ],
+            "logoutUrl": "/logout"
         },
         "navigation": {
             "tree": [
@@ -16,49 +17,43 @@
                     "label": "Dashboard",
                     "icon": "layout-dashboard",
                     "href": "/",
-                    "children": []
+                    "active": true
                 },
                 {
                     "key": "tickets",
                     "label": "Tickets",
                     "icon": "inbox",
-                    "href": "/tickets",
-                    "children": []
+                    "href": "/tickets"
                 },
                 {
                     "key": "agents",
                     "label": "Agents",
                     "icon": "users",
-                    "href": "/agents",
-                    "children": []
+                    "href": "/agents"
                 },
                 {
                     "key": "customers",
                     "label": "Customers",
                     "icon": "building",
-                    "href": "/customers",
-                    "children": []
+                    "href": "/customers"
                 },
                 {
                     "key": "parity",
                     "label": "Dual-ORM parity",
                     "icon": "columns",
-                    "href": "/parity",
-                    "children": []
+                    "href": "/parity"
                 },
                 {
                     "key": "coverage",
                     "label": "Coverage",
                     "icon": "shield-check",
-                    "href": "/coverage",
-                    "children": []
+                    "href": "/coverage"
                 },
                 {
                     "key": "help",
                     "label": "Help",
                     "icon": "help-circle",
-                    "href": "/help",
-                    "children": []
+                    "href": "/help"
                 }
             ],
             "activeKey": "dashboard",
@@ -162,42 +157,70 @@
                             "key": "trend",
                             "data": {
                                 "chartType": "bar",
+                                "categoryKey": "date",
                                 "series": [
                                     {
-                                        "name": "Created",
-                                        "data": [
-                                            0,
-                                            0,
-                                            0,
-                                            1,
-                                            1,
-                                            1,
-                                            0,
-                                            1,
-                                            1,
-                                            1,
-                                            1,
-                                            1,
-                                            2,
-                                            2
-                                        ]
+                                        "key": "created",
+                                        "label": "Created"
                                     }
                                 ],
-                                "categories": [
-                                    "05-20",
-                                    "05-21",
-                                    "05-22",
-                                    "05-23",
-                                    "05-24",
-                                    "05-25",
-                                    "05-26",
-                                    "05-27",
-                                    "05-28",
-                                    "05-29",
-                                    "05-30",
-                                    "05-31",
-                                    "06-01",
-                                    "06-02"
+                                "data": [
+                                    {
+                                        "date": "11-03",
+                                        "created": 0
+                                    },
+                                    {
+                                        "date": "11-04",
+                                        "created": 0
+                                    },
+                                    {
+                                        "date": "11-05",
+                                        "created": 0
+                                    },
+                                    {
+                                        "date": "11-06",
+                                        "created": 1
+                                    },
+                                    {
+                                        "date": "11-07",
+                                        "created": 1
+                                    },
+                                    {
+                                        "date": "11-08",
+                                        "created": 1
+                                    },
+                                    {
+                                        "date": "11-09",
+                                        "created": 0
+                                    },
+                                    {
+                                        "date": "11-10",
+                                        "created": 1
+                                    },
+                                    {
+                                        "date": "11-11",
+                                        "created": 1
+                                    },
+                                    {
+                                        "date": "11-12",
+                                        "created": 1
+                                    },
+                                    {
+                                        "date": "11-13",
+                                        "created": 1
+                                    },
+                                    {
+                                        "date": "11-14",
+                                        "created": 1
+                                    },
+                                    {
+                                        "date": "11-15",
+                                        "created": 2
+                                    },
+                                    {
+                                        "date": "11-16",
+                                        "created": 2
+                                    }
                                 ]
                             }
                         },
@@ -242,7 +265,7 @@
                                         "priority": "urgent",
                                         "customer": "Joao Pereira",
                                         "agent": "Unassigned",
-                                        "created": "2026-06-02"
+                                        "created": "2026-11-16"
                                     },
                                     {
                                         "id": 2,
@@ -251,7 +274,7 @@
                                         "priority": "high",
                                         "customer": "Lucia Costa",
                                         "agent": "Unassigned",
-                                        "created": "2026-06-02"
+                                        "created": "2026-11-16"
                                     },
                                     {
                                         "id": 3,
@@ -260,7 +283,7 @@
                                         "priority": "high",
                                         "customer": "Maria Silva",
                                         "agent": "Carla Dias",
-                                        "created": "2026-06-01"
+                                        "created": "2026-11-15"
                                     },
                                     {
                                         "id": 5,
@@ -269,7 +292,7 @@
                                         "priority": "urgent",
                                         "customer": "Rafael Alves",
                                         "agent": "Ana Souza",
-                                        "created": "2026-06-01"
+                                        "created": "2026-11-15"
                                     },
                                     {
                                         "id": 4,
@@ -278,7 +301,7 @@
                                         "priority": "normal",
                                         "customer": "Pedro Santos",
                                         "agent": "Diego Melo",
-                                        "created": "2026-05-31"
+                                        "created": "2026-11-14"
                                     },
                                     {
                                         "id": 6,
@@ -287,7 +310,7 @@
                                         "priority": "normal",
                                         "customer": "Sofia Nunes",
                                         "agent": "Bruno Lima",
-                                        "created": "2026-05-30"
+                                        "created": "2026-11-13"
                                     },
                                     {
                                         "id": 7,
@@ -296,13 +319,31 @@
                                         "priority": "low",
                                         "customer": "Joao Pereira",
                                         "agent": "Carla Dias",
-                                        "created": "2026-05-29"
+                                        "created": "2026-11-12"
                                     }
                                 ],
                                 "rowHref": "/tickets/{id}"
+                            },
+                            "meta": {
+                                "clientSide": true
                             }
                         }
                     ]
+                }
+            },
+            "resources": {
+                "preferences": {
+                    "theme": "system",
+                    "locale": "en"
+                },
+                "capabilities": {
+                    "helpdesk:supervise": true
+                },
+                "featureFlags": [],
+                "user": {
+                    "id": "1",
+                    "name": "Demo User",
+                    "email": "demo@middag.io"
                 }
             }
         }

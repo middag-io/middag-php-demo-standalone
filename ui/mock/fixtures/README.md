@@ -13,7 +13,7 @@ One file per route:
 | `login.json` | `/login` | auth / stack — chromeless `form_panel` |
 | `dashboard.json` | `/` | basic / dashboard — metrics + chart |
 | `tickets.json` | `/tickets` | basic / dashboard — metrics + cell showcase |
-| `ticket-detail.json` | `/tickets/1` | basic / sidebar — workflow + tabs |
+| `ticket-detail.json` | `/tickets/1` | basic / sidebar — status lifecycle + tabs |
 | `ticket-new.json` | `/tickets/new` | basic / wizard — `form_panel` |
 | `agents.json` | `/agents` | basic / dashboard — supervisor roster (full width) |
 | `agent-detail.json` | `/agents/1` | basic / dashboard — metrics + detail |

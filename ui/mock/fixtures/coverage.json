@@ -7,7 +7,8 @@
             "email": "demo@middag.io",
             "capabilities": [
                 "helpdesk:supervise"
-            ]
+            ],
+            "logoutUrl": "/logout"
         },
         "navigation": {
             "tree": [
@@ -15,50 +16,44 @@
                     "key": "dashboard",
                     "label": "Dashboard",
                     "icon": "layout-dashboard",
-                    "href": "/",
-                    "children": []
+                    "href": "/"
                 },
                 {
                     "key": "tickets",
                     "label": "Tickets",
                     "icon": "inbox",
-                    "href": "/tickets",
-                    "children": []
+                    "href": "/tickets"
                 },
                 {
                     "key": "agents",
                     "label": "Agents",
                     "icon": "users",
-                    "href": "/agents",
-                    "children": []
+                    "href": "/agents"
                 },
                 {
                     "key": "customers",
                     "label": "Customers",
                     "icon": "building",
-                    "href": "/customers",
-                    "children": []
+                    "href": "/customers"
                 },
                 {
                     "key": "parity",
                     "label": "Dual-ORM parity",
                     "icon": "columns",
-                    "href": "/parity",
-                    "children": []
+                    "href": "/parity"
                 },
                 {
                     "key": "coverage",
                     "label": "Coverage",
                     "icon": "shield-check",
                     "href": "/coverage",
-                    "children": []
+                    "active": true
                 },
                 {
                     "key": "help",
                     "label": "Help",
                     "icon": "help-circle",
-                    "href": "/help",
-                    "children": []
+                    "href": "/help"
                 }
             ],
             "activeKey": "coverage",
@@ -88,7 +83,7 @@
                             "type": "markdown_panel",
                             "key": "summary",
                             "data": {
-                                "content": "### Surface coverage\n\nExercises **42** documented free symbols; **5** catalogued gaps.\n\nCovered by kind:\n\n- **block**: 14\n- **cell**: 10\n- **engine**: 6\n- **field**: 5\n- **layout**: 4\n- **provider**: 1\n- **shell**: 2\n\nEach covered symbol below maps to the route that emits it; CoverageManifestTest boots those routes on every push and fails if a covered symbol stops emitting, a PRO symbol leaks, or a gap symbol is silently shipped."
+                                "content": "### Surface coverage\n\nExercises **42** documented free symbols; **5** catalogued gaps.\n\nCovered by kind:\n\n- **block**: 13\n- **cell**: 10\n- **engine**: 7\n- **field**: 5\n- **layout**: 4\n- **provider**: 1\n- **shell**: 2\n\nEach covered symbol below maps to the route that emits it; CoverageManifestTest boots those routes on every push and fails if a covered symbol stops emitting, a PRO symbol leaks, or a gap symbol is silently shipped."
                             }
                         },
                         {
@@ -161,7 +156,7 @@
                                         "symbol": "block:status_strip",
                                         "kind": "block",
                                         "route": "/",
-                                        "note": "SLA health + score ring"
+                                        "note": "SLA health + score ring; ticket status lifecycle on /tickets/{id}"
                                     },
                                     {
                                         "symbol": "block:dense_table",
@@ -173,7 +168,7 @@
                                         "symbol": "block:chart",
                                         "kind": "block",
                                         "route": "/",
-                                        "note": "custom registerBlock (inline SVG)"
+                                        "note": "tickets created per day (free ChartBlock)"
                                     },
                                     {
                                         "symbol": "block:detail_panel",
@@ -218,22 +213,16 @@
                                         "note": "framework form pipeline"
                                     },
                                     {
-                                        "symbol": "block:workflow_progress",
+                                        "symbol": "block:tabs",
                                         "kind": "block",
                                         "route": "/tickets/{id}",
-                                        "note": "status state machine"
-                                    },
-                                    {
-                                        "symbol": "block:tabbed_panel",
-                                        "kind": "block",
-                                        "route": "/tickets/{id}",
-                                        "note": "emitted as wire type \"tabs\"; host aliases tabs->tabbed_panel + id->key"
+                                        "note": "details, activity and SLA tabs"
                                     },
                                     {
                                         "symbol": "block:activity_timeline",
                                         "kind": "block",
                                         "route": "/tickets/{id}",
-                                        "note": "comment feed, nested in the tabbed_panel"
+                                        "note": "comment feed, nested in the tabs block"
                                     },
                                     {
                                         "symbol": "cell:status",
@@ -254,10 +243,10 @@
                                         "note": "assignee {text,sublabel}"
                                     },
                                     {
-                                        "symbol": "cell:link_group",
+                                        "symbol": "cell:tag_chips",
                                         "kind": "cell",
                                         "route": "/tickets",
-                                        "note": "tags as chips"
+                                        "note": "custom registerCellRenderer — ticket tags as labelled pill links"
                                     },
                                     {
                                         "symbol": "cell:timestamp",
@@ -344,6 +333,12 @@
                                         "note": "data-mapper QueryBuilder vs active-record ModelQuery, identical counts"
                                     },
                                     {
+                                        "symbol": "engine:persistent_bus",
+                                        "kind": "engine",
+                                        "route": "—",
+                                        "note": "Doctrine transport: a command queued by one runtime kernel is drained by another on the same database (RuntimeKernelTest)"
+                                    },
+                                    {
                                         "symbol": "engine:entity_source",
                                         "kind": "engine",
                                         "route": "/tickets/new",
@@ -356,10 +351,10 @@
                                         "note": "helpdesk:supervise gates the supervisor columns"
                                     },
                                     {
-                                        "symbol": "engine:register_block",
+                                        "symbol": "engine:register_host",
                                         "kind": "engine",
-                                        "route": "/",
-                                        "note": "host registerBlock(\"chart\") + tabs alias"
+                                        "route": "/login",
+                                        "note": "host registerShell(\"auth\") replaces the package auth shell; host registerCellRenderer(\"sparkline\") and (\"tag_chips\") add cells"
                                     },
                                     {
                                         "symbol": "condition:required_when_in",
@@ -368,6 +363,9 @@
                                         "note": "assignee required_when priority IN [high,urgent]"
                                     }
                                 ]
+                            },
+                            "meta": {
+                                "clientSide": true
                             }
                         },
                         {
@@ -391,8 +389,13 @@
                                 "rows": [
                                     {
                                         "symbol": "block:pro",
-                                        "reason": "PRO blocks (chart_panel, kanban_board, flow_editor, form_builder, condition_tree, sentence_builder) + the product shell ship in @middag-io/react-pro, out of the free OSS surface",
+                                        "reason": "PRO blocks (chart_panel, workflow_progress, kanban_board, flow_editor, form_builder, condition_tree, sentence_builder) + the product shell ship in @middag-io/react-pro, out of the free OSS surface",
                                         "filed": "n/a (by design)"
+                                    },
+                                    {
+                                        "symbol": "cell:link_group",
+                                        "reason": "the free link_group cell renders icon-only ghost-button links (the label is only a tooltip), not readable text chips; the help-desk domain has no natural icon-link-group column, and ticket tags read far better as the custom tag_chips cell",
+                                        "filed": "n/a (custom tag_chips cell preferred over a contrived icon-link column)"
                                     },
                                     {
                                         "symbol": "field:duration",
@@ -408,16 +411,29 @@
                                         "symbol": "field:currency_rating_slug_color_phone_document",
                                         "reason": "React-renderable but absent from the PHP FieldType enum entirely",
                                         "filed": "framework: field types"
-                                    },
-                                    {
-                                        "symbol": "transport:persistent_bus",
-                                        "reason": "only InMemoryTransport ships; bus-routed async cannot cross processes (the demo uses the in-memory worker, not a cross-process outbox)",
-                                        "filed": "framework: persistent transport"
                                     }
                                 ]
+                            },
+                            "meta": {
+                                "clientSide": true
                             }
                         }
                     ]
+                }
+            },
+            "resources": {
+                "preferences": {
+                    "theme": "system",
+                    "locale": "en"
+                },
+                "capabilities": {
+                    "helpdesk:supervise": true
+                },
+                "featureFlags": [],
+                "user": {
+                    "id": "1",
+                    "name": "Demo User",
+                    "email": "demo@middag.io"
                 }
             }
         }

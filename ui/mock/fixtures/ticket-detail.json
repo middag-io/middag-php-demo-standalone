@@ -7,7 +7,8 @@
             "email": "demo@middag.io",
             "capabilities": [
                 "helpdesk:supervise"
-            ]
+            ],
+            "logoutUrl": "/logout"
         },
         "navigation": {
             "tree": [
@@ -15,50 +16,44 @@
                     "key": "dashboard",
                     "label": "Dashboard",
                     "icon": "layout-dashboard",
-                    "href": "/",
-                    "children": []
+                    "href": "/"
                 },
                 {
                     "key": "tickets",
                     "label": "Tickets",
                     "icon": "inbox",
                     "href": "/tickets",
-                    "children": []
+                    "active": true
                 },
                 {
                     "key": "agents",
                     "label": "Agents",
                     "icon": "users",
-                    "href": "/agents",
-                    "children": []
+                    "href": "/agents"
                 },
                 {
                     "key": "customers",
                     "label": "Customers",
                     "icon": "building",
-                    "href": "/customers",
-                    "children": []
+                    "href": "/customers"
                 },
                 {
                     "key": "parity",
                     "label": "Dual-ORM parity",
                     "icon": "columns",
-                    "href": "/parity",
-                    "children": []
+                    "href": "/parity"
                 },
                 {
                     "key": "coverage",
                     "label": "Coverage",
                     "icon": "shield-check",
-                    "href": "/coverage",
-                    "children": []
+                    "href": "/coverage"
                 },
                 {
                     "key": "help",
                     "label": "Help",
                     "icon": "help-circle",
-                    "href": "/help",
-                    "children": []
+                    "href": "/help"
                 }
             ],
             "activeKey": "tickets",
@@ -78,7 +73,16 @@
             "page": {
                 "key": "demo.tickets.show",
                 "title": "#1 · Cannot log in after password reset",
-                "subtitle": "Ticket detail — workflow state + tabbed detail/activity/SLA",
+                "subtitle": "Ticket detail — status lifecycle + tabbed detail/activity/SLA",
+                "breadcrumbs": [
+                    {
+                        "label": "Tickets",
+                        "href": "/tickets"
+                    },
+                    {
+                        "label": "#1"
+                    }
+                ],
                 "actions": [
                     {
                         "id": "edit",
@@ -89,6 +93,23 @@
                         },
                         "intent": "primary",
                         "icon": "pencil"
+                    },
+                    {
+                        "id": "close",
+                        "label": "Close ticket",
+                        "target": {
+                            "kind": "request",
+                            "endpoint": "/tickets/1/close",
+                            "method": "post"
+                        },
+                        "intent": "danger",
+                        "icon": "circle-check",
+                        "confirmation": {
+                            "title": "Close this ticket?",
+                            "message": "The ticket moves to closed. You can reopen it from the edit form.",
+                            "variant": "default",
+                            "confirmLabel": "Close ticket"
+                        }
                     },
                     {
                         "id": "back",
@@ -107,32 +128,41 @@
                 "regions": {
                     "main": [
                         {
-                            "type": "workflow_progress",
+                            "type": "status_strip",
                             "key": "state",
                             "data": {
-                                "states": [
+                                "items": [
                                     {
                                         "key": "new",
-                                        "label": "New"
+                                        "label": "New",
+                                        "value": "Current",
+                                        "appearance": "info"
                                     },
                                     {
                                         "key": "open",
-                                        "label": "Open"
+                                        "label": "Open",
+                                        "value": "Pending",
+                                        "appearance": "neutral"
                                     },
                                     {
                                         "key": "pending",
-                                        "label": "Pending"
+                                        "label": "Pending",
+                                        "value": "Pending",
+                                        "appearance": "neutral"
                                     },
                                     {
                                         "key": "resolved",
-                                        "label": "Resolved"
+                                        "label": "Resolved",
+                                        "value": "Pending",
+                                        "appearance": "neutral"
                                     },
                                     {
                                         "key": "closed",
-                                        "label": "Closed"
+                                        "label": "Closed",
+                                        "value": "Pending",
+                                        "appearance": "neutral"
                                     }
-                                ],
-                                "currentState": "new"
+                                ]
                             }
                         },
                         {
@@ -153,6 +183,11 @@
                                                             "id": "summary",
                                                             "title": "Ticket details",
                                                             "fields": [
+                                                                {
+                                                                    "key": "ref",
+                                                                    "label": "Reference",
+                                                                    "value": "69a5bbceda07"
+                                                                },
                                                                 {
                                                                     "key": "subject",
                                                                     "label": "Subject",
@@ -186,12 +221,17 @@
                                                                 {
                                                                     "key": "tags",
                                                                     "label": "Tags",
-                                                                    "value": "auth,login"
+                                                                    "value": "auth, login"
+                                                                },
+                                                                {
+                                                                    "key": "opened_by",
+                                                                    "label": "Opened by",
+                                                                    "value": "Joao Pereira"
                                                                 },
                                                                 {
                                                                     "key": "created",
                                                                     "label": "Created",
-                                                                    "value": "2026-06-02 23:56"
+                                                                    "value": "2026-11-16 14:53"
                                                                 },
                                                                 {
                                                                     "key": "resolved",
@@ -223,12 +263,180 @@
                                                             "label": "Comments",
                                                             "entries": [
                                                                 {
+                                                                    "id": "21",
+                                                                    "actor": "Sofia Nunes",
+                                                                    "action": "Opening this ticket. Refund processed for duplicate charge.",
+                                                                    "icon": "message-circle",
+                                                                    "color": "info",
+                                                                    "timestamp": 1793937262
+                                                                },
+                                                                {
+                                                                    "id": "22",
+                                                                    "actor": "Diego Melo",
+                                                                    "action": "🔒 Picked this up — investigating now.",
+                                                                    "icon": "lock",
+                                                                    "color": "warning",
+                                                                    "timestamp": 1793940802
+                                                                },
+                                                                {
+                                                                    "id": "19",
+                                                                    "actor": "Rafael Alves",
+                                                                    "action": "Opening this ticket. Update billing address.",
+                                                                    "icon": "message-circle",
+                                                                    "color": "info",
+                                                                    "timestamp": 1794027262
+                                                                },
+                                                                {
+                                                                    "id": "20",
+                                                                    "actor": "Carla Dias",
+                                                                    "action": "🔒 Picked this up — investigating now.",
+                                                                    "icon": "lock",
+                                                                    "color": "warning",
+                                                                    "timestamp": 1794030802
+                                                                },
+                                                                {
+                                                                    "id": "17",
+                                                                    "actor": "Pedro Santos",
+                                                                    "action": "Opening this ticket. How to invite a teammate.",
+                                                                    "icon": "message-circle",
+                                                                    "color": "info",
+                                                                    "timestamp": 1794117262
+                                                                },
+                                                                {
+                                                                    "id": "18",
+                                                                    "actor": "Bruno Lima",
+                                                                    "action": "🔒 Picked this up — investigating now.",
+                                                                    "icon": "lock",
+                                                                    "color": "warning",
+                                                                    "timestamp": 1794120802
+                                                                },
+                                                                {
+                                                                    "id": "15",
+                                                                    "actor": "Maria Silva",
+                                                                    "action": "Opening this ticket. CSV upload encoding fixed.",
+                                                                    "icon": "message-circle",
+                                                                    "color": "info",
+                                                                    "timestamp": 1794293662
+                                                                },
+                                                                {
+                                                                    "id": "16",
+                                                                    "actor": "Ana Souza",
+                                                                    "action": "🔒 Picked this up — investigating now.",
+                                                                    "icon": "lock",
+                                                                    "color": "warning",
+                                                                    "timestamp": 1794297202
+                                                                },
+                                                                {
+                                                                    "id": "13",
+                                                                    "actor": "Lucia Costa",
+                                                                    "action": "Opening this ticket. Typo on settings page.",
+                                                                    "icon": "message-circle",
+                                                                    "color": "info",
+                                                                    "timestamp": 1794383662
+                                                                },
+                                                                {
+                                                                    "id": "14",
+                                                                    "actor": "Diego Melo",
+                                                                    "action": "🔒 Picked this up — investigating now.",
+                                                                    "icon": "lock",
+                                                                    "color": "warning",
+                                                                    "timestamp": 1794387202
+                                                                },
+                                                                {
+                                                                    "id": "11",
+                                                                    "actor": "Joao Pereira",
+                                                                    "action": "Opening this ticket. Clarify pricing tiers.",
+                                                                    "icon": "message-circle",
+                                                                    "color": "info",
+                                                                    "timestamp": 1794473662
+                                                                },
+                                                                {
+                                                                    "id": "12",
+                                                                    "actor": "Carla Dias",
+                                                                    "action": "🔒 Picked this up — investigating now.",
+                                                                    "icon": "lock",
+                                                                    "color": "warning",
+                                                                    "timestamp": 1794477202
+                                                                },
+                                                                {
+                                                                    "id": "9",
+                                                                    "actor": "Sofia Nunes",
+                                                                    "action": "Opening this ticket. Awaiting customer logs for sync issue.",
+                                                                    "icon": "message-circle",
+                                                                    "color": "info",
+                                                                    "timestamp": 1794563662
+                                                                },
+                                                                {
+                                                                    "id": "10",
+                                                                    "actor": "Bruno Lima",
+                                                                    "action": "🔒 Picked this up — investigating now.",
+                                                                    "icon": "lock",
+                                                                    "color": "warning",
+                                                                    "timestamp": 1794567202
+                                                                },
+                                                                {
+                                                                    "id": "5",
+                                                                    "actor": "Pedro Santos",
+                                                                    "action": "Opening this ticket. Feature request: dark mode.",
+                                                                    "icon": "message-circle",
+                                                                    "color": "info",
+                                                                    "timestamp": 1794657262
+                                                                },
+                                                                {
+                                                                    "id": "6",
+                                                                    "actor": "Diego Melo",
+                                                                    "action": "🔒 Picked this up — investigating now.",
+                                                                    "icon": "lock",
+                                                                    "color": "warning",
+                                                                    "timestamp": 1794660802
+                                                                },
+                                                                {
+                                                                    "id": "7",
+                                                                    "actor": "Rafael Alves",
+                                                                    "action": "Opening this ticket. Production dashboard not loading.",
+                                                                    "icon": "message-circle",
+                                                                    "color": "info",
+                                                                    "timestamp": 1794740062
+                                                                },
+                                                                {
+                                                                    "id": "8",
+                                                                    "actor": "Ana Souza",
+                                                                    "action": "🔒 Picked this up — investigating now.",
+                                                                    "icon": "lock",
+                                                                    "color": "warning",
+                                                                    "timestamp": 1794743602
+                                                                },
+                                                                {
+                                                                    "id": "3",
+                                                                    "actor": "Maria Silva",
+                                                                    "action": "Opening this ticket. API returns 500 on bulk import.",
+                                                                    "icon": "message-circle",
+                                                                    "color": "info",
+                                                                    "timestamp": 1794747262
+                                                                },
+                                                                {
+                                                                    "id": "4",
+                                                                    "actor": "Carla Dias",
+                                                                    "action": "🔒 Picked this up — investigating now.",
+                                                                    "icon": "lock",
+                                                                    "color": "warning",
+                                                                    "timestamp": 1794750802
+                                                                },
+                                                                {
+                                                                    "id": "2",
+                                                                    "actor": "Lucia Costa",
+                                                                    "action": "Opening this ticket. Invoice PDF export is blank.",
+                                                                    "icon": "message-circle",
+                                                                    "color": "info",
+                                                                    "timestamp": 1794837262
+                                                                },
+                                                                {
                                                                     "id": "1",
                                                                     "actor": "Joao Pereira",
                                                                     "action": "Opening this ticket. Cannot log in after password reset.",
                                                                     "icon": "message-circle",
                                                                     "color": "info",
-                                                                    "timestamp": 1780444627
+                                                                    "timestamp": 1794840862
                                                                 }
                                                             ]
                                                         }
@@ -246,7 +454,7 @@
                                                 "type": "markdown_panel",
                                                 "key": "sla",
                                                 "data": {
-                                                    "content": "### Urgent SLA\n\n- **Priority tier:** urgent\n- **Response target:** 15 min\n- **Resolution target:** 240 min\n- **Due:** 2026-06-03 23:56\n- **Resolved:** not yet"
+                                                    "content": "### Urgent SLA\n\n- **Priority tier:** urgent\n- **Response target:** 15 min\n- **Resolution target:** 240 min\n- **Due:** 2026-11-17 14:53\n- **Resolved:** not yet"
                                                 }
                                             }
                                         ]
@@ -260,7 +468,7 @@
                             "type": "metric_card",
                             "key": "comments",
                             "data": {
-                                "value": 1,
+                                "value": 22,
                                 "label": "Comments",
                                 "icon": "messages-square"
                             }
@@ -275,6 +483,21 @@
                             }
                         }
                     ]
+                }
+            },
+            "resources": {
+                "preferences": {
+                    "theme": "system",
+                    "locale": "en"
+                },
+                "capabilities": {
+                    "helpdesk:supervise": true
+                },
+                "featureFlags": [],
+                "user": {
+                    "id": "1",
+                    "name": "Demo User",
+                    "email": "demo@middag.io"
                 }
             }
         }

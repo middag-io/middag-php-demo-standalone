@@ -7,7 +7,8 @@
             "email": "demo@middag.io",
             "capabilities": [
                 "helpdesk:supervise"
-            ]
+            ],
+            "logoutUrl": "/logout"
         },
         "navigation": {
             "tree": [
@@ -15,50 +16,44 @@
                     "key": "dashboard",
                     "label": "Dashboard",
                     "icon": "layout-dashboard",
-                    "href": "/",
-                    "children": []
+                    "href": "/"
                 },
                 {
                     "key": "tickets",
                     "label": "Tickets",
                     "icon": "inbox",
-                    "href": "/tickets",
-                    "children": []
+                    "href": "/tickets"
                 },
                 {
                     "key": "agents",
                     "label": "Agents",
                     "icon": "users",
                     "href": "/agents",
-                    "children": []
+                    "active": true
                 },
                 {
                     "key": "customers",
                     "label": "Customers",
                     "icon": "building",
-                    "href": "/customers",
-                    "children": []
+                    "href": "/customers"
                 },
                 {
                     "key": "parity",
                     "label": "Dual-ORM parity",
                     "icon": "columns",
-                    "href": "/parity",
-                    "children": []
+                    "href": "/parity"
                 },
                 {
                     "key": "coverage",
                     "label": "Coverage",
                     "icon": "shield-check",
-                    "href": "/coverage",
-                    "children": []
+                    "href": "/coverage"
                 },
                 {
                     "key": "help",
                     "label": "Help",
                     "icon": "help-circle",
-                    "href": "/help",
-                    "children": []
+                    "href": "/help"
                 }
             ],
             "activeKey": "agents",
@@ -111,16 +106,25 @@
                                 "columns": [
                                     {
                                         "key": "name",
-                                        "label": "Name"
+                                        "label": "Name",
+                                        "sortable": true,
+                                        "searchable": false,
+                                        "format": "text"
                                     },
                                     {
                                         "key": "role",
                                         "label": "Role",
+                                        "sortable": false,
+                                        "searchable": false,
+                                        "format": "text",
                                         "variant": "badge"
                                     },
                                     {
                                         "key": "active",
                                         "label": "Active",
+                                        "sortable": false,
+                                        "searchable": false,
+                                        "format": "text",
                                         "variant": "boolean"
                                     },
                                     {
@@ -132,11 +136,17 @@
                                     {
                                         "key": "availability",
                                         "label": "Availability",
+                                        "sortable": false,
+                                        "searchable": false,
+                                        "format": "text",
                                         "variant": "html"
                                     },
                                     {
                                         "key": "workload",
                                         "label": "Open load",
+                                        "sortable": false,
+                                        "searchable": false,
+                                        "format": "text",
                                         "variant": "progress"
                                     },
                                     {
@@ -220,9 +230,27 @@
                                     }
                                 ],
                                 "rowHref": "/agents/{id}"
+                            },
+                            "meta": {
+                                "clientSide": true
                             }
                         }
                     ]
+                }
+            },
+            "resources": {
+                "preferences": {
+                    "theme": "system",
+                    "locale": "en"
+                },
+                "capabilities": {
+                    "helpdesk:supervise": true
+                },
+                "featureFlags": [],
+                "user": {
+                    "id": "1",
+                    "name": "Demo User",
+                    "email": "demo@middag.io"
                 }
             }
         }
