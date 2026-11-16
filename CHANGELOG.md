@@ -14,7 +14,6 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 * **auth:** seed an agent login without the supervisor capability ([dc599e7](https://github.com/middag-io/middag-php-demo-standalone/commit/dc599e713d77e60d2fca832109ebfcceeaf74f6f))
 * build the agents index page with the ui CrudBuilder ([f742656](https://github.com/middag-io/middag-php-demo-standalone/commit/f7426565a8e69d3a8153ddc574547376955758ab))
-* demo coverage batch (CrudBuilder agents, attachments, capabilities, current releases) ([bb22ef0](https://github.com/middag-io/middag-php-demo-standalone/commit/bb22ef050b5caf95fead6f3e0b5154e63cdc8754))
 * **form:** lay out the ticket form in sections and groups ([7901ff5](https://github.com/middag-io/middag-php-demo-standalone/commit/7901ff555800413a06d213d6aa57df7e894068c2))
 * **mail:** read the captured outbox over a fault-mode route ([4a86a85](https://github.com/middag-io/middag-php-demo-standalone/commit/4a86a85a6aa8d2f26b5cf08c77e450a76944f096))
 * **tickets:** upload, attach and download ticket attachments ([39518fb](https://github.com/middag-io/middag-php-demo-standalone/commit/39518fbdcb5aee8bc9d53053274c285f431463d4))
@@ -35,7 +34,6 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Documentation
 
-* align DOCKER.md with the image ([d1ca1a8](https://github.com/middag-io/middag-php-demo-standalone/commit/d1ca1a854ec454835eaad57f182b0720af58b06b))
 * align DOCKER.md with the image ([103f356](https://github.com/middag-io/middag-php-demo-standalone/commit/103f35618b48966da8e6ee5667e1291d2d3884b1))
 * **coverage:** record CrudBuilder as covered by the agents index ([8e2ff89](https://github.com/middag-io/middag-php-demo-standalone/commit/8e2ff8975d60d625fade3db80d55b454fe05612a))
 * **coverage:** record the ui 1.9.0 poll API and the new minimums ([c690ad1](https://github.com/middag-io/middag-php-demo-standalone/commit/c690ad154d6530593c19753d9211777fe776bfc6))
