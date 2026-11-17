@@ -1,0 +1,20 @@
+name: Release date
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+# release-please walks main newest committer date first and stops at the
+# commit of the last release, so a commit dated before that release is never
+# read: it is missing from the changelog and from the next version. This job
+# fails such a pull request and prints how to recreate the branch with
+# cherry-pick (never rebase or force-push). A thin caller of the released
+# github-release-date-check component of middag-io/actions, called by its
+# major tag.
+permissions: {}
+
+jobs:
+  github-release-date-check:
+    permissions:
+      contents: read
+    uses: middag-io/actions/.github/workflows/github-release-date-check.yml@github-release-date-check-v1
