@@ -7,12 +7,31 @@ on:
 permissions: {}
 
 jobs:
+  # The job name keeps the context "php-version-family-check / check", the
+  # required status check of the "PHP library family window" ruleset.
   php-version-family-check:
+    name: php-version-family-check / check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     permissions:
       contents: read
-    uses: middag-io/actions/.github/workflows/php-version-family-check.yml@php-version-family-check-v1
-    with:
-      # The family window is the organization variable PHP_LIBS_OPEN_RELEASE
-      # (empty = closed, X.Y = family MINOR window, X.0 = family MAJOR window).
-      window: ${{ vars.PHP_LIBS_OPEN_RELEASE }}
-      family-from: 2.0.0
+    steps:
+      - name: Check out the pull request with its history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check the pull request
+        uses: middag-io/actions/php-version-family-check@php-version-family-check-v1
+        with:
+          # The family window is the organization variable PHP_LIBS_OPEN_RELEASE
+          # (empty = closed, X.Y = family MINOR window, X.0 = family MAJOR window).
+          window: ${{ vars.PHP_LIBS_OPEN_RELEASE }}
+          family-from: 2.0.0
+          title: ${{ github.event.pull_request.title }}
+          base-sha: ${{ github.event.pull_request.base.sha }}
+          head-sha: ${{ github.event.pull_request.head.sha }}
+          base-ref: ${{ github.event.pull_request.base.ref }}
+          window-branch: ${{ github.event.repository.default_branch }}
