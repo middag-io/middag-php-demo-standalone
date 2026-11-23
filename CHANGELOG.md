@@ -7,6 +7,21 @@ release tag — manual entries below the unreleased section will be overwritten.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.6](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.5.5...v0.5.6) (2026-11-23)
+
+
+### Refactoring
+
+* feed form panels from ui form schema nodes ([c4ff5ad](https://github.com/middag-io/middag-php-demo-standalone/commit/c4ff5ad3f156c2b3aa119966c7c87f9fc5ad3a22))
+* pass framework form nodes straight to formPanel ([1c1ea6f](https://github.com/middag-io/middag-php-demo-standalone/commit/1c1ea6faa4810cd41ce7c4cfaccc8fb453016ab3))
+
+
+### Documentation
+
+* align SECURITY.md with the uniform security policy ([ccbb387](https://github.com/middag-io/middag-php-demo-standalone/commit/ccbb38715d61185883552b7963a3c19823ff8189))
+* apply the version-family support policy ([f1c19ad](https://github.com/middag-io/middag-php-demo-standalone/commit/f1c19ad42abe50b790f1d739405ce608f8623e2a))
+* regenerate COVERAGE.md for framework 1.21 and ui 1.11 ([42884f8](https://github.com/middag-io/middag-php-demo-standalone/commit/42884f8b4dec764defb8b0cbfe349ebef0c40a72))
+
 ## [0.5.5](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.5.4...v0.5.5) (2026-11-22)
 
 
