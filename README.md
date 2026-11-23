@@ -33,13 +33,13 @@ Hub page, with what the demo shows and how to run it:
 The PHP, Symfony and package ranges are the ones `composer.json` and `ui/package.json`
 declare.
 
-| Item | Supported |
+| Item | Requirement |
 |---|---|
 | PHP | `^8.3`: 8.3, 8.4 and 8.5, with `pdo` and `pdo_sqlite`. `config.platform.php` is `8.3.0`, so `composer.lock` resolves at the floor |
 | Symfony | `^7.4 \|\| ^8.1` for every Symfony component the demo requires. The lock resolves 7.4; a CI job without the platform pin proves 8.x |
-| `middag-io/framework` | `^1.20.4` |
-| `middag-io/ui` | `^1.10.1` |
-| `@middag-io/react` (renderer, `ui/`) | `^0.45.4` |
+| `middag-io/framework` | `^1.21` |
+| `middag-io/ui` | `^1.11` |
+| `@middag-io/react` (renderer, `ui/`) | `^0.46.1` |
 | Host | none: no Moodle or WordPress. The adapters `middag-io/moodle` and `middag-io/wordpress` are not part of the demo |
 | Database | SQLite, in a file or in memory |
 | Docker image | PHP 8.4 (see [`DOCKER.md`](DOCKER.md)) |
@@ -125,7 +125,9 @@ three host extensions: an `auth` shell that replaces the one the package ships, 
 
 ## Versioning
 
-The demo is a member of the `middag-php-*` version family:
+The demo is a member of the open-source `middag-php-*` version family, which
+shares only the MAJOR. It is an example application: only its latest release is
+supported. See
 [Versioning and compatibility](https://docs.middag.dev/libraries/reference/versioning-and-compatibility).
 The release version is also the Docker image tag.
 
