@@ -80,10 +80,12 @@ jobs:
         with:
           images: middagtec/middag-demo-standalone
           # tag-name is "v0.3.0"; semver pattern strips the leading v -> 0.3.0,
-          # plus the moving "latest" tag for the newest release.
+          # plus the moving "latest" tag for the newest stable release. A
+          # prerelease tag (v2.0.0-rc.1) has a "-" and pushes only its version
+          # tag, so "latest" never moves to a release candidate.
           tags: |
             type=semver,pattern={{version}},value=${{ needs.release-please.outputs.tag-name }}
-            type=raw,value=latest
+            type=raw,value=latest,enable=${{ !contains(needs.release-please.outputs.tag-name, '-') }}
 
       - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
