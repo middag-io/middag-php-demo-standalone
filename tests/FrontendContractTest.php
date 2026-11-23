@@ -60,7 +60,7 @@ final class FrontendContractTest extends DemoTestCase
             self::assertArrayHasKey($key, $payload['props'], sprintf("SharedProp '%s' must be present", $key));
         }
 
-        self::assertArrayNotHasKey('version', $payload['props'], 'the asset version rides Inertia\'s own envelope key, not a shared prop');
+        self::assertArrayNotHasKey('version', $payload['props'], "the asset version rides Inertia's own envelope key, not a shared prop");
         self::assertSame('light', $payload['props']['theme']['appearance']);
     }
 
