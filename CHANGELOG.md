@@ -22,6 +22,10 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 * apply the version-family support policy ([f1c19ad](https://github.com/middag-io/middag-php-demo-standalone/commit/f1c19ad42abe50b790f1d739405ce608f8623e2a))
 * regenerate COVERAGE.md for framework 1.21 and ui 1.11 ([42884f8](https://github.com/middag-io/middag-php-demo-standalone/commit/42884f8b4dec764defb8b0cbfe349ebef0c40a72))
 
+### Consumer impact
+
+No consumer impact: the demo is a harness. It now requires `middag-io/framework` ^1.21 and `middag-io/ui` ^1.11 and feeds `formPanel()` with the framework form nodes directly.
+
 ## [0.5.5](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.5.4...v0.5.5) (2026-11-22)
 
 
