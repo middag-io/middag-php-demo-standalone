@@ -35,7 +35,6 @@ use Middag\Ui\Form\FormSectionNode;
 use Middag\Ui\Page\PageBuilder;
 use Middag\Ui\Region\RegionBuilder;
 use Middag\Ui\Shared\Enum\ColumnVariant;
-use Middag\Ui\Shared\Enum\FormComponent;
 use Middag\Ui\Shared\Enum\HttpMethod;
 use Middag\Ui\Shared\Enum\RenderTarget;
 use Middag\Ui\Table\Column;
@@ -199,7 +198,9 @@ final class AgentController extends AbstractController implements CapabilityRequ
 
         $fields = [];
         foreach ($this->renderers->get(RenderTarget::Props)->render($this->panelForm)->props['schema'] ?? [] as $node) {
-            $fields[(string) $node['key']] = new FormFieldNode((string) $node['key'], FormComponent::from((string) $node['component']), (array) ($node['props'] ?? []));
+            if ($node instanceof FormFieldNode) {
+                $fields[$node->key] = $node;
+            }
         }
 
         return new JsonResponse([

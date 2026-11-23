@@ -87,7 +87,8 @@ final class FormTest extends DemoTestCase
 
         // The renderer serializes them as section and group nodes, labels included.
         $props = $this->container->get(RendererRegistry::class)->get(RenderTarget::Props)->render($this->form())->props;
-        $sections = $props['schema'];
+        // Rendered nodes are value objects; assert on their wire form.
+        $sections = json_decode(json_encode($props['schema'], JSON_THROW_ON_ERROR), true, flags: JSON_THROW_ON_ERROR);
         self::assertSame(['section', 'section'], array_column($sections, 'kind'));
         self::assertSame(['Ticket', 'Schedule'], array_column($sections, 'label'));
         self::assertSame(['group', 'group', 'group'], array_column($sections[0]['children'], 'kind'));

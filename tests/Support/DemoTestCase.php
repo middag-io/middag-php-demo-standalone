@@ -118,6 +118,9 @@ abstract class DemoTestCase extends TestCase
      */
     protected static function fieldNodes(array $schema): array
     {
+        // Rendered schemas hold value objects; walk their wire (JSON) form.
+        /** @var array<int, mixed> $schema */
+        $schema = json_decode(json_encode($schema, JSON_THROW_ON_ERROR), true, flags: JSON_THROW_ON_ERROR);
         $fields = [];
         foreach ($schema as $node) {
             if (!is_array($node)) {
