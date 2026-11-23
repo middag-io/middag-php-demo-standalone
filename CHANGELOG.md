@@ -12,8 +12,12 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Documentation
 
-* describe internal references without naming private repositories ([dc19757](https://github.com/middag-io/middag-php-demo-standalone/commit/dc19757ab5919bb0ef05c5a13cd42c4ed96c27db))
 * describe internal references without naming private repositories ([3e98e8b](https://github.com/middag-io/middag-php-demo-standalone/commit/3e98e8b81d06b7048922e95ac1e4be71e476399c))
+
+
+### Consumer impact
+
+No consumer impact: documentation-only release.
 
 ## [0.5.4](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.5.3...v0.5.4) (2026-11-16)
 
