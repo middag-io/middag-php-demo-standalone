@@ -16,7 +16,7 @@ Generated from `middag-io/framework` v1.22.0 and `middag-io/ui` v1.13.0, as inst
 | Library | `@api` | covered | host | gap |
 |---|---|---|---|---|
 | `middag-io/framework` | 225 | 201 | 14 | 10 |
-| `middag-io/ui` | 98 | 83 | 0 | 15 |
+| `middag-io/ui` | 99 | 87 | 0 | 12 |
 
 ## `middag-io/framework`
 
@@ -364,7 +364,7 @@ Generated from `middag-io/framework` v1.22.0 and `middag-io/ui` v1.13.0, as inst
 |---|---|---|---|---|
 | `Envelope\Contract\ContractEnvelopeInterface` | covered | `src/Shared/Concerns/RendersPages.php` | `UiContractTest::pageEndpointEmitsFullPageContract` | — |
 
-### Form — 22 `@api`: 18 covered, 0 host, 4 gap
+### Form — 24 `@api`: 22 covered, 0 host, 2 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
@@ -374,11 +374,13 @@ Generated from `middag-io/framework` v1.22.0 and `middag-io/ui` v1.13.0, as inst
 | `Form\Contract\FormSchemaNodeInterface` | covered | Reached through FormHeaderNode, which the login form_panel serializes. | `UiSeamsTest::loginFormStartsWithAHeaderNode` | — |
 | `Form\FieldConstraints` | covered | Reached through AbstractField::toDefinition(). | `FormTest::rendersToInertiaProps` | — |
 | `Form\FieldDefinition` | covered | Reached through AbstractField::toDefinition(). | `FormTest::rendersToInertiaProps` | — |
-| `Form\FieldError` | gap | The shapes disagree: the framework flashes each field error as a structured object (message, key, domain, params), while the ui schema types a field error as a string or a list of strings. | — | — |
+| `Form\FieldError` | covered | Schema-only: the flashed field errors are validated against FormErrors, whose every value is a FieldError, here a FieldMessage. | `WireSchemaTest::flashedFieldErrorsMatchTheSharedPropsSchema`<br>`ValidationI18nContractTest::validationErrorsCarryStructuredI18nShape` | — |
+| `Form\FieldMessage` | covered | The framework emits every translated field error as a FieldMessage, in the 422 body and in the flashed errors SharedProp. | `WireSchemaTest::flashedFieldErrorsMatchTheSharedPropsSchema`<br>`ValidationI18nContractTest::validationErrorsCarryStructuredI18nShape` | — |
 | `Form\FieldPropsBase` | covered | Schema-only: the props of every emitted form node are validated against it. | `WireSchemaTest::formPanelNodesMatchFormSchemaNode` | — |
 | `Form\FileValue` | covered | `src/Http/AttachmentController.php` | `AttachmentTest::uploadStoresAPendingFileAndTheFormCarriesItsToken`<br>`AttachmentTest::theTokenSentBackAttachesTheFileAndItDownloads`<br>`WireSchemaTest::attachmentFileValueMatchesTheSchema` | `business/attachments.spec.ts › uploads a file, attaches it by its upload token and downloads it` |
 | `Form\FormCondition` | covered | The assignee required_when condition of the ticket form is validated against the definition. | `WireSchemaTest::formPanelNodesMatchFormSchemaNode`<br>`FormTest::conditionalRequiredWhenPriorityHighOrUrgent` | — |
-| `Form\FormErrors` | gap | The shapes disagree: the framework flashes each field error as a structured object (message, key, domain, params), while the ui schema types a field error as a string or a list of strings. | — | — |
+| `Form\FormErrorBags` | covered | The framework shares the flashed errors as FormErrorBags when the request named an X-Inertia-Error-Bag. | `WireSchemaTest::flashedErrorsInANamedBagMatchTheFormErrorBagsSchema` | — |
+| `Form\FormErrors` | covered | The framework shares the flashed field errors of an invalid ticket create as FormErrors in the errors SharedProp. | `WireSchemaTest::flashedFieldErrorsMatchTheSharedPropsSchema`<br>`FrontendContractTest::invalidCreateRedirectsBackWithFlashedErrors` | — |
 | `Form\FormFieldDocumentMask` | gap | A national document mask has no place in the help-desk domain. | — | — |
 | `Form\FormFieldNode` | covered | The InertiaRenderer emits field nodes in this shape; every node is validated against the definition. | `WireSchemaTest::formPanelNodesMatchFormSchemaNode` | — |
 | `Form\FormFieldValidation` | covered | Schema-only: the validation props of the ticket form nodes are validated against it. | `WireSchemaTest::formPanelNodesMatchFormSchemaNode` | — |
@@ -410,7 +412,7 @@ Generated from `middag-io/framework` v1.22.0 and `middag-io/ui` v1.13.0, as inst
 | `Navigation\NavigationNode` | covered | `src/Navigation/DemoNavigationRegistry.php` | `UiSeamsTest::registryNestsGatesAndBadgesNodes` | — |
 | `Navigation\NavigationTree` | covered | `src/Navigation/DemoNavigationRegistry.php` | `UiSeamsTest::navigationComesFromTheRegistry`<br>`UiSeamsTest::registryNestsGatesAndBadgesNodes` | — |
 
-### Page — 13 `@api`: 9 covered, 0 host, 4 gap
+### Page — 12 `@api`: 9 covered, 0 host, 3 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
@@ -425,7 +427,6 @@ Generated from `middag-io/framework` v1.22.0 and `middag-io/ui` v1.13.0, as inst
 | `Page\PageContract` | covered | Reached through PageBuilder::build(). | `UiContractTest::pageEndpointEmitsFullPageContract` | — |
 | `Page\PageMeta` | covered | Reached through PageBuilder::build(). | `UiContractTest::pageEndpointEmitsFullPageContract` | — |
 | `Page\PageResources` | gap | The demo pages carry no resources: the session identity and capabilities ride the shared auth prop. | — | — |
-| `Page\ResourcePatch` | gap | No consumer in the free renderer. | — | — |
 | `Page\Tab` | covered | `src/Http/TicketController.php` | `HttpTest::showExistingIdSucceedsWhenAuthenticated`<br>`KernelContainerTest::serviceProviderAutoDiscoveredDemoServices` | — |
 
 ### Region — 5 `@api`: 3 covered, 0 host, 2 gap

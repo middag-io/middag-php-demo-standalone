@@ -37,8 +37,8 @@ declare.
 |---|---|
 | PHP | `^8.3`: 8.3, 8.4 and 8.5, with `pdo` and `pdo_sqlite`. `config.platform.php` is `8.3.0`, so `composer.lock` resolves at the floor |
 | Symfony | `^7.4 \|\| ^8.1` for every Symfony component the demo requires. The lock resolves 7.4; a CI job without the platform pin proves 8.x |
-| `middag-io/framework` | `^1.22` |
-| `middag-io/ui` | `^1.13` |
+| `middag-io/framework` | `^1.24` |
+| `middag-io/ui` | `^1.14` |
 | `@middag-io/react` (renderer, `ui/`) | `^0.48.0` |
 | Host | none: no Moodle or WordPress. The adapters `middag-io/moodle` and `middag-io/wordpress` are not part of the demo |
 | Database | SQLite, in a file or in memory |

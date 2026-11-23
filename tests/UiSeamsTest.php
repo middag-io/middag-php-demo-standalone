@@ -12,15 +12,22 @@ declare(strict_types=1);
 
 namespace Middag\Demo\Standalone\Tests;
 
+use InvalidArgumentException;
 use Middag\Demo\Standalone\Domain\Ticket;
 use Middag\Demo\Standalone\Navigation\DemoNavigationRegistry;
 use Middag\Demo\Standalone\Page\HelpPage;
 use Middag\Demo\Standalone\Schema\HelpdeskSeeder;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Database\Contract\ConnectionAdapterInterface;
+use Middag\Ui\Navigation\Contract\NavigationRegistryInterface;
 use Middag\Ui\Page\PageContract;
+use Middag\Ui\Shared\ValueObject\Translatable;
 use PHPUnit\Framework\Attributes\CoversNothing;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
+use ReflectionMethod;
+use ReflectionParameter;
 
 /**
  * The ui surfaces the demo adds on its pages: breadcrumbs, a request action
@@ -88,9 +95,7 @@ final class UiSeamsTest extends DemoTestCase
         self::assertSame([], $auth['capabilities'] ?? null, 'the default test user holds no capability');
         self::assertSame('/logout', $auth['logoutUrl'] ?? null);
 
-        $resources = $payload['props']['contract']['resources'] ?? [];
-        self::assertArrayNotHasKey('user', $resources);
-        self::assertArrayNotHasKey('capabilities', $resources);
+        self::assertArrayNotHasKey('resources', $payload['props']['contract'], 'the page contract has no resources slot');
     }
 
     #[Test]
@@ -124,6 +129,103 @@ final class UiSeamsTest extends DemoTestCase
         $children = $built['tree'][0]['children'];
         self::assertSame('3', (string) ($children[0]['badge'] ?? ''));
         self::assertSame('/ticket/7', $children[1]['href'] ?? null);
+    }
+
+    #[Test]
+    public function registryCarriesTranslatableLabelsStylingAndExternalLinks(): void
+    {
+        $urls = [];
+        $registry = (new DemoNavigationRegistry(static function (string $route, array $params) use (&$urls): string {
+            $urls[] = $route;
+
+            return '/' . $route;
+        }))
+            ->group('desk', new Translatable('nav.desk', 'helpdesk'), 'inbox', 10, entityType: 'queue', badgeVariant: 'info', statusColor: 'blue')
+            ->section('desk.work', 'Work', statusColor: 'green')
+            ->item('desk.work.queue', 'Queue', 'queue', entityType: 'ticket', badgeVariant: 'warning', statusColor: 'amber')
+            ->item('desk.work.docs', new Translatable('nav.docs', 'helpdesk', ['product' => 'demo']), null, target: '_blank', href: 'https://docs.middag.dev');
+
+        $built = $registry->build('queue')->jsonSerialize();
+        $desk = json_decode((string) json_encode($built['tree'][0]), true);
+
+        self::assertSame(['key' => 'nav.desk', 'domain' => 'helpdesk'], $desk['label'], 'a Translatable label is emitted unresolved');
+        self::assertSame(['queue', 'info', 'blue'], [$desk['entityType'], $desk['badgeVariant'], $desk['statusColor']]);
+        $work = $desk['children'][0];
+        self::assertSame('green', $work['statusColor']);
+        [$queue, $docs] = $work['children'];
+        self::assertSame(['/queue', 'ticket', 'warning', 'amber'], [$queue['href'], $queue['entityType'], $queue['badgeVariant'], $queue['statusColor']]);
+        self::assertSame('https://docs.middag.dev', $docs['href'], 'an external href is used as given');
+        self::assertSame('_blank', $docs['target']);
+        self::assertSame(['key' => 'nav.docs', 'domain' => 'helpdesk', 'params' => ['product' => 'demo']], $docs['label']);
+        self::assertSame(['queue'], $urls, 'the external item never reaches the URL generator');
+        self::assertSame('desk.work.queue', $built['activeKey']);
+        self::assertSame('', $registry->build('')->activeKey, 'a route-less item is never active');
+    }
+
+    /**
+     * @param array<string, mixed> $routeParams
+     */
+    #[Test]
+    #[DataProvider('invalidItemDestinations')]
+    public function registryRejectsAnItemWithoutExactlyOneSafeDestination(?string $route, array $routeParams, ?string $href): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        (new DemoNavigationRegistry(static fn (string $route): string => '/' . $route))
+            ->item('help.docs', 'Docs', $route, $routeParams, href: $href);
+    }
+
+    /**
+     * @return iterable<string, array{?string, array<string, mixed>, ?string}>
+     */
+    public static function invalidItemDestinations(): iterable
+    {
+        yield 'neither' => [null, [], null];
+
+        yield 'both' => ['help.index', [], 'https://docs.middag.dev'];
+
+        yield 'href with route params' => [null, ['id' => 1], 'https://docs.middag.dev'];
+
+        yield 'root-relative' => [null, [], '/x'];
+
+        yield 'protocol-relative' => [null, [], '//docs.middag.dev'];
+
+        yield 'uppercase scheme' => [null, [], 'HTTP://docs.middag.dev'];
+
+        yield 'no host' => [null, [], 'https://'];
+
+        yield 'whitespace' => [null, [], 'https://docs.middag.dev/a b'];
+
+        yield 'javascript' => [null, [], 'javascript:alert(1)'];
+
+        yield 'data' => [null, [], 'data:text/html,x'];
+
+        yield 'vbscript' => [null, [], 'vbscript:x'];
+
+        yield 'mailto' => [null, [], 'mailto:help@middag.io'];
+    }
+
+    #[Test]
+    #[DataProvider('registryMethods')]
+    public function registryKeepsTheInterfaceParameterNamesAndOrder(string $method): void
+    {
+        $signature = static fn (string $class): array => array_map(
+            static fn (ReflectionParameter $p): string => $p->getName() . ': ' . $p->getType()
+                . ($p->isDefaultValueAvailable() ? ' = ' . var_export($p->getDefaultValue(), true) : ''),
+            (new ReflectionMethod($class, $method))->getParameters(),
+        );
+
+        self::assertSame($signature(NavigationRegistryInterface::class), $signature(DemoNavigationRegistry::class), 'named arguments bind to the implementation, so its names must match the interface');
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function registryMethods(): iterable
+    {
+        foreach ((new ReflectionClass(NavigationRegistryInterface::class))->getMethods() as $method) {
+            yield $method->getName() => [$method->getName()];
+        }
     }
 
     #[Test]

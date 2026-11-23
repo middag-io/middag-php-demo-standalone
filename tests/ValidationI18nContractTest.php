@@ -15,12 +15,14 @@ namespace Middag\Demo\Standalone\Tests;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\Test;
+use stdClass;
 
 /**
  * Proves the framework 0.11.0 validation-error i18n contract end-to-end through
  * the standalone help-desk: a 422 carries a structured `{message, key, domain,
- * params}` per field — English-resolved by default (no host catalogue), with the
- * machine `key`/`params` a React/Inertia client can re-translate.
+ * params?}` per field (the ui FieldMessage; `params` only when there are some) —
+ * English-resolved by default (no host catalogue), with the machine `key`/`params`
+ * a React/Inertia client can re-translate.
  *
  * @internal
  */
@@ -38,16 +40,21 @@ final class ValidationI18nContractTest extends DemoTestCase
         self::assertSame('validation_failed', $payload['error']);
         self::assertNotEmpty($payload['errors']);
 
-        foreach ($payload['errors'] as $field => $entry) {
-            $entries = array_is_list($entry) ? $entry : [$entry];
+        // Decoded as objects, so an empty JSON object stays distinct from a list.
+        $errors = json_decode((string) $response->getContent(), false, 512, JSON_THROW_ON_ERROR)->errors;
+
+        foreach (get_object_vars($errors) as $field => $entry) {
+            $entries = \is_array($entry) ? $entry : [$entry];
 
             foreach ($entries as $error) {
-                self::assertIsArray($error, sprintf("error for '%s' must be a structured object, not a string", $field));
-                self::assertArrayHasKey('message', $error);
-                self::assertNotSame('', $error['message']);                 // English resolved by default
-                self::assertStringStartsWith('validation.', $error['key']); // machine key for client i18n
-                self::assertSame('validators', $error['domain']);
-                self::assertArrayHasKey('params', $error);
+                self::assertInstanceOf(stdClass::class, $error, sprintf("error for '%s' must be a structured object, not a string", $field));
+                self::assertIsString($error->message ?? null);
+                self::assertNotSame('', $error->message);                 // English resolved by default
+                self::assertStringStartsWith('validation.', $error->key); // machine key for client i18n
+                self::assertSame('validators', $error->domain);
+                if (property_exists($error, 'params')) {
+                    self::assertInstanceOf(stdClass::class, $error->params, sprintf("params of '%s', when present, must be a JSON object", $field));
+                }
             }
         }
     }
