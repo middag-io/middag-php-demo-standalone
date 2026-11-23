@@ -7,6 +7,25 @@ release tag — manual entries below the unreleased section will be overwritten.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.8](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.5.7...v0.5.8) (2026-11-23)
+
+
+### Features
+
+* adopt ui 1.14 contracts in the demo ([c8fa5c1](https://github.com/middag-io/middag-php-demo-standalone/commit/c8fa5c1807c162d17549a4cffb68271a212495ca))
+
+
+### Documentation
+
+* match the README ranges to framework 1.22, ui 1.13 and react 0.48 ([6ab78ee](https://github.com/middag-io/middag-php-demo-standalone/commit/6ab78ee5d1ffed1aae5cdbb16f870a537ed72176))
+
+### Consumer impact
+
+- Runs on `middag-io/ui` 1.14.0 and `middag-io/framework` 1.24.0 (floors `^1.14` and `^1.24`).
+- The demo navigation registry follows the ui 1.14 `NavigationRegistryInterface` (Translatable labels, styling fields, external `href` on items), checked by a parameter-parity test.
+- Validation errors in the 422 body and the flashed `errors` prop carry the structured `FieldMessage` shape; `params` appears only when non-empty.
+- The coverage map drops the removed `PageResources`, `PageResourcesInterface`, `Branding` and `IndexIntrospectionInterface`.
+
 ## [0.5.7](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.5.6...v0.5.7) (2026-11-23)
 
 
