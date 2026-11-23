@@ -106,7 +106,7 @@ each release from the commit types on `main`.
 - **Now (`0.x`).** `feat:` and `fix:` cut a release as before. A breaking change ships
   as `feat:`; `!` or a `BREAKING CHANGE:` footer fails the version family check unless
   a family MAJOR window is open.
-- The 1.x line is pre-stable and unsupported: it gets no backports or security fixes, and the move to 2.0.0 is a clean cut.
+- The `0.x` line is pre-stable and unsupported: it gets no backports or security fixes, and the move to `2.0.0` is a clean cut.
 - **The cut.** The family ships `2.0.0` through a coordinated
   `Release-As: 2.0.0` in every family repo. The demo jumps from `0.x` to `2.0.0`.
 - **From `2.0.0`.** release-please cuts PATCH releases only. A PATCH carries fixes
