@@ -109,15 +109,7 @@ each release from the commit types on `main`.
 - The `0.x` line is pre-stable and unsupported: it gets no backports or security fixes, and the move to `2.0.0` is a clean cut.
 - **The cut.** The family ships `2.0.0` through a coordinated
   `Release-As: 2.0.0` in every family repo. The demo jumps from `0.x` to `2.0.0`.
-- **From `2.0.0`.** release-please cuts PATCH releases only. A PATCH carries fixes
-  only. A `feat` waits for a family MINOR window. A breaking change waits for a family
-  MAJOR window, and is deprecated first in a MINOR, with a runtime notice. Family
-  MINOR and MAJOR releases go out as a coordinated `Release-As: X.Y.0` in every family
-  repo. The product owner decides each family MINOR (a new Moodle version to support,
-  a MIDDAG release that needs a feature, a deprecation or a new range, or a new
-  Symfony MINOR to absorb) and every family MAJOR. `composer.json` requires one
-  `^2.N` range for every `middag-io/*` sibling. A dependency bump meant to ship a
-  release is `fix(deps):`; `feat(deps):` fails the check outside a window.
+- **From `2.0.0`.** From `2.0.0`, the open-source `middag-php-*` libraries (`ui`, `framework`, `moodle`, `wordpress` and the `demo-standalone` example) share the MAJOR version. MINOR and PATCH releases are per library. Each library requires its siblings with `^2.N`, where `N` is the lowest MINOR it needs, so Composer installs a compatible set. A PATCH carries fixes only. A MINOR carries additive `@api` changes. A MAJOR carries breaking `@api` changes, deprecated first in a MINOR where possible. Only a MAJOR is a coordinated `Release-As: X.0.0` in every family repo, and the product owner decides each MAJOR. A dependency bump meant to ship a release is `fix(deps):`.
 
 ### The version family check
 
@@ -136,6 +128,8 @@ footers of every commit in the PR except merge commits.
   that, `feat` passes.
 - A `Release-As:` footer fails unless a window is open and the footer names the
   `X.Y.0` of that window.
+
+The check still describes the earlier window model, including the family MINOR window. Under the policy above only the MAJOR is shared; the check will be aligned in a separate change, so until then follow what it enforces.
 
 To pass it, use the type that describes the change; never relabel a feature as a
 `fix`. A feature or a break that has to wait stays on its open PR. Keep the PR
