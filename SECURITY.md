@@ -6,47 +6,31 @@
 proves the `middag-io/framework` and `middag-io/ui` OSS surface works standalone.
 It is not a published library and is not intended for production use.
 
-## Supported versions
-
-The demo is a member of the `middag-php-*` version family
-(see https://docs.middag.dev/libraries/reference/versioning-and-compatibility).
-
-| Version | Supported |
-| --- | --- |
-| Latest `0.x` release, from `main` | Yes, until the family `2.0.0` cut |
-| Older `0.x` releases | No |
-
-From `2.0.0`, the latest family MINOR, released from `main`, is supported. Today there
-are no release branches.
-
-The 1.x line is pre-stable and unsupported: it gets no backports or security fixes, and the move to 2.0.0 is a clean cut.
-
 Security-relevant behaviour the demo exercises (session auth, the `#[Auth]` gate,
 CSRF, validated requests) is provided by `middag-io/framework`. A vulnerability in
 that behaviour usually belongs upstream — but report it here if you are unsure and
 we will route it.
 
-## Reporting a Vulnerability
+## Supported versions
 
-If you discover a security vulnerability, please report it **privately by email**
-to **security@middag.io**.
+The `0.x` line is pre-stable and unsupported: it gets no backports or security fixes, and the move to `2.0.0` is a clean cut.
 
-**Do not open public GitHub issues, pull requests, or discussions for security
-problems.** Public disclosure before a fix is available puts users at risk.
+From `2.0.0`, only the latest release is supported.
 
-Please include as much detail as you can:
+## Reporting a vulnerability
 
-- A description of the vulnerability and its potential impact.
-- Steps to reproduce, or a proof of concept.
-- The affected component (this demo, `middag-io/framework`, or `middag-io/ui`) and
-  any relevant environment details.
+Do not open public issues, pull requests or discussions for security problems.
 
-### What to expect
+Report privately through either:
 
-- **Acknowledgement:** We aim to acknowledge your report within a few business days.
-- **Coordinated disclosure:** We follow responsible (coordinated) disclosure and ask
-  that you keep the report confidential until a fix has been released.
-- **Credit:** If you would like recognition, we are happy to credit you once the
-  issue is resolved. Let us know your preference.
+- GitHub private vulnerability reporting: **Report a vulnerability** under the repository's **Security** tab, or
+- email to **security@middag.io**.
 
-Thank you for helping keep the MIDDAG OSS stack and its users safe.
+Include a description and its impact, steps to reproduce or a proof of concept, and the affected versions.
+
+## What to expect
+
+- **Acknowledgement** within 5 business days.
+- **Triage:** we confirm whether the report is accepted and share our plan for a fix. There is no fixed deadline for the fix.
+- **Coordinated disclosure:** please keep the report confidential until a fix is released.
+- **Credit:** we credit reporters who want it once the issue is resolved.
