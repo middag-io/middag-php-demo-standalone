@@ -101,6 +101,50 @@ jobs:
           rector-script: ""
           audit-blocking-severities: critical, high
 
+  # Third run of the same component: removes the platform pin and resolves the
+  # lowest stable versions the constraints allow (composer update
+  # --prefer-lowest --prefer-stable) on PHP 8.3, the floor. The Symfony floor of
+  # '^7.4 || ^8.1' is 7.4, so the job proves the 7.x floor and the declared PHP
+  # and extension floors. Static checks stay in the locked job. test:highest
+  # leaves out the api-coverage group, as in the highest job.
+  php-library-check-lowest:
+    name: php-library-check (PHP 8.3, lowest)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check the library (lowest dependency versions)
+        uses: middag-io/actions/php-library-check@php-library-check-v1
+        with:
+          php-version: "8.3"
+          php-extensions: curl, intl, mbstring, pdo, pdo_sqlite, sqlite3
+          static-checks: false
+          dependency-versions: lowest
+          unset-platform-php: true
+          test-script: test:highest
+          tool-cache-paths: .cache
+          expect-majors: >-
+            symfony/dotenv:7,
+            symfony/console:7,
+            symfony/doctrine-messenger:7,
+            symfony/event-dispatcher:7,
+            symfony/filesystem:7,
+            symfony/finder:7,
+            symfony/lock:7,
+            symfony/var-dumper:7
+          composer-validate: false
+          strict-psr: false
+          phpstan-script: ""
+          cs-fixer-script: ""
+          rector-script: ""
+          audit-blocking-severities: critical, high
+
   # Specific to this repository: type-check and lint the React host bundle in
   # ui/. The E2E job only runs the vite build, which does not type-check.
   ui-check:
