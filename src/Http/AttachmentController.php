@@ -15,6 +15,7 @@ namespace Middag\Demo\Standalone\Http;
 use Middag\Demo\Standalone\Domain\Attachment;
 use Middag\Demo\Standalone\Domain\Ticket;
 use Middag\Demo\Standalone\Form\AttachmentForm;
+use Middag\Demo\Standalone\Form\FormNodes;
 use Middag\Demo\Standalone\Shared\Concerns\RendersPages;
 use Middag\Framework\Exception\MiddagNotFoundException;
 use Middag\Framework\Filesystem\Contract\FilesystemInterface;
@@ -65,7 +66,7 @@ final class AttachmentController extends AbstractController
         $ticket = Ticket::findOrFail($id);
         $pending = Attachment::findPending($id, $this->userId(), (string) $this->request->query->get('token', ''));
 
-        $schema = $this->renderers->get(RenderTarget::Props)->render($this->form)->props['schema'] ?? [];
+        $schema = FormNodes::fromRendered($this->renderers->get(RenderTarget::Props)->render($this->form)->props['schema'] ?? []);
         $values = $pending instanceof Attachment ? ['file' => $this->fileValue($pending)] : [];
         $base = '/tickets/' . $id . '/attachments';
         $links = array_map(
