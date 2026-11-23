@@ -15,7 +15,7 @@ Generated from `middag-io/framework` v1.22.0 and `middag-io/ui` v1.13.0, as inst
 
 | Library | `@api` | covered | host | gap |
 |---|---|---|---|---|
-| `middag-io/framework` | 225 | 201 | 14 | 10 |
+| `middag-io/framework` | 226 | 202 | 14 | 10 |
 | `middag-io/ui` | 99 | 87 | 0 | 12 |
 
 ## `middag-io/framework`
@@ -56,7 +56,7 @@ Generated from `middag-io/framework` v1.22.0 and `middag-io/ui` v1.13.0, as inst
 | `Bus\Transport\MiddagDoctrineTransport` | covered | Reached through DoctrineTransportFactory, which builds it over the DBAL connection. | `RuntimeKernelTest::doctrineTransportCarriesACommandAcrossKernels` | — |
 | `Bus\Transport\TransportLocator` | covered | Reached through Runtime\StandaloneKernel::transports(). | `RuntimeKernelTest::syncByDefaultAndAsyncWhenRouted` | — |
 
-### Database — 24 `@api`: 20 covered, 1 host, 3 gap
+### Database — 25 `@api`: 21 covered, 1 host, 3 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
@@ -66,6 +66,7 @@ Generated from `middag-io/framework` v1.22.0 and `middag-io/ui` v1.13.0, as inst
 | `Database\Attribute\Table` | covered | `src/Schema/CommandAttemptTable.php` | `MailFilesSchemaTest::attemptTableIsDeclaredByAttributeAndInstalled` | — |
 | `Database\Contract\ConnectionAdapterInterface` | covered | `src/Schema/HelpdeskSeeder.php` | `CustomerContractTest::customersRenderAsCardGridWithEmptyStateFallback`<br>`HttpTest::entitiesEndpointServesEntitySource`<br>`KernelContainerTest::containerResolvesFrameworkContractsToOssDefaults` | — |
 | `Database\Contract\ConnectionInterface` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `ExceptionsTest::badSqlThrowsPersistenceException`<br>`KernelContainerTest::containerResolvesFrameworkContractsToOssDefaults`<br>`SchemaTest::migrationRunnerInstallsTablesAndTracksVersion` | — |
+| `Database\Contract\IndexIntrospectionInterface` | covered | Implemented by the SqliteSchemaBuilderAdapter the demo binds; MigrationRunner::upgrade() adds the descriptor indexes an existing table lacks. | `SchemaTest::installOnADatabaseFromAnOlderSchemaUpgradesItAndIsIdempotent` | — |
 | `Database\Contract\RecordConnectionInterface` | covered | Reached through ConnectionAdapterInterface. | `CustomerContractTest::customersRenderAsCardGridWithEmptyStateFallback`<br>`HttpTest::entitiesEndpointServesEntitySource`<br>`KernelContainerTest::containerResolvesFrameworkContractsToOssDefaults` | — |
 | `Database\Contract\SchemaBuilderAdapterInterface` | covered | `src/Kernel/Bootstrap/DemoBootstrap.php` | `SchemaTest::migrationRunnerInstallsTablesAndTracksVersion` | — |
 | `Database\Contract\SqlDialectInterface` | covered | Reached through StandardSqlDialect. | `SchemaTest::migrationRunnerInstallsTablesAndTracksVersion`<br>`PersistenceTest::dataMapperQueryBuilderPaginatesIntoPage` | — |
