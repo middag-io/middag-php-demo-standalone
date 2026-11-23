@@ -20,7 +20,6 @@ use Middag\Demo\Standalone\Schema\DemoMigrationRunner;
 use Middag\Demo\Standalone\Security\SuperviseCapability;
 use Middag\Demo\Standalone\Tests\Support\DemoTestCase;
 use Middag\Framework\Database\Contract\ConnectionInterface;
-use Middag\Framework\Database\Contract\IndexIntrospectionInterface;
 use Middag\Framework\Database\Contract\SchemaBuilderAdapterInterface;
 use Middag\Framework\Database\Schema\DbalSchemaBuilderAdapter;
 use Middag\Framework\Database\Schema\MysqlVersionTracker;
@@ -106,7 +105,6 @@ final class SchemaTest extends DemoTestCase
                 'indexes' => $table === 'demo_attachments' ? [] : $descriptor['indexes'],
             ]);
         }
-        self::assertInstanceOf(IndexIntrospectionInterface::class, $adapter);
         self::assertFalse($adapter->indexExistsOnColumns('demo_attachments', ['token']));
         $connection->execute(
             'INSERT INTO demo_users (email, name, password_hash, created_at) VALUES (?, ?, ?, ?)',
