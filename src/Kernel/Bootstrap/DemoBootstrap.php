@@ -119,6 +119,11 @@ use Middag\Framework\Security\HmacSignatureVerifier;
 use Middag\Framework\Security\NativePasswordHasher;
 use Middag\Framework\Translation\Contract\TranslatorInterface;
 use Middag\Framework\Translation\FallbackTranslator;
+use Middag\Ui\Navigation\NavigationTree;
+use Middag\Ui\Shared\Enum\ThemeMode;
+use Middag\Ui\Shared\ValueObject\Identity;
+use Middag\Ui\Shared\ValueObject\SharedAuth;
+use Middag\Ui\Shared\ValueObject\SharedTheme;
 use Monolog\Logger;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PDO;
@@ -493,12 +498,12 @@ final readonly class DemoBootstrap implements BootstrapInterface
         InertiaAdapter::useUrlGenerator($c->get(UrlGeneratorInterface::class));
 
         // SharedProps — merged into every Inertia response (the contract-driven app
-        // shell a @middag-io/react client reads on each visit). `auth` is the
-        // authenticated session record (H3); `flash`/`errors` are shared by the
-        // framework's ShareFlashMiddleware (M7), so they are NOT wired here.
-        // `auth` is flattened to the @middag-io/react SharedPropsAuth contract
-        // ({id,name,email,capabilities}); the Authenticator stores {id, attributes:{…}}.
-        InertiaManager::share('auth', static function () use ($c): ?array {
+        // shell a @middag-io/react client reads on each visit), each slot typed by
+        // the middag-io/ui shared value objects. `auth` is the authenticated session
+        // record (H3) as a SharedAuth; `flash`/`errors` are shared by the framework's
+        // ShareFlashMiddleware (M7), so they are NOT wired here. A guest resolves
+        // `auth` to null, so the slot is dropped from the payload.
+        InertiaManager::share('auth', static function () use ($c): ?SharedAuth {
             $record = $c->get(AuthenticatorInterface::class)->user();
 
             if (!is_array($record)) {
@@ -507,38 +512,39 @@ final readonly class DemoBootstrap implements BootstrapInterface
 
             /** @var array<string, mixed> $attrs */
             $attrs = is_array($record['attributes'] ?? null) ? $record['attributes'] : [];
+            $email = (string) ($attrs['email'] ?? '');
 
-            return [
-                'id' => (int) ($record['id'] ?? 0),
-                'name' => (string) ($attrs['name'] ?? ''),
-                'email' => (string) ($attrs['email'] ?? ''),
-                'capabilities' => array_values((array) ($attrs['capabilities'] ?? [])),
+            return new SharedAuth(
+                identity: new Identity(
+                    id: (string) ($record['id'] ?? ''),
+                    name: (string) ($attrs['name'] ?? ''),
+                    email: $email !== '' ? $email : null,
+                ),
+                capabilities: array_values(array_map(strval(...), (array) ($attrs['capabilities'] ?? []))),
                 // Drives the BasicShell account-menu Sign-out item: the shell
                 // POSTs here with the csrf_token shared prop (AuthController::logout).
-                'logoutUrl' => '/logout',
-            ];
+                logoutUrl: '/logout',
+            );
         });
-        // `navigation` follows the lib's NavigationTreePayload ({tree, activeKey}),
-        // not a flat list; activeKey is derived from the current request path (the
-        // kernel seeds RequestContext method/host/scheme but not pathInfo). Gated on
-        // auth: anonymous visitors (only /login is public, and it uses the chromeless
-        // AuthShell) carry an empty tree — the app nav is never shipped to logged-out
-        // clients.
-        InertiaManager::share('navigation', static function () use ($c): array {
+        // `navigation` is the lib's NavigationTree; activeKey is derived from the
+        // current request path (the kernel seeds RequestContext method/host/scheme
+        // but not pathInfo). Gated on auth: anonymous visitors (only /login is
+        // public, and it uses the chromeless AuthShell) carry an empty tree — the
+        // app nav is never shipped to logged-out clients.
+        InertiaManager::share('navigation', static function () use ($c): NavigationTree {
             $record = $c->get(AuthenticatorInterface::class)->user();
             if (!is_array($record)) {
-                return ['tree' => [], 'activeKey' => '', 'footer' => []];
+                return new NavigationTree();
             }
             $capabilities = is_array($record['attributes']['capabilities'] ?? null) ? array_values(array_map(strval(...), $record['attributes']['capabilities'])) : [];
 
             return self::navigationProps($c->get(UrlGeneratorInterface::class), $capabilities);
         });
-        InertiaManager::share('version', InertiaVersionManager::getVersion());
-        // `theme`/`locale` complete the @middag-io/react SharedProps contract (both
-        // type-required, though the lib's providers default them); emitting them
-        // keeps the wire canonical. The demo is single-locale English, light theme.
+        // `theme`/`locale` complete the @middag-io/react SharedProps contract. The
+        // demo is single-locale English, light theme. The asset version is not a
+        // shared prop: Inertia carries it in its own envelope key.
         InertiaManager::share('locale', 'en');
-        InertiaManager::share('theme', ['appearance' => 'light']);
+        InertiaManager::share('theme', new SharedTheme(ThemeMode::Light));
     }
 
     /**
@@ -688,21 +694,14 @@ final readonly class DemoBootstrap implements BootstrapInterface
     }
 
     /**
-     * SharedProp `navigation` in the @middag-io/react NavigationTreePayload shape.
-     *
-     * @return array{tree: list<array<string, mixed>>, activeKey: string, footer: list<array<string, mixed>>}
-     */
-    /**
-     * The NavigationTreePayload of the app shell, built by the demo's
+     * The NavigationTree of the app shell, built by the demo's
      * NavigationRegistryInterface implementation. The active node follows the
      * first path segment of the request (the kernel seeds the routing context's
      * method, host and scheme, not its path).
      *
      * @param list<string> $capabilities held by the session user
-     *
-     * @return array{tree: list<array<string, mixed>>, activeKey: string, footer: list<array<string, mixed>>}
      */
-    private static function navigationProps(UrlGeneratorInterface $urls, array $capabilities): array
+    private static function navigationProps(UrlGeneratorInterface $urls, array $capabilities): NavigationTree
     {
         $path = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/';
         $activeRoute = match (explode('/', trim($path, '/'))[0]) {

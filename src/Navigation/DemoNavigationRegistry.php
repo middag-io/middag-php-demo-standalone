@@ -15,13 +15,14 @@ namespace Middag\Demo\Standalone\Navigation;
 use Closure;
 use Middag\Ui\Navigation\Contract\NavigationRegistryInterface;
 use Middag\Ui\Navigation\NavigationNode;
+use Middag\Ui\Navigation\NavigationTree;
 
 /**
  * The demo's navigation registry. middag-io/ui ships the contract and the node
  * value object; no OSS library ships an implementation (a host adapter brings
  * its own), so the demo implements it: groups and sections hold items, items
  * point at named routes resolved by the given closure, and build() returns the
- * NavigationTreePayload the shell reads.
+ * NavigationTree the shell reads.
  */
 final class DemoNavigationRegistry implements NavigationRegistryInterface
 {
@@ -92,7 +93,7 @@ final class DemoNavigationRegistry implements NavigationRegistryInterface
         return $this;
     }
 
-    public function build(string $activeRoute): array
+    public function build(string $activeRoute): NavigationTree
     {
         $activeKey = '';
         foreach ($this->nodes as $key => $node) {
@@ -101,11 +102,10 @@ final class DemoNavigationRegistry implements NavigationRegistryInterface
             }
         }
 
-        return [
-            'tree' => array_map(static fn (NavigationNode $node): array => $node->jsonSerialize(), $this->children(null, $activeKey)),
-            'activeKey' => $activeKey,
-            'footer' => [],
-        ];
+        return new NavigationTree(
+            tree: $this->children(null, $activeKey),
+            activeKey: $activeKey,
+        );
     }
 
     /**

@@ -24,7 +24,7 @@ use PHPUnit\Framework\Attributes\Test;
 
 /**
  * The ui surfaces the demo adds on its pages: breadcrumbs, a request action
- * behind a confirmation with its ActionResult, page resources with the session
+ * behind a confirmation with its ActionResult, the shared auth with the session
  * identity, the navigation registry, a page class and a header form node.
  *
  * @internal
@@ -77,13 +77,20 @@ final class UiSeamsTest extends DemoTestCase
     }
 
     #[Test]
-    public function pagesCarryResourcesWithTheSessionIdentity(): void
+    public function sharedAuthCarriesTheSessionIdentityAndPagesCarryNoUserResources(): void
     {
-        $resources = $this->contract('/')['resources'] ?? [];
+        $payload = $this->json($this->handle('GET', '/', [], ['HTTP_X_INERTIA' => 'true']));
+        $auth = $payload['props']['auth'] ?? [];
 
-        self::assertSame('Test User', $resources['user']['name'] ?? null, 'the user DemoTestCase signs in');
-        self::assertNotEmpty($resources['user']['id'] ?? null);
-        self::assertSame([], $resources['capabilities'] ?? null, 'the default test user holds no capability');
+        self::assertSame('Test User', $auth['name'] ?? null, 'the user DemoTestCase signs in');
+        self::assertIsString($auth['id'] ?? null, 'the identity id is a string');
+        self::assertNotSame('', $auth['id']);
+        self::assertSame([], $auth['capabilities'] ?? null, 'the default test user holds no capability');
+        self::assertSame('/logout', $auth['logoutUrl'] ?? null);
+
+        $resources = $payload['props']['contract']['resources'] ?? [];
+        self::assertArrayNotHasKey('user', $resources);
+        self::assertArrayNotHasKey('capabilities', $resources);
     }
 
     #[Test]
@@ -110,7 +117,7 @@ final class UiSeamsTest extends DemoTestCase
             ->drilldown('desk.ticket')
             ->badge('desk.queue', static fn (): int => 3);
 
-        $built = $registry->build('queue');
+        $built = $registry->build('queue')->jsonSerialize();
 
         self::assertSame(['desk'], array_column($built['tree'], 'key'), 'the admin section needs a capability the user lacks');
         self::assertSame('desk.queue', $built['activeKey']);
