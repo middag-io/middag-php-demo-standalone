@@ -45,7 +45,7 @@ final class FrontendContractTest extends DemoTestCase
 
         $contract = $payload['props']['contract'] ?? null;
         self::assertIsArray($contract, 'page must be delivered as a ui contract in props.contract');
-        self::assertSame('1', $contract['version']);
+        self::assertSame('2', $contract['version']);
         self::assertSame('basic', $contract['shell']);
         self::assertSame('dashboard', $contract['layout']['template']);
         self::assertArrayHasKey('content', $contract['layout']['regions']);
@@ -56,9 +56,12 @@ final class FrontendContractTest extends DemoTestCase
     {
         $payload = $this->json($this->handle('GET', '/', [], ['HTTP_X_INERTIA' => 'true']));
 
-        foreach (['auth', 'flash', 'errors', 'navigation', 'version'] as $key) {
+        foreach (['auth', 'flash', 'errors', 'navigation', 'theme', 'locale'] as $key) {
             self::assertArrayHasKey($key, $payload['props'], sprintf("SharedProp '%s' must be present", $key));
         }
+
+        self::assertArrayNotHasKey('version', $payload['props'], 'the asset version rides Inertia\'s own envelope key, not a shared prop');
+        self::assertSame('light', $payload['props']['theme']['appearance']);
     }
 
     #[Test]
@@ -89,7 +92,7 @@ final class FrontendContractTest extends DemoTestCase
         $payload = $this->json($this->handle('GET', '/tickets/' . $id, [], ['HTTP_X_INERTIA' => 'true']));
 
         self::assertSame('Page', $payload['component']);
-        self::assertSame('1', $payload['props']['contract']['version']);
+        self::assertSame('2', $payload['props']['contract']['version']);
     }
 
     #[Test]

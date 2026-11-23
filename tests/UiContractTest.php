@@ -30,7 +30,7 @@ final class UiContractTest extends DemoTestCase
     {
         $payload = $this->json($this->handle('GET', '/ui/page'));
 
-        self::assertSame('1', $payload['version']);
+        self::assertSame('2', $payload['version']);
         self::assertSame('basic', $payload['shell']);
         self::assertSame('Ticket dashboard', $payload['page']['title']);
         self::assertArrayHasKey('content', $payload['layout']['regions']);
@@ -48,7 +48,7 @@ final class UiContractTest extends DemoTestCase
     {
         $payload = $this->json($this->handle('GET', '/ui/fragment'));
 
-        self::assertSame('1', $payload['version']);
+        self::assertSame('2', $payload['version']);
         self::assertSame('table', $payload['kind']);
         self::assertCount(2, $payload['payload']['columns']);
         self::assertSame(25, $payload['payload']['options']['perPage']);
