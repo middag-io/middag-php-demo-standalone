@@ -16,7 +16,7 @@ Generated from `middag-io/framework` v1.22.0 and `middag-io/ui` v1.13.0, as inst
 | Library | `@api` | covered | host | gap |
 |---|---|---|---|---|
 | `middag-io/framework` | 226 | 202 | 14 | 10 |
-| `middag-io/ui` | 99 | 87 | 0 | 12 |
+| `middag-io/ui` | 96 | 87 | 0 | 9 |
 
 ## `middag-io/framework`
 
@@ -413,21 +413,18 @@ Generated from `middag-io/framework` v1.22.0 and `middag-io/ui` v1.13.0, as inst
 | `Navigation\NavigationNode` | covered | `src/Navigation/DemoNavigationRegistry.php` | `UiSeamsTest::registryNestsGatesAndBadgesNodes` | — |
 | `Navigation\NavigationTree` | covered | `src/Navigation/DemoNavigationRegistry.php` | `UiSeamsTest::navigationComesFromTheRegistry`<br>`UiSeamsTest::registryNestsGatesAndBadgesNodes` | — |
 
-### Page — 12 `@api`: 9 covered, 0 host, 3 gap
+### Page — 9 `@api`: 9 covered, 0 host, 0 gap
 
 | Symbol | Status | Artifact or reason | Tests | E2E |
 |---|---|---|---|---|
 | `Page\AbstractPage` | covered | `src/Page/HelpPage.php` | `UiSeamsTest::helpIsAPageClass`<br>`HelpContractTest::helpPageRendersImmersiveShellWithMarkdownEmptyStateAndActionGrid` | — |
-| `Page\Branding` | gap | No free shell reads the branding (the free auth shell leaves branding to the host). | — | — |
 | `Page\Contract\PageBuilderInterface` | covered | Reached through PageBuilder. | `UiContractTest::pageEndpointEmitsFullPageContract` | — |
 | `Page\Contract\PageContractInterface` | covered | Reached through PageContract. | `UiContractTest::pageEndpointEmitsFullPageContract` | — |
 | `Page\Contract\PageInterface` | covered | Reached through AbstractPage, which HelpPage extends. | `UiSeamsTest::helpIsAPageClass` | — |
 | `Page\Contract\PageMetaInterface` | covered | Reached through PageMeta. | `UiContractTest::pageEndpointEmitsFullPageContract` | — |
-| `Page\Contract\PageResourcesInterface` | gap | The demo pages carry no resources: the session identity and capabilities ride the shared auth prop. | — | — |
 | `Page\PageBuilder` | covered | `src/Http/TicketController.php` | `HttpTest::showExistingIdSucceedsWhenAuthenticated`<br>`KernelContainerTest::serviceProviderAutoDiscoveredDemoServices` | — |
 | `Page\PageContract` | covered | Reached through PageBuilder::build(). | `UiContractTest::pageEndpointEmitsFullPageContract` | — |
 | `Page\PageMeta` | covered | Reached through PageBuilder::build(). | `UiContractTest::pageEndpointEmitsFullPageContract` | — |
-| `Page\PageResources` | gap | The demo pages carry no resources: the session identity and capabilities ride the shared auth prop. | — | — |
 | `Page\Tab` | covered | `src/Http/TicketController.php` | `HttpTest::showExistingIdSucceedsWhenAuthenticated`<br>`KernelContainerTest::serviceProviderAutoDiscoveredDemoServices` | — |
 
 ### Region — 5 `@api`: 3 covered, 0 host, 2 gap
