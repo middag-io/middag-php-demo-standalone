@@ -7,6 +7,18 @@ release tag — manual entries below the unreleased section will be overwritten.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.7](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.5.6...v0.5.7) (2026-11-23)
+
+
+### Features
+
+* adopt the ui 1.13 shared props, navigation tree and envelope v2 ([cb40539](https://github.com/middag-io/middag-php-demo-standalone/commit/cb4053940a7379e1be2b9a01b344279ba4da01c2))
+
+
+### Documentation
+
+* match the README ranges and the demo support rule ([32a1da3](https://github.com/middag-io/middag-php-demo-standalone/commit/32a1da377e8542bb6a7a94c64dae001fb5dfc667))
+
 ## [0.5.6](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.5.5...v0.5.6) (2026-11-23)
 
 
