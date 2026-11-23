@@ -54,14 +54,14 @@ final class CreateTicketCommand extends AbstractCommand
     {
         return new self(
             subject: (string) ($payload['subject'] ?? ''),
-            body: isset($payload['body']) && $payload['body'] !== null ? (string) $payload['body'] : null,
+            body: isset($payload['body']) ? (string) $payload['body'] : null,
             priority: (string) ($payload['priority'] ?? 'normal'),
             channel: (string) ($payload['channel'] ?? 'web'),
             customerId: (int) ($payload['customer_id'] ?? 0),
-            agentId: isset($payload['agent_id']) && $payload['agent_id'] !== null && $payload['agent_id'] !== '' ? (int) $payload['agent_id'] : null,
-            slaPolicyId: isset($payload['sla_policy_id']) && $payload['sla_policy_id'] !== null && $payload['sla_policy_id'] !== '' ? (int) $payload['sla_policy_id'] : null,
-            tags: isset($payload['tags']) && $payload['tags'] !== null ? (string) $payload['tags'] : null,
-            dueAt: isset($payload['due_at']) && $payload['due_at'] !== null && $payload['due_at'] !== '' ? (int) $payload['due_at'] : null,
+            agentId: isset($payload['agent_id']) && $payload['agent_id'] !== '' ? (int) $payload['agent_id'] : null,
+            slaPolicyId: isset($payload['sla_policy_id']) && $payload['sla_policy_id'] !== '' ? (int) $payload['sla_policy_id'] : null,
+            tags: isset($payload['tags']) ? (string) $payload['tags'] : null,
+            dueAt: isset($payload['due_at']) && $payload['due_at'] !== '' ? (int) $payload['due_at'] : null,
         );
     }
 }

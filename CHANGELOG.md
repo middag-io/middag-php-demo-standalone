@@ -219,12 +219,3 @@ No consumer impact: documentation-only release.
 ### Miscellaneous Chores
 
 * force first release as v0.1.0 ([1fbd503](https://github.com/middag-io/middag-php-demo-standalone/commit/1fbd503d8c69856982dfa86a2b9b75e41b57ce13))
-
-## [Unreleased]
-
-### Notes
-
-- Demo scaffold validating `middag-io/framework` + `middag-io/ui` standalone
-  consumption (no Moodle/WP host). Surfaces packaging gaps for OSS publication.
-- Pre-1.0 — no tags cut yet. release-please bootstrapped 2026-05-24 (D69);
-  first release PR will replace this section with a generated entry.

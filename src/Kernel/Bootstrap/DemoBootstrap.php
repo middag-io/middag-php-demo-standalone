@@ -705,7 +705,7 @@ final readonly class DemoBootstrap implements BootstrapInterface
     private static function navigationProps(UrlGeneratorInterface $urls, array $capabilities): array
     {
         $path = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/';
-        $activeRoute = match (explode('/', trim($path, '/'))[0] ?? '') {
+        $activeRoute = match (explode('/', trim($path, '/'))[0]) {
             'tickets' => 'tickets.index',
             'agents' => 'agents.index',
             'customers' => 'customers.index',

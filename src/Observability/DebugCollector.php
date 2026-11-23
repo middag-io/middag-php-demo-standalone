@@ -96,7 +96,7 @@ final class DebugCollector
 
         $events = array_filter(
             self::$profile->events(),
-            static fn (array $e): bool => ($e['category'] ?? null) === $category,
+            static fn (array $e): bool => $e['category'] === $category,
         );
 
         if ($events === []) {
