@@ -19,6 +19,10 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 * match the README ranges and the demo support rule ([32a1da3](https://github.com/middag-io/middag-php-demo-standalone/commit/32a1da377e8542bb6a7a94c64dae001fb5dfc667))
 
+### Consumer impact
+
+No consumer impact: the demo is a harness. It now requires `middag-io/ui` ^1.13, `middag-io/framework` ^1.22 and `@middag-io/react` ^0.48.0.
+
 ## [0.5.6](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.5.5...v0.5.6) (2026-11-23)
 
 
