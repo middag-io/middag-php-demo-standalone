@@ -22,7 +22,6 @@ use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicy;
 use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicyRepository;
 use Middag\Demo\Standalone\Domain\Tag;
 use Middag\Demo\Standalone\Domain\Ticket;
-use Middag\Demo\Standalone\Form\FormNodes;
 use Middag\Demo\Standalone\Form\TicketForm;
 use Middag\Demo\Standalone\Http\Request\CreateTicketRequest;
 use Middag\Demo\Standalone\Shared\Concerns\RendersPages;
@@ -39,6 +38,10 @@ use Middag\Ui\Action\ActionResult;
 use Middag\Ui\Action\ActionTarget;
 use Middag\Ui\Action\Confirmation;
 use Middag\Ui\Block\BlockBuilder;
+use Middag\Ui\Form\Contract\FormSchemaNodeInterface;
+use Middag\Ui\Form\FormFieldNode;
+use Middag\Ui\Form\FormGroupNode;
+use Middag\Ui\Form\FormSectionNode;
 use Middag\Ui\Navigation\Contract\BreadcrumbListBuilderInterface;
 use Middag\Ui\Page\PageBuilder;
 use Middag\Ui\Page\Tab;
@@ -335,7 +338,7 @@ final class TicketController extends AbstractController
         $form = $this->renderers->get(RenderTarget::Props)->render($this->form)->props;
         // The saved step-1 partial wins over the form defaults, except where it is null.
         $values = Arr::mergePreferNonNull($form['values'] ?? [], (array) ($session->get(self::WIZARD_SESSION) ?? []));
-        $schema = FormNodes::fromRendered($this->sectionFor($form['schema'] ?? [], self::WIZARD_STEPS[$step]['section']));
+        $schema = $this->sectionFor($form['schema'] ?? [], self::WIZARD_STEPS[$step]['section']);
 
         // Step 1 → wizardStore (validates + advances); step 2 → wizardConfirm (creates).
         $action = $step === 1 ? '/tickets/new' : '/tickets/new/confirm';
@@ -432,24 +435,25 @@ final class TicketController extends AbstractController
         // splices it into the option list until live results arrive).
         $customerNames = $this->idLabelMap($this->customers->latest());
         $agentNames = $this->idLabelMap($this->agents->latest());
-        $schema = FormNodes::fromRendered(self::mapFieldNodes(
+        $schema = self::mapFieldNodes(
             $form['schema'] ?? [],
-            static function (array $node) use ($ticket, $customerNames, $agentNames): array {
-                if (($node['key'] ?? null) === 'customer_id') {
-                    $node['props']['initialOption'] = [
+            static function (FormFieldNode $node) use ($ticket, $customerNames, $agentNames): FormFieldNode {
+                $props = $node->props;
+                if ($node->key === 'customer_id') {
+                    $props['initialOption'] = [
                         'value' => (string) $ticket->customer_id,
                         'label' => $customerNames[(int) $ticket->customer_id] ?? ('#' . $ticket->customer_id),
                     ];
-                } elseif (($node['key'] ?? null) === 'agent_id' && $ticket->agent_id !== null) {
-                    $node['props']['initialOption'] = [
+                } elseif ($node->key === 'agent_id' && $ticket->agent_id !== null) {
+                    $props['initialOption'] = [
                         'value' => (string) $ticket->agent_id,
                         'label' => $agentNames[(int) $ticket->agent_id] ?? ('#' . $ticket->agent_id),
                     ];
                 }
 
-                return $node;
+                return new FormFieldNode($node->key, $node->component, $props);
             },
-        ));
+        );
 
         // Seed schema defaults, then override with the ticket's stored fields
         // (entity_picker values are the related id as a string; '' when unset).
@@ -637,36 +641,35 @@ final class TicketController extends AbstractController
     /**
      * Keep only the rendered section node of a wizard step (matched by its `id`).
      *
-     * @param list<array<string, mixed>> $schema
+     * @param list<FormSchemaNodeInterface> $schema
      *
-     * @return list<array<string, mixed>>
+     * @return list<FormSchemaNodeInterface>
      */
     private function sectionFor(array $schema, string $section): array
     {
         return array_values(array_filter(
             $schema,
-            static fn (array $node): bool => ($node['kind'] ?? null) === 'section' && ($node['id'] ?? null) === $section,
+            static fn (FormSchemaNodeInterface $node): bool => $node instanceof FormSectionNode && $node->id === $section,
         ));
     }
 
     /**
      * Apply $map to every field node of a rendered schema, recursing into the
-     * section and group nodes that hold them.
+     * section and group nodes that hold them. Returns new nodes; the input is untouched.
      *
-     * @param list<array<string, mixed>>                           $schema
-     * @param callable(array<string, mixed>): array<string, mixed> $map
+     * @param list<FormSchemaNodeInterface>          $schema
+     * @param callable(FormFieldNode): FormFieldNode $map
      *
-     * @return list<array<string, mixed>>
+     * @return list<FormSchemaNodeInterface>
      */
     private static function mapFieldNodes(array $schema, callable $map): array
     {
         return array_map(
-            static function (array $node) use ($map): array {
-                if (is_array($node['children'] ?? null)) {
-                    return ['children' => self::mapFieldNodes($node['children'], $map)] + $node;
-                }
-
-                return ($node['kind'] ?? null) === 'field' ? $map($node) : $node;
+            static fn (FormSchemaNodeInterface $node): FormSchemaNodeInterface => match (true) {
+                $node instanceof FormFieldNode => $map($node),
+                $node instanceof FormSectionNode => new FormSectionNode($node->id, $node->label, self::mapFieldNodes($node->children, $map), $node->defaultCollapsed),
+                $node instanceof FormGroupNode => new FormGroupNode($node->id, self::mapFieldNodes($node->children, $map), $node->columns),
+                default => $node,
             },
             $schema,
         );
