@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "39fb60126e7c301fe7292d0dc70c4b3a",
+    "content-hash": "80ca364a9dfe5ff45d4303af9a220105",
     "packages": [
         {
             "name": "middag-io/framework",
-            "version": "v1.21.0",
+            "version": "v1.22.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/middag-io/middag-php-framework.git",
-                "reference": "e36768b8016137f1421096ba91fde58a5accf17f"
+                "reference": "e7a853605abc1ae9321bd61b6ed86a83414f02ab"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/middag-io/middag-php-framework/zipball/e36768b8016137f1421096ba91fde58a5accf17f",
-                "reference": "e36768b8016137f1421096ba91fde58a5accf17f",
+                "url": "https://api.github.com/repos/middag-io/middag-php-framework/zipball/e7a853605abc1ae9321bd61b6ed86a83414f02ab",
+                "reference": "e7a853605abc1ae9321bd61b6ed86a83414f02ab",
                 "shasum": ""
             },
             "require": {
@@ -25,7 +25,7 @@
                 "ext-json": "*",
                 "ext-mbstring": "*",
                 "ext-pdo": "*",
-                "middag-io/ui": "^1.11.0",
+                "middag-io/ui": "^1.13",
                 "monolog/monolog": "^3.0",
                 "nyholm/psr7": "^1.8",
                 "php": "^8.3",
@@ -123,21 +123,21 @@
                 "security": "https://github.com/middag-io/middag-php-framework/security/policy",
                 "source": "https://github.com/middag-io/middag-php-framework"
             },
-            "time": "2026-11-23T15:07:14+00:00",
-            "published-time": "2026-11-23T15:08:11+00:00"
+            "time": "2026-11-23T17:01:30+00:00",
+            "published-time": "2026-11-23T17:02:33+00:00"
         },
         {
             "name": "middag-io/ui",
-            "version": "v1.11.0",
+            "version": "v1.13.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/middag-io/middag-php-ui.git",
-                "reference": "f3f500f1208aad0f634e1108a3eb4d2cdeab0358"
+                "reference": "2352184c2f80c195f78c67a073916bdc60cd54b8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/middag-io/middag-php-ui/zipball/f3f500f1208aad0f634e1108a3eb4d2cdeab0358",
-                "reference": "f3f500f1208aad0f634e1108a3eb4d2cdeab0358",
+                "url": "https://api.github.com/repos/middag-io/middag-php-ui/zipball/2352184c2f80c195f78c67a073916bdc60cd54b8",
+                "reference": "2352184c2f80c195f78c67a073916bdc60cd54b8",
                 "shasum": ""
             },
             "require": {
@@ -183,8 +183,8 @@
                 "security": "https://github.com/middag-io/middag-php-ui/security/policy",
                 "source": "https://github.com/middag-io/middag-php-ui"
             },
-            "time": "2026-11-23T14:25:22+00:00",
-            "published-time": "2026-11-23T14:26:21+00:00"
+            "time": "2026-11-23T16:07:41+00:00",
+            "published-time": "2026-11-23T16:08:39+00:00"
         },
         {
             "name": "monolog/monolog",
