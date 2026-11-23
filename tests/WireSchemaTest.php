@@ -176,6 +176,32 @@ final class WireSchemaTest extends DemoTestCase
         }
     }
 
+    #[Test]
+    public function flashedFieldErrorsMatchTheSharedPropsSchema(): void
+    {
+        $this->handle('POST', '/tickets', ['priority' => 'high'], ['HTTP_REFERER' => '/tickets/new']);
+        $errors = $this->sharedErrorsOf('/tickets/new');
+
+        $this->assertValid($errors, self::SCHEMA_ID . '#/$defs/SharedProps/properties/errors', 'flashed errors');
+        $this->assertValid($errors, self::SCHEMA_ID . '#/$defs/FormErrors', 'flashed errors');
+        self::assertIsArray($errors['subject'] ?? null, 'the missing subject is flashed as a structured message');
+        foreach (array_is_list($errors['subject']) ? $errors['subject'] : [$errors['subject']] as $message) {
+            $this->assertValid($message, self::SCHEMA_ID . '#/$defs/FieldMessage', 'flashed subject error');
+        }
+    }
+
+    #[Test]
+    public function flashedErrorsInANamedBagMatchTheFormErrorBagsSchema(): void
+    {
+        $this->handle('POST', '/tickets', ['priority' => 'high'], ['HTTP_REFERER' => '/tickets/new', 'HTTP_X_INERTIA_ERROR_BAG' => 'ticket']);
+        $errors = $this->sharedErrorsOf('/tickets/new');
+
+        self::assertSame(['ticket'], array_keys($errors), 'the field map is nested under the bag the request named');
+        $this->assertValid($errors, self::SCHEMA_ID . '#/$defs/FormErrorBags', 'bagged errors');
+        $this->assertValid($errors, self::SCHEMA_ID . '#/$defs/SharedProps/properties/errors', 'bagged errors');
+        self::assertArrayHasKey('subject', $errors['ticket']);
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -212,6 +238,17 @@ final class WireSchemaTest extends DemoTestCase
         }
 
         return $panels;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function sharedErrorsOf(string $route): array
+    {
+        $errors = $this->json($this->handle('GET', $route, [], ['HTTP_X_INERTIA' => 'true']))['props']['errors'] ?? null;
+        self::assertIsArray($errors);
+
+        return $errors;
     }
 
     private function assertValid(mixed $data, string $schemaRef, string $label): void

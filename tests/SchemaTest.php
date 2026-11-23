@@ -94,15 +94,18 @@ final class SchemaTest extends DemoTestCase
         $connection = $this->container->get(ConnectionInterface::class);
 
         // A database as an older release left it: no capabilities on the users,
-        // no uploader on the attachments, a supervisor without its capability.
+        // no uploader and no indexes on the attachments, a supervisor without
+        // its capability.
         foreach (['demo_users' => 'capabilities', 'demo_attachments' => 'user_id'] as $table => $column) {
             $descriptor = $builder->all()[$table];
             $adapter->dropTable($table);
             $adapter->createTable([
                 ...$descriptor,
                 'columns' => array_values(array_filter($descriptor['columns'], static fn (array $c): bool => $c['name'] !== $column)),
+                'indexes' => $table === 'demo_attachments' ? [] : $descriptor['indexes'],
             ]);
         }
+        self::assertFalse($adapter->indexExistsOnColumns('demo_attachments', ['token']));
         $connection->execute(
             'INSERT INTO demo_users (email, name, password_hash, created_at) VALUES (?, ?, ?, ?)',
             [User::DEMO_EMAIL, 'Demo User', 'old-hash', time()],
@@ -116,6 +119,8 @@ final class SchemaTest extends DemoTestCase
 
         self::assertTrue($adapter->columnExists('demo_users', 'capabilities'));
         self::assertTrue($adapter->columnExists('demo_attachments', 'user_id'));
+        self::assertTrue($adapter->indexExistsOnColumns('demo_attachments', ['token']), 'the upgrade adds the descriptor indexes an existing table lacks');
+        self::assertTrue($adapter->indexExistsOnColumns('demo_attachments', ['ticket_id']));
         self::assertSame(DemoMigrationRunner::VERSION, $tracker->getVersion());
         self::assertSame([SuperviseCapability::KEY], User::findByEmail(User::DEMO_EMAIL)?->capabilities());
         self::assertSame('old-hash', User::findByEmail(User::DEMO_EMAIL)?->password_hash, 'an existing user keeps its password');
