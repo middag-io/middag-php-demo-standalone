@@ -22,6 +22,7 @@ use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicy;
 use Middag\Demo\Standalone\Domain\Doctrine\SlaPolicyRepository;
 use Middag\Demo\Standalone\Domain\Tag;
 use Middag\Demo\Standalone\Domain\Ticket;
+use Middag\Demo\Standalone\Form\FormNodes;
 use Middag\Demo\Standalone\Form\TicketForm;
 use Middag\Demo\Standalone\Http\Request\CreateTicketRequest;
 use Middag\Demo\Standalone\Shared\Concerns\RendersPages;
@@ -334,7 +335,7 @@ final class TicketController extends AbstractController
         $form = $this->renderers->get(RenderTarget::Props)->render($this->form)->props;
         // The saved step-1 partial wins over the form defaults, except where it is null.
         $values = Arr::mergePreferNonNull($form['values'] ?? [], (array) ($session->get(self::WIZARD_SESSION) ?? []));
-        $schema = $this->sectionFor($form['schema'] ?? [], self::WIZARD_STEPS[$step]['section']);
+        $schema = FormNodes::fromRendered($this->sectionFor($form['schema'] ?? [], self::WIZARD_STEPS[$step]['section']));
 
         // Step 1 → wizardStore (validates + advances); step 2 → wizardConfirm (creates).
         $action = $step === 1 ? '/tickets/new' : '/tickets/new/confirm';
@@ -431,7 +432,7 @@ final class TicketController extends AbstractController
         // splices it into the option list until live results arrive).
         $customerNames = $this->idLabelMap($this->customers->latest());
         $agentNames = $this->idLabelMap($this->agents->latest());
-        $schema = self::mapFieldNodes(
+        $schema = FormNodes::fromRendered(self::mapFieldNodes(
             $form['schema'] ?? [],
             static function (array $node) use ($ticket, $customerNames, $agentNames): array {
                 if (($node['key'] ?? null) === 'customer_id') {
@@ -448,7 +449,7 @@ final class TicketController extends AbstractController
 
                 return $node;
             },
-        );
+        ));
 
         // Seed schema defaults, then override with the ticket's stored fields
         // (entity_picker values are the related id as a string; '' when unset).
@@ -689,12 +690,6 @@ final class TicketController extends AbstractController
             'low' => 'arrow-down',
             default => 'circle',
         };
-    }
-
-    /** @return array<string, mixed> */
-    private function formProps(): array
-    {
-        return $this->renderers->get(RenderTarget::Props)->render($this->form)->props;
     }
 
     /**

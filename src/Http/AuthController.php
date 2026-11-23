@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace Middag\Demo\Standalone\Http;
 
 use Middag\Demo\Standalone\Domain\User;
+use Middag\Demo\Standalone\Form\FormNodes;
 use Middag\Demo\Standalone\Form\LoginForm;
 use Middag\Demo\Standalone\Shared\Concerns\DeclaresPublicRoute;
 use Middag\Demo\Standalone\Shared\Concerns\RendersPages;
@@ -64,7 +65,7 @@ final class AuthController extends AbstractController implements PublicRouteAwar
         // A header node built from the ui value objects heads the form; the
         // FormPanel serializes FormSchemaNodeInterface nodes next to the
         // renderer's arrays.
-        $schema = [new FormHeaderNode('Demo operator sign-in'), ...($rendered['schema'] ?? [])];
+        $schema = [new FormHeaderNode('Demo operator sign-in'), ...FormNodes::fromRendered($rendered['schema'] ?? [])];
 
         $contract = PageBuilder::page('demo.login')
             // Custom chromeless shell (registered host-side) — no app sidebar/nav

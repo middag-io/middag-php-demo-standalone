@@ -1,12 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Method Middag\\Demo\\Standalone\\Http\\TicketController\:\:formProps\(\) is unused\.$#'
-			identifier: method.unused
-			count: 1
-			path: src/Http/TicketController.php
-
-		-
 			message: '#^Strict comparison using \!\=\= between ''closed''\|''open''\|''pending''\|''resolved'' and ''new'' will always evaluate to true\.$#'
 			identifier: notIdentical.alwaysTrue
 			count: 1
