@@ -14,6 +14,10 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 * support PHP 8.6 ([c80a183](https://github.com/middag-io/middag-php-demo-standalone/commit/c80a1833cb0648629840f8570cafdb6de951e6a7))
 
+### Consumer impact
+
+None; PHP 8.6 is now tested.
+
 ## [0.5.8](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.5.7...v0.5.8) (2026-11-23)
 
 
