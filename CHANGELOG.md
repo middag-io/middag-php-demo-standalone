@@ -7,7 +7,7 @@ release tag — manual entries below the unreleased section will be overwritten.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.5.9](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.5.8...v0.5.9) (2026-11-24)
+## [0.6.0](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.5.8...v0.6.0) (2026-11-24)
 
 
 ### Features
