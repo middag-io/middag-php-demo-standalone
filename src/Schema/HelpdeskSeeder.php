@@ -95,6 +95,9 @@ final class HelpdeskSeeder
         }
 
         // status, priority, channel, subject, tags, ageDays, [satisfaction|null]
+        // Widen the literal rows: PHPStan otherwise narrows $status per row and
+        // reports the "new" checks below as always true or always false.
+        /** @var list<array{string, string, string, string, string, int, null|int}> $specs */
         $specs = [
             ['new', 'urgent', 'phone', 'Cannot log in after password reset', 'auth,login', 0, null],
             ['new', 'high', 'web', 'Invoice PDF export is blank', 'billing,export', 0, null],

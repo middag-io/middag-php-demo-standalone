@@ -71,6 +71,7 @@
       "git diff --exit-code -- COVERAGE.md"
     ],
     "check:stan": "phpstan analyse --configuration=.phpstan.neon",
+    "check:stan:ceiling": "phpstan analyse --configuration=.phpstan-ceiling.neon",
     "check:style": "php-cs-fixer fix --dry-run --verbose --config=.php-cs-fixer.dist.php",
     "check:rector": "rector process --dry-run --config=.php-rector.php",
     "fix": [

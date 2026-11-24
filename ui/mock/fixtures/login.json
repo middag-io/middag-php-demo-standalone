@@ -69,14 +69,6 @@
                         }
                     ]
                 }
-            },
-            "resources": {
-                "preferences": {
-                    "theme": "system",
-                    "locale": "en"
-                },
-                "capabilities": [],
-                "featureFlags": []
             }
         }
     },

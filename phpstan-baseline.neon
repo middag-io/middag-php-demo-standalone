@@ -1,7 +1,0 @@
-parameters:
-	ignoreErrors:
-		-
-			message: '#^Strict comparison using \!\=\= between ''closed''\|''open''\|''pending''\|''resolved'' and ''new'' will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
-			count: 1
-			path: src/Schema/HelpdeskSeeder.php

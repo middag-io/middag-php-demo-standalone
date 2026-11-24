@@ -12,6 +12,7 @@
 /.php-cs-fixer.dist.php             export-ignore
 /.php-rector.php                    export-ignore
 /.phpstan.neon                      export-ignore
+/.phpstan-ceiling.neon              export-ignore
 /phpunit.xml                        export-ignore
 /tests                              export-ignore
 /docs                               export-ignore

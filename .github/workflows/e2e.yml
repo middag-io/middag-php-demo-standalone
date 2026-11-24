@@ -25,7 +25,7 @@ jobs:
       matrix:
         # The committed composer.lock is resolved at the platform pin (8.3.0),
         # so the same lock runs on every supported PHP.
-        php: ['8.3', '8.4', '8.5']
+        php: ['8.3', '8.4', '8.5', '8.6']
     steps:
       - uses: actions/checkout@v7
 
