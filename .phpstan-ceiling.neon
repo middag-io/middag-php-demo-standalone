@@ -1,0 +1,9 @@
+# Ceiling pass: the same analysis as .phpstan.neon at phpVersion 80600, the
+# newest supported PHP. CI runs it on the PHP 8.6 job (composer
+# check:stan:ceiling); the floor pass stays at 80300.
+includes:
+    - .phpstan.neon
+
+parameters:
+    phpVersion: 80600
+    tmpDir: .cache/phpstan-ceiling

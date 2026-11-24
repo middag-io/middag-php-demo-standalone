@@ -20,7 +20,8 @@ jobs:
   # The lock is resolved at the platform pin (PHP 8.3.0), so it installs on
   # every supported PHP; composer validate --strict checks it is in sync. The
   # static checks run on 8.3, the floor; the audit and PHPUnit on every
-  # version. The tool caches live in .cache.
+  # version. A PHPStan ceiling pass (phpVersion 80600) runs on 8.6, the
+  # newest supported PHP. The tool caches live in .cache.
   php-library-check:
     name: php-library-check (PHP ${{ matrix.php-version }})
     runs-on: ubuntu-24.04
@@ -30,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-version: ["8.3", "8.4", "8.5"]
+        php-version: ["8.3", "8.4", "8.5", "8.6"]
     steps:
       - name: Check out the repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -52,6 +53,14 @@ jobs:
           tool-cache-paths: .cache
           audit-blocking-severities: critical, high
 
+      # Ceiling pass: the floor static checks above analyse at phpVersion
+      # 80300 on PHP 8.3; this step re-runs PHPStan with phpVersion 80600 on
+      # the 8.6 job, so code that is deprecated or removed on the newest
+      # supported PHP fails here. The action installed the dependencies.
+      - name: PHPStan ceiling pass (phpVersion 80600)
+        if: matrix.php-version == '8.6'
+        run: composer check:stan:ceiling
+
   # Second run of the same component: removes the platform pin and resolves
   # the highest dependency versions on the PHP of each job, then asserts that
   # every Symfony package the demo requires resolved to 8.x. A green run on
@@ -68,7 +77,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-version: ["8.4", "8.5"]
+        php-version: ["8.4", "8.5", "8.6"]
     steps:
       - name: Check out the repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

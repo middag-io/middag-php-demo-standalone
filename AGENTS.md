@@ -79,6 +79,7 @@ composer install:db     # SQLite schema + seed   (login: demo@middag.io / middag
 composer serve          # http://localhost:8080
 composer test           # PHPUnit
 composer check          # style + rector + phpstan L6
+composer check:stan:ceiling  # phpstan at phpVersion 80600 (CI: PHP 8.6 job)
 ```
 
 ## Refs
