@@ -7,6 +7,22 @@ release tag — manual entries below the unreleased section will be overwritten.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.6.0...v0.7.0) (2026-11-24)
+
+
+### Features
+
+* require @middag-io/react 0.51 ([314cb58](https://github.com/middag-io/middag-php-demo-standalone/commit/314cb58f7ba9214c30fe673f404b3afa9ba1180f))
+
+
+### Bug Fixes
+
+* resolve @middag-io/react 0.51.1 in the UI lockfile ([8037c22](https://github.com/middag-io/middag-php-demo-standalone/commit/8037c2244d63de4f4c9a47bbf36f12fec7a25391))
+
+### Consumer impact
+
+Rebuild the UI bundle: it now resolves `@middag-io/react` 0.51 (UI contract 1.14). No PHP API change.
+
 ## [0.6.0](https://github.com/middag-io/middag-php-demo-standalone/compare/v0.5.8...v0.6.0) (2026-11-24)
 
 
