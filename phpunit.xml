@@ -5,7 +5,9 @@
          colors="true"
          cacheDirectory=".phpunit.cache"
          failOnRisky="true"
-         failOnWarning="true">
+         failOnWarning="true"
+         failOnDeprecation="true"
+         failOnPhpunitDeprecation="true">
     <testsuites>
         <testsuite name="Demo">
             <directory>tests</directory>
