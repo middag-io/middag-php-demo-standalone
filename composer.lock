@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4f8866e5a6cd2b55a51317cab9c9d876",
+    "content-hash": "58565a321450649ac1b31fe18eac2261",
     "packages": [
         {
             "name": "middag-io/framework",
-            "version": "v1.24.0",
+            "version": "v2.0.0-rc.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/middag-io/middag-php-framework.git",
-                "reference": "49b344ec2786d17f224f10a151a719c2e592485f"
+                "reference": "f044a91df0cc2d3b207d7f3bee1265a1e810e2b5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/middag-io/middag-php-framework/zipball/49b344ec2786d17f224f10a151a719c2e592485f",
-                "reference": "49b344ec2786d17f224f10a151a719c2e592485f",
+                "url": "https://api.github.com/repos/middag-io/middag-php-framework/zipball/f044a91df0cc2d3b207d7f3bee1265a1e810e2b5",
+                "reference": "f044a91df0cc2d3b207d7f3bee1265a1e810e2b5",
                 "shasum": ""
             },
             "require": {
@@ -25,7 +25,7 @@
                 "ext-json": "*",
                 "ext-mbstring": "*",
                 "ext-pdo": "*",
-                "middag-io/ui": "^1.14",
+                "middag-io/ui": "^2.0.0-rc.1",
                 "monolog/monolog": "^3.0",
                 "nyholm/psr7": "^1.8",
                 "php": "^8.3",
@@ -61,23 +61,24 @@
             },
             "require-dev": {
                 "deptrac/deptrac": "^3.0",
-                "doctrine/dbal": "^4.1",
+                "doctrine/dbal": "^4.4.5",
                 "fakerphp/faker": "^1.23",
                 "friendsofphp/php-cs-fixer": "^3.0",
                 "league/flysystem": "^3.0",
                 "phpstan/phpstan": "^2.0",
+                "phpstan/phpstan-deprecation-rules": "^2.0",
                 "phpunit/phpunit": "^11.0",
                 "rector/rector": "2.8.4",
                 "sentry/sentry": "^4.0",
                 "symfony/doctrine-messenger": "^7.4 || ^8.1"
             },
             "suggest": {
-                "doctrine/dbal": "DbalSchemaBuilderAdapter — standalone schema/migrations via DBAL (^4.1)",
+                "doctrine/dbal": "DbalSchemaBuilderAdapter — standalone schema/migrations via DBAL (^4.4.5)",
                 "ext-curl": "Recommended transport extension for Symfony HttpClient in production.",
                 "illuminate/database": "Laravel-flavoured query builder/Capsule behind ConnectionAdapterInterface for standalone DB (no shipped integration) (^11.0 || ^12.0)",
                 "league/flysystem": "FlysystemFilesystem — FilesystemInterface impl for cloud/abstract storage (^3.0)",
-                "middag-io/moodle": "Moodle host adapter (^1.0)",
-                "middag-io/wordpress": "WordPress host adapter (^1.0)",
+                "middag-io/moodle": "Moodle host adapter (^2.0)",
+                "middag-io/wordpress": "WordPress host adapter (^2.0)",
                 "sentry/sentry": "SentryErrorReporter — ready-to-bind ErrorReporterInterface impl (^4.0)",
                 "symfony/amqp-messenger": "AMQP/RabbitMQ async transport for the command worker (^7.4 || ^8.1)",
                 "symfony/console": "Recommended CLI layer to expose the command worker and schedule runner as console commands (^7.4 || ^8.1)",
@@ -126,21 +127,21 @@
                 "security": "https://github.com/middag-io/middag-php-framework/security/policy",
                 "source": "https://github.com/middag-io/middag-php-framework"
             },
-            "time": "2026-11-23T21:54:43+00:00",
-            "published-time": "2026-11-23T21:55:43+00:00"
+            "time": "2026-11-25T02:02:30+00:00",
+            "published-time": "2026-11-25T02:03:32+00:00"
         },
         {
             "name": "middag-io/ui",
-            "version": "v1.14.0",
+            "version": "v2.0.0-rc.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/middag-io/middag-php-ui.git",
-                "reference": "f3f714b2c337d809b146ee27a8ed4c9d6f6039b8"
+                "reference": "15b8b3652d764e07af3966294a2a9a9842e673bf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/middag-io/middag-php-ui/zipball/f3f714b2c337d809b146ee27a8ed4c9d6f6039b8",
-                "reference": "f3f714b2c337d809b146ee27a8ed4c9d6f6039b8",
+                "url": "https://api.github.com/repos/middag-io/middag-php-ui/zipball/15b8b3652d764e07af3966294a2a9a9842e673bf",
+                "reference": "15b8b3652d764e07af3966294a2a9a9842e673bf",
                 "shasum": ""
             },
             "require": {
@@ -150,6 +151,7 @@
                 "friendsofphp/php-cs-fixer": "^3.95",
                 "opis/json-schema": "^2.4",
                 "phpstan/phpstan": "^2.1",
+                "phpstan/phpstan-deprecation-rules": "^2.0",
                 "phpunit/phpunit": "^11.0",
                 "rector/rector": "^2.4"
             },
@@ -186,8 +188,8 @@
                 "security": "https://github.com/middag-io/middag-php-ui/security/policy",
                 "source": "https://github.com/middag-io/middag-php-ui"
             },
-            "time": "2026-11-23T21:46:55+00:00",
-            "published-time": "2026-11-23T21:47:52+00:00"
+            "time": "2026-11-25T03:45:42+00:00",
+            "published-time": "2026-11-25T03:46:44+00:00"
         },
         {
             "name": "monolog/monolog",

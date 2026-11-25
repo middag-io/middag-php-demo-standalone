@@ -48,6 +48,24 @@ final class WireSchemaTest extends DemoTestCase
 
     private const string FRAGMENT_SCHEMA_ID = 'https://ui-docs.middag.io/schemas/fragment.json';
 
+    /**
+     * The `*BlockData` definitions the demo routes reach, sorted.
+     */
+    private const array BLOCK_DATA_DEFINITIONS = [
+        'ActionGridBlockData',
+        'ActivityTimelineBlockData',
+        'CardGridBlockData',
+        'ChartBlockData',
+        'DenseTableBlockData',
+        'DetailPanelBlockData',
+        'EmptyStateBlockData',
+        'LinkListBlockData',
+        'MarkdownPanelBlockData',
+        'MetricCardBlockData',
+        'StatusStripBlockData',
+        'TabsBlockData',
+    ];
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -72,6 +90,67 @@ final class WireSchemaTest extends DemoTestCase
         foreach (['/', '/tickets', '/tickets/1', '/tickets/1/edit', '/tickets/1/attachments', '/tickets/new', '/tickets/new?step=1', '/agents', '/agents/1', '/customers', '/parity', '/help', '/coverage', '/ui/page'] as $route) {
             yield $route => [$route];
         }
+    }
+
+    /**
+     * The `data` of every block a route emits matches the schema-only
+     * `*BlockData` definition of its type, when middag-io/ui publishes one.
+     * The block types the demo emits must all be checked: a type in the
+     * expected list without a definition, or a definition the routes never
+     * reach, fails the test.
+     */
+    #[Test]
+    public function blockDataMatchesItsBlockDataDefinition(): void
+    {
+        $checked = [];
+        foreach (self::routes() as [$route]) {
+            foreach ($this->blocksOf($this->contractOf($route)) as $block) {
+                $type = (string) ($block['type'] ?? '');
+                $definition = $this->blockDataDefinition($type);
+                if ($definition === null) {
+                    continue;
+                }
+                $this->assertValid($block['data'] ?? null, self::SCHEMA_ID . '#/$defs/' . $definition, $route . ' ' . $type . ' block ' . ($block['key'] ?? '?'));
+                $checked[$definition] = true;
+            }
+        }
+
+        $checked = array_keys($checked);
+        sort($checked);
+
+        self::assertSame(self::BLOCK_DATA_DEFINITIONS, $checked);
+    }
+
+    /**
+     * The structured cells of the ticket queue match the schema-only cell
+     * shapes of their column variant: a `rich_status` cell is a
+     * RichStatusValue and an `annotated` cell an AnnotatedValue.
+     */
+    #[Test]
+    public function denseTableCellsMatchTheirCellValueDefinitions(): void
+    {
+        $definitions = ['rich_status' => 'RichStatusValue', 'annotated' => 'AnnotatedValue'];
+        $checked = [];
+        foreach ($this->blocksOf($this->contractOf('/tickets')) as $block) {
+            if (($block['type'] ?? null) !== 'dense_table') {
+                continue;
+            }
+            foreach ((array) ($block['data']['columns'] ?? []) as $column) {
+                $definition = $definitions[$column['variant'] ?? ''] ?? null;
+                if ($definition === null) {
+                    continue;
+                }
+                foreach ((array) ($block['data']['rows'] ?? []) as $row) {
+                    $this->assertValid($row[$column['key']] ?? null, self::SCHEMA_ID . '#/$defs/' . $definition, '/tickets ' . $column['key'] . ' cell');
+                    $checked[$definition] = true;
+                }
+            }
+        }
+
+        $checked = array_keys($checked);
+        sort($checked);
+
+        self::assertSame(['AnnotatedValue', 'RichStatusValue'], $checked);
     }
 
     #[Test]
@@ -222,12 +301,25 @@ final class WireSchemaTest extends DemoTestCase
      */
     private function formPanels(array $contract): array
     {
-        $panels = [];
-        $walk = static function (array $blocks) use (&$walk, &$panels): void {
+        return array_values(array_filter(
+            $this->blocksOf($contract),
+            static fn (array $block): bool => ($block['type'] ?? null) === 'form_panel',
+        ));
+    }
+
+    /**
+     * Every block of the contract, including the blocks nested in tabs.
+     *
+     * @param array<string, mixed> $contract
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function blocksOf(array $contract): array
+    {
+        $found = [];
+        $walk = static function (array $blocks) use (&$walk, &$found): void {
             foreach ($blocks as $block) {
-                if (($block['type'] ?? null) === 'form_panel') {
-                    $panels[] = $block;
-                }
+                $found[] = (array) $block;
                 foreach ((array) ($block['data']['tabs'] ?? []) as $tab) {
                     $walk((array) ($tab['blocks'] ?? []));
                 }
@@ -237,7 +329,20 @@ final class WireSchemaTest extends DemoTestCase
             $walk((array) $blocks);
         }
 
-        return $panels;
+        return $found;
+    }
+
+    /**
+     * The schema definition that types the `data` of a block type, such as
+     * CardGridBlockData for `card_grid`, or null when the schema has none.
+     */
+    private function blockDataDefinition(string $type): ?string
+    {
+        $definition = str_replace('_', '', ucwords($type, '_')) . 'BlockData';
+        $schema = json_decode((string) file_get_contents($this->projectRoot() . '/vendor/middag-io/ui/schema/page-contract.json'), true);
+        \assert(\is_array($schema));
+
+        return isset($schema['$defs'][$definition]) ? $definition : null;
     }
 
     /**

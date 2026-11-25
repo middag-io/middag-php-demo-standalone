@@ -7,12 +7,12 @@
     "php": "^8.3",
     "ext-pdo": "*",
     "ext-pdo_sqlite": "*",
-    "middag-io/framework": "^1.24",
-    "middag-io/ui": "^1.14",
+    "middag-io/framework": "^2.0.0-rc.2",
+    "middag-io/ui": "^2.0.0-rc.2",
     "symfony/dotenv": "^7.4 || ^8.1"
   },
   "require-dev": {
-    "doctrine/dbal": "^4.0",
+    "doctrine/dbal": "^4.4.5",
     "filp/whoops": "^2.18",
     "friendsofphp/php-cs-fixer": "^3.0",
     "opis/json-schema": "^2.4",

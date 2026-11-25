@@ -40,6 +40,8 @@ final class CustomerContractTest extends DemoTestCase
         self::assertNotNull($grid);
         self::assertSame('card_grid', $grid['type']);
         self::assertArrayHasKey('emptyState', $grid['data'], 'card_grid carries an emptyState fallback');
+        // No variant: the renderer applies the default card (CardGridVariant::Default).
+        self::assertArrayNotHasKey('variant', $grid['data'], 'card_grid sends no variant');
 
         $names = array_column($grid['data']['rows'], 'name');
         self::assertContains('Acme Corp Contact', $names, 'seeded customer renders as a card');
